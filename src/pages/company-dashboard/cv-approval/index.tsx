@@ -131,8 +131,8 @@ const ApplicantTable: React.FC = () => {
     },
     {
       title: 'Mã SV',
-      dataIndex: 'studentId',
-      key: 'studentId',
+      dataIndex: 'student_code',
+      key: 'student_code',
     },
     {
       title: 'GPA',

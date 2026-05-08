@@ -1,4 +1,6 @@
 import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { 
   Box, 
   Grid, 
@@ -43,6 +45,51 @@ const cvChartData: ChartData[] = [
 ];
 
 const CompanyDashboard: React.FC = () => {
+    const [stats, setStats] = useState({ totalJobs: 0, totalCVs: 0 });
+    const [chartData, setChartData] = useState<ChartData[]>([]);
+
+    useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // Lấy danh sách toàn bộ Job
+        const resJobs = await axios.get(`${process.env.REACT_APP_API_URL}/api/v1/jobs`);
+        const jobsList = resJobs.data?.data || [];
+
+        let totalCVCount = 0;
+        const tempChartData: ChartData[] = [];
+
+        // Tạo mảng các request lấy CV cho từng Job
+        const cvRequests = jobsList.map((job: any) => 
+          axios.get(`${process.env.REACT_APP_API_URL}/api/v1/resumes/job/${job.id}`)
+        );
+        
+        // Gọi song song tất cả các request để tối ưu tốc độ
+        const cvResponses = await Promise.all(cvRequests);
+
+        // Tổng hợp số liệu
+        cvResponses.forEach((res: any, index) => {
+          const cvs = res.data?.data || [];
+          totalCVCount += cvs.length;
+          
+          // Map dữ liệu vào đúng format của Recharts
+          tempChartData.push({
+            jobName: jobsList[index].name,
+            cvCount: cvs.length
+          });
+        });
+
+        // Cập nhật lên UI
+        setStats({ totalJobs: jobsList.length, totalCVs: totalCVCount });
+        setChartData(tempChartData);
+
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu thống kê:', error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
   return (
     <Box sx={{ p: 4, bgcolor: '#f4f6f8', minHeight: '100vh' }}>
       <Typography variant="h4" fontWeight="bold" sx={{ mb: 4, color: '#333' }}>
@@ -72,7 +119,7 @@ const CompanyDashboard: React.FC = () => {
                     Tổng số Job đang tuyển
                   </Typography>
                   <Typography variant="h3" fontWeight="bold" sx={{ color: '#1976d2', mt: 1 }}>
-                    {summaryStats.totalJobs}
+                    {stats.totalJobs}
                   </Typography>
                 </Box>
                 <Box 
@@ -111,7 +158,7 @@ const CompanyDashboard: React.FC = () => {
                     Tổng số CV nhận được
                   </Typography>
                   <Typography variant="h3" fontWeight="bold" sx={{ color: '#2e7d32', mt: 1 }}>
-                    {summaryStats.totalCVs}
+                    {stats.totalCVs}
                   </Typography>
                 </Box>
                 <Box 
@@ -140,7 +187,7 @@ const CompanyDashboard: React.FC = () => {
         <Box sx={{ width: '100%', height: 400 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={cvChartData}
+              data={chartData}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />

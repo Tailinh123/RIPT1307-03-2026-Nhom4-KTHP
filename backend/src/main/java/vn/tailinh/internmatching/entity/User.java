@@ -78,8 +78,7 @@ public class User extends AbstractAuditingEntity<Long> {
   @Column(name = "student_code" , length = 20)
   private String studentCode;
 
-  @NotBlank
-  @NotNull
+
   @Column(name = "is_subscribed")
   private boolean isSubscriber;
 

@@ -28,6 +28,7 @@ import lombok.Setter;
 import vn.tailinh.internmatching.util.constant.Gender;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -60,7 +61,7 @@ public class User extends AbstractAuditingEntity<Long> {
   private String password;
 
   @Column(name = "date_of_birth")
-  private Instant dateOfBirth;
+  private LocalDate dateOfBirth;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "gender")
@@ -79,6 +80,7 @@ public class User extends AbstractAuditingEntity<Long> {
 
   @NotBlank
   @NotNull
+  @Column(name = "is_subscribed")
   private boolean isSubscriber;
 
 

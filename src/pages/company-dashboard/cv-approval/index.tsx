@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Tag, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import axios from 'axios';
 import {
   Button,
   Dialog,
@@ -16,37 +17,65 @@ import {
 interface Applicant {
   id: string;
   name: string;
-  studentId: string;
+  student_code: string; // Tùy thuộc vào cấu trúc Backend trả về, có thể là student_code
   gpa: number;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'REVIEWING';
   hrNote?: string;
+  url: string; // Đã thêm url để không bị lỗi TypeScript khi mở CV
 }
 
-// 2. Khởi tạo Mock Data
-const initialData: Applicant[] = [
-  { id: '1', name: 'Nguyễn Văn A', studentId: 'B20DCCN001', gpa: 3.8, status: 'Pending' },
-  { id: '2', name: 'Trần Thị B', studentId: 'B20DCCN002', gpa: 3.5, status: 'Approved' },
-  { id: '3', name: 'Lê Văn C', studentId: 'B20DCCN003', gpa: 2.9, status: 'Rejected', hrNote: 'Chưa phù hợp định hướng' },
-  { id: '4', name: 'Phạm Thị D', studentId: 'B20DCCN004', gpa: 3.2, status: 'Pending' },
-];
-
 const ApplicantTable: React.FC = () => {
-  const [data, setData] = useState<Applicant[]>(initialData);
+  // BẮT BUỘC: State phải nằm TRONG component
+  const [data, setData] = useState<Applicant[]>([]);
   const [openRejectModal, setOpenRejectModal] = useState<boolean>(false);
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
   const [hrNote, setHrNote] = useState<string>('');
 
+  // Lấy danh sách CV khi component render
+  useEffect(() => {
+    const fetchResumes = async () => {
+      try {
+        // Tạm hardcode jobId = 1 để test, sau này sẽ lấy từ props hoặc URL params
+        const jobId = 1; 
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/v1/resumes/job/${jobId}`);
+        
+        // Bọc trong try-catch để an toàn, đảm bảo lấy đúng .data.data
+        if (response.data && response.data.statusCode === 200) {
+          setData(response.data.data); 
+        }
+      } catch (error) {
+        message.error('Lỗi khi tải danh sách CV từ Backend!');
+      }
+    };
+
+    fetchResumes();
+  }, []);
+
   // Xử lý khi bấm nút Xem CV
   const handleViewCV = (record: Applicant) => {
-    message.info(`Đang mở CV của sinh viên: ${record.name}`);
+    if (record.url) {
+      window.open(record.url, '_blank');
+    } else {
+      message.warning('Ứng viên này không có link CV!');
+    }
   };
 
-  // Xử lý khi bấm nút Approve
-  const handleApprove = (id: string) => {
-    setData((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status: 'Approved' } : item))
-    );
-    message.success('Đã duyệt ứng viên thành công!');
+  // Xử lý khi bấm nút Approve (Gọi API PUT)
+  const handleApprove = async (id: string) => {
+    try {
+      // Gọi API đổi trạng thái
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/v1/resumes/${id}/status`, {
+        status: 'APPROVED'
+      });
+
+      // Cập nhật lại UI nếu API thành công
+      setData((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status: 'APPROVED' } : item))
+      );
+      message.success('Đã duyệt ứng viên thành công!');
+    } catch (error) {
+      message.error('Lỗi khi duyệt ứng viên. Vui lòng thử lại.');
+    }
   };
 
   // Xử lý khi bấm nút Reject (Mở Modal)
@@ -62,19 +91,34 @@ const ApplicantTable: React.FC = () => {
     setSelectedApplicant(null);
   };
 
-  // Xác nhận Reject ứng viên
-  const confirmReject = () => {
+  // Xác nhận Reject ứng viên (Gọi API PUT và POST)
+  const confirmReject = async () => {
     if (!selectedApplicant) return;
 
-    setData((prev) =>
-      prev.map((item) =>
-        item.id === selectedApplicant.id
-          ? { ...item, status: 'Rejected', hrNote: hrNote }
-          : item
-      )
-    );
-    message.error(`Đã từ chối ứng viên ${selectedApplicant.name}`);
-    handleCloseReject();
+    try {
+      // 1. Gọi API đổi trạng thái thành REJECTED
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/v1/resumes/${selectedApplicant.id}/status`, {
+        status: 'REJECTED'
+      });
+
+      // 2. Gọi API lưu Note của HR
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/v1/resumes/${selectedApplicant.id}/notes`, {
+        note: hrNote
+      });
+
+      // Cập nhật lại UI
+      setData((prev) =>
+        prev.map((item) =>
+          item.id === selectedApplicant.id
+            ? { ...item, status: 'REJECTED', hrNote: hrNote }
+            : item
+        )
+      );
+      message.success(`Đã từ chối ứng viên ${selectedApplicant.name}`);
+      handleCloseReject();
+    } catch (error) {
+      message.error('Có lỗi xảy ra khi từ chối ứng viên!');
+    }
   };
 
   // 3. Cấu hình cột cho Ant Design Table
@@ -83,7 +127,7 @@ const ApplicantTable: React.FC = () => {
       title: 'Tên sinh viên',
       dataIndex: 'name',
       key: 'name',
-      fontWeight: 'bold',
+      render: (text) => <strong>{text}</strong>, // Sửa lỗi fontWeight của Antd
     },
     {
       title: 'Mã SV',
@@ -101,7 +145,7 @@ const ApplicantTable: React.FC = () => {
       key: 'status',
       dataIndex: 'status',
       render: (status: Applicant['status']) => {
-        let color = status === 'Approved' ? 'green' : status === 'Rejected' ? 'red' : 'gold';
+        let color = status === 'APPROVED' ? 'green' : status === 'REJECTED' ? 'red' : 'gold';
         return <Tag color={color}>{status.toUpperCase()}</Tag>;
       },
     },
@@ -112,7 +156,7 @@ const ApplicantTable: React.FC = () => {
         <Stack direction="row" spacing={1}>
           <Button
             variant="contained"
-            color="primary" // Xanh dương
+            color="primary"
             size="small"
             onClick={() => handleViewCV(record)}
           >
@@ -121,9 +165,9 @@ const ApplicantTable: React.FC = () => {
 
           <Button
             variant="contained"
-            color="success" // Xanh lá
+            color="success"
             size="small"
-            disabled={record.status !== 'Pending'}
+            disabled={record.status !== 'PENDING'}
             onClick={() => handleApprove(record.id)}
           >
             Approve
@@ -131,9 +175,9 @@ const ApplicantTable: React.FC = () => {
 
           <Button
             variant="contained"
-            color="error" // Đỏ
+            color="error"
             size="small"
-            disabled={record.status !== 'Pending'}
+            disabled={record.status !== 'PENDING'}
             onClick={() => handleOpenReject(record)}
           >
             Reject
@@ -149,7 +193,6 @@ const ApplicantTable: React.FC = () => {
         Danh sách sinh viên ứng tuyển
       </Typography>
 
-      {/* Bảng dữ liệu của Ant Design */}
       <Table 
         columns={columns} 
         dataSource={data} 
@@ -157,7 +200,6 @@ const ApplicantTable: React.FC = () => {
         pagination={{ pageSize: 5 }} 
       />
 
-      {/* Modal / Dialog của MUI cho việc Reject */}
       <Dialog open={openRejectModal} onClose={handleCloseReject} fullWidth maxWidth="sm">
         <DialogTitle>Từ chối ứng viên: {selectedApplicant?.name}</DialogTitle>
         <DialogContent>
@@ -185,7 +227,7 @@ const ApplicantTable: React.FC = () => {
             onClick={confirmReject} 
             color="error" 
             variant="contained"
-            disabled={!hrNote.trim()} // Bắt buộc nhập lý do mới cho Reject
+            disabled={!hrNote.trim()} 
           >
             Xác nhận Reject
           </Button>

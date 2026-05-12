@@ -47,6 +47,7 @@ public class User extends AbstractAuditingEntity<Long> {
   private Long id;
 
   @Column(name = "name", length = 100)
+  @NotBlank(message = "Name is required")
   private String name;
 
   @Column(name = "email", length = 255, nullable = false , unique = true)
@@ -73,7 +74,7 @@ public class User extends AbstractAuditingEntity<Long> {
   @Column(name = "is_subscribed")
   private boolean isSubscribed;
 
-  @Column(name = "refresh_token", columnDefinition = "MEDIUMTEXT")
+  @Column(name = "refresh_token", columnDefinition = "TEXT")
   @JsonIgnore
   private String refreshToken;
 
@@ -84,13 +85,16 @@ public class User extends AbstractAuditingEntity<Long> {
   @Column(name = "avatar")
   private String avatarUrl;
 
+  @Column(name = "is_active")
+  private boolean active = true;
+
   
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "company_id")
   private Company company;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "role_id")
+  @JoinColumn(name = "role_id" , nullable = false)
   private Role role;
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY )

@@ -40,8 +40,8 @@ public class Company extends AbstractAuditingEntity<Long> {
     @JsonProperty("address")
     private String address;
 
-    @Column(name = "logo")
-    @JsonProperty("logo")
+    @Column(name = "logoUrl")
+    @JsonProperty("logoUrl")
     private String logoUrl;
 
     @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)

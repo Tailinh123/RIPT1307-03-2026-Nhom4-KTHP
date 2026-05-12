@@ -26,7 +26,7 @@ import vn.tailinh.internmatching.util.constant.EmailStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class EmailLog {
+public class EmailLog extends AbstractAuditingEntity<Long> {
 
 @Id 
 @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,12 +41,12 @@ private String subject;
 @Column(columnDefinition = "TEXT")
 private String content;
 
+@Column(name = "sent_at")
+private Instant sentAt;
+
 @Enumerated(EnumType.STRING)
 @Column(name = "status")
 private EmailStatus status;
-
-@Column(name = "sent_at")
-private Instant sentAt;
 
 @ManyToOne(fetch = FetchType.LAZY)
 @JoinColumn(name = "user_id")

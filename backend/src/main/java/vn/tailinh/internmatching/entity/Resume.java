@@ -16,7 +16,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,24 +30,16 @@ import lombok.Setter;
 public class Resume extends AbstractAuditingEntity<Long> {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private long id;
+  private Long id;
 
-  // @NotBlank(message = "Tittle is required")
   private String title;
-
-  private String education;
 
   @NotBlank(message = "Url is required")
   private String url;
-
-  @NotBlank(message = "Gpa is required")
-  @NotNull
-  @Column(name = "gpa", precision = 3, scale = 2)
-  private BigDecimal gpa;
-
+  
   @ManyToOne(fetch = FetchType.LAZY)
   @JsonIgnore
-  @JoinColumn(name = "user_id")
+  @JoinColumn(name = "user_id" , nullable = false)
   private User user;
 
   @OneToMany(mappedBy = "resume" , fetch = FetchType.LAZY)

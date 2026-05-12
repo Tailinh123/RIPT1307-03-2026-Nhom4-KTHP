@@ -17,9 +17,16 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import vn.tailinh.internmatching.util.constant.JobType;
 import vn.tailinh.internmatching.util.constant.Level;
 
 import java.math.BigDecimal;
@@ -28,16 +35,18 @@ import java.util.List;
 
 @Entity
 @Table(name="jobs")
-@Getter
+@Getter 
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Job extends AbstractAuditingEntity<Long>{
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank(message = "Name is required")
     private String name;
-    
-    @Column(columnDefinition = "MEDIUMTEXT")
+
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @NotBlank(message = "Location is required")
@@ -45,27 +54,34 @@ public class Job extends AbstractAuditingEntity<Long>{
 
     private boolean active;
 
-    @Enumerated(EnumType.STRING)
-    private Level level;
-
+    @Min(1)
     private int quantity;
 
-
-    @Column(name = "salary" , precision = 15 , scale = 2 )
+    @Column(name = "salary", precision = 15, scale = 2)
     private BigDecimal salary;
 
-    @Column(name = "required_gpa" , precision = 3 , scale = 2)
-    private BigDecimal requiredGpa;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "job_type")
+    private JobType jobType;
+  
+    @FutureOrPresent(message = "Start date must be in future")
     private Instant startDate;
 
+    @FutureOrPresent(message = "End date must be in future")
     private Instant endDate;
+
+    @Enumerated(EnumType.STRING)
+    private Level level;
 
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
 
-    // job_skill
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private JobCategory jobCategory;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = {"jobs"})
     @JoinTable(name = "job_skill", joinColumns = @JoinColumn(name = "job_id"),
@@ -74,9 +90,5 @@ public class Job extends AbstractAuditingEntity<Long>{
 
     @OneToMany(mappedBy = "job", fetch = FetchType.LAZY)
     @JsonIgnore
-    List<Application> applications;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private JobCategory jobCategory;
+    private List<Application> applications;
 }

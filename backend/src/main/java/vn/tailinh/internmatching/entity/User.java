@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,13 +22,13 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.tailinh.internmatching.util.constant.Gender;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -48,62 +49,64 @@ public class User extends AbstractAuditingEntity<Long> {
   @Column(name = "name", length = 100)
   private String name;
 
-  @Column(name = "email", length = 255, nullable = false)
+  @Column(name = "email", length = 255, nullable = false , unique = true)
   @NotBlank(message = "Email is required")
-  @NotNull(message = "Email cannot be null")
   @Email(message = "Please provide a valid email address")
   private String email;
 
   @Column(name = "password", length = 200)
   @NotBlank(message = "Password cannot be blank")
-  @NotNull(message = "Password cannot be null")
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private String password;
 
   @Column(name = "date_of_birth")
   private LocalDate dateOfBirth;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "gender")
-  private Gender gender;
-
   @Column(name = "address", length = 200)
   private String address;
+
+  @Column(name = "phone", length = 15)
+  @Pattern(regexp = "^(0|\\+84)[0-9]{9}$")
+  private String phone;
+
+
+  @Column(name = "is_subscribed")
+  private boolean isSubscribed;
 
   @Column(name = "refresh_token", columnDefinition = "MEDIUMTEXT")
   @JsonIgnore
   private String refreshToken;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "gender")
+  private Gender gender;
 
-  @Column(name = "student_code" , length = 20)
-  private String studentCode;
+  @Column(name = "avatar")
+  private String avatarUrl;
 
-
-  @Column(name = "is_subscribed")
-  private boolean isSubscriber;
-
-
-
-
+  
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "company_id")
   private Company company;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-  @JsonIgnore
-  List<Resume> resumes;
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "role_id")
   private Role role;
+
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY )
+  @JsonIgnore
+  private List<Resume> resumes;
 
   @OneToMany(mappedBy = "user")
   @JsonIgnore
   private List<EmailLog> emailLogs;
 
   @ManyToMany(fetch = FetchType.LAZY)
-  @JsonIgnore
-  @JoinTable(name = "user_skill", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
+  @JoinTable(name = "user_skills",
+          joinColumns = @JoinColumn(name = "user_id"),
+          inverseJoinColumns = @JoinColumn(name = "skill_id"))
   private List<Skill> skills;
+
+
 
 }

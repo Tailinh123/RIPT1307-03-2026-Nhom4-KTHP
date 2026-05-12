@@ -33,6 +33,6 @@ public class JobCategory extends AbstractAuditingEntity<Long> {
 
   @OneToMany(mappedBy = "jobCategory")
   @JsonIgnore
-  List<Job> jobs;
+  private List<Job> jobs;
 
 }

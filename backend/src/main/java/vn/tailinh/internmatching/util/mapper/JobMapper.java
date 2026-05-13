@@ -38,7 +38,6 @@ public class JobMapper {
     }
 
     // category
-
    
     if (job.getJobCategory() != null) {
       ResponseCreateJobDTO.CategoryDTO category = new ResponseCreateJobDTO.CategoryDTO();

@@ -9,7 +9,7 @@ import vn.tailinh.internmatching.dto.response.user.ResUserDTO;
 import vn.tailinh.internmatching.dto.response.user.UpdatedUserResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.repository.UserRepository;
-import vn.tailinh.internmatching.util.mapper.UserConvert;
+import vn.tailinh.internmatching.util.mapper.UserMapper;
 import vn.tailinh.internmatching.util.response.FormatResultPagaination;
 import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Role;
@@ -51,14 +51,14 @@ public class UserService {
         String hashPassword = this.passwordEncoder.encode(user.getPassword());
         user.setPassword(hashPassword);
 
-        return UserConvert.convertToResCreatedUserRes(this.userRepository.save(user));
+        return UserMapper.convertToResCreatedUserRes(this.userRepository.save(user));
     }
 
 
     
     public ResUserDTO fetchUserById(Long id) throws Exception {
         if(userRepository.existsById(id)){
-            return UserConvert.convertToUserDTO(this.userRepository.findById(id).get());
+            return UserMapper.convertToUserDTO(this.userRepository.findById(id).get());
         }else{
             throw new IdInvalidException("The specified User ID is invalid");
         }
@@ -110,7 +110,7 @@ public class UserService {
                 currentUser.setRole(role);
             }
 
-            return UserConvert.convertToResUpdatedUserRes(this.userRepository.save(currentUser));
+            return UserMapper.convertToResUpdatedUserRes(this.userRepository.save(currentUser));
         }
         return null;
     }

@@ -2,6 +2,7 @@ package vn.tailinh.internmatching.service;
 
 import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.entity.User;
+import vn.tailinh.internmatching.dto.request.user.ChangePasswordDTO;
 import vn.tailinh.internmatching.dto.request.user.UpdateUserDTO;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.dto.response.user.CreatedUserResponse;
@@ -14,6 +15,7 @@ import vn.tailinh.internmatching.util.response.FormatResultPagaination;
 import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Role;
 
+import org.apache.catalina.security.SecurityUtil;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -112,7 +114,7 @@ public class UserService {
 
             return UserMapper.convertToResUpdatedUserRes(this.userRepository.save(currentUser));
         }
-        return null;
+        throw new IdInvalidException("User ID = " + id + " not found");
     }
 
 
@@ -131,6 +133,21 @@ public class UserService {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
     }
 
+
+    public void changePassword(ChangePasswordDTO dto) throws Exception {
+      String email = SecurityUtil.getCurrentUserLogin().orElseThrow(() -> new IdInvalidException("Not Authenticated"));
+      User user = this.handleGetUserByUsername(email);
+      if(user == null) throw new IdInvalidException("User not found");
+
+      if(passwordEncoder.matches(dto.getCurrentPassword(),user.getPassword())) {
+          throw new IdInvalidException("Current Password is incorrect");
+      } 
+      if(!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+        throw new IdInvalidException("Passwords do not match");
+      }
+
+      user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+      this.userRepository.save(user);
 
     
 }

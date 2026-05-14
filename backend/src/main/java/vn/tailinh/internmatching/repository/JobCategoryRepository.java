@@ -7,5 +7,5 @@ import vn.tailinh.internmatching.entity.JobCategory;
 
 public interface JobCategoryRepository extends JpaRepository<JobCategory , Long > {
   
-
+boolean existsByName(String name);
 }

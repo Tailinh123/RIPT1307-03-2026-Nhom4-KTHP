@@ -44,6 +44,8 @@ public class Company extends AbstractAuditingEntity<Long> {
     @JsonProperty("logoUrl")
     private String logoUrl;
 
+
+    
     @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<User> users;

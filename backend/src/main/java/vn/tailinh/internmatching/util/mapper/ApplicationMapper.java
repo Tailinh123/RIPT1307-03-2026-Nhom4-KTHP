@@ -33,6 +33,8 @@ public class ApplicationMapper {
       CreateApplicationResponse.JobDTO job = new CreateApplicationResponse.JobDTO();
       job.setId(application.getJob().getId());
       job.setName(application.getJob().getName());
+
+      res.setJob(job);
     }
       return res;
   }
@@ -54,7 +56,8 @@ public class ApplicationMapper {
         if( application.getJob() != null) {
           FetchApplicationResponse.JobDTO job = new FetchApplicationResponse.JobDTO();
           job.setId(application.getJob().getId());
-          job.setName(application.getJob().getName());
+
+          res.setJob(job);
         }
         
 
@@ -66,7 +69,6 @@ public class ApplicationMapper {
       resume.setUrl(application.getResume().getUrl());
       res.setResume(resume);
     }
-
       return res;
       }
       

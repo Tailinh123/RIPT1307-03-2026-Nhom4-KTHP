@@ -40,7 +40,7 @@ public class Application extends AbstractAuditingEntity<Long> {
   @Column(name = "status")
   private ApplicationStatus status = ApplicationStatus.PENDING;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "resume_id" , nullable = false)
   private Resume resume;
 

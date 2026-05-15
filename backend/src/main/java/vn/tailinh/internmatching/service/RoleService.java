@@ -66,7 +66,7 @@ public class RoleService {
         currentRole.setName(role.getName());
         currentRole.setActive(role.isActive());
         currentRole.setDescription(role.getDescription());
-        currentRole.setPermissions(dbPermissions);
+        currentRole.setPermissions(role.getPermissions());
         return this.roleRepository.save(currentRole);
     }
 

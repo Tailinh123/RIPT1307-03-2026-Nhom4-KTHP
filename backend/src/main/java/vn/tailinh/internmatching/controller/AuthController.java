@@ -169,7 +169,7 @@ public class AuthController {
         this.userService.updateUserToken(null, email);
 
         ResponseCookie deleteSpringCookie = ResponseCookie
-                .from("refresh_token", null)
+                .from("refresh_token")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")

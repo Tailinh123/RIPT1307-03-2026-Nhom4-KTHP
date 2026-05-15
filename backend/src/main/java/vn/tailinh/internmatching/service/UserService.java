@@ -10,12 +10,12 @@ import vn.tailinh.internmatching.dto.response.user.ResUserDTO;
 import vn.tailinh.internmatching.dto.response.user.UpdatedUserResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.repository.UserRepository;
+import vn.tailinh.internmatching.security.SecurityUtils;
 import vn.tailinh.internmatching.util.mapper.UserMapper;
 import vn.tailinh.internmatching.util.response.FormatResultPagaination;
 import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Role;
 
-import org.apache.catalina.security.SecurityUtil;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -135,7 +135,7 @@ public class UserService {
 
 
     public void changePassword(ChangePasswordDTO dto) throws Exception {
-      String email = SecurityUtil.getCurrentUserLogin().orElseThrow(() -> new IdInvalidException("Not Authenticated"));
+      String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
       User user = this.handleGetUserByUsername(email);
       if(user == null) throw new IdInvalidException("User not found");
 
@@ -150,4 +150,6 @@ public class UserService {
       this.userRepository.save(user);
 
     
+}
+
 }

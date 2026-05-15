@@ -1,5 +1,7 @@
 package vn.tailinh.internmatching.dto.request.application;
 
+import java.time.Instant;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +20,8 @@ public class CreateApplicationDTO {
   private ResumeDTO resume;
   private JobDTO job;
 
-
+  private Instant createdAt;
+  private String createdBy;
 
   
   @Setter

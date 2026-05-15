@@ -23,13 +23,11 @@ import java.time.Instant;
 public abstract class AbstractAuditingEntity<T> implements Serializable {
 
     @CreatedBy
-    // Để length = 255 để bao trọn cả bảng companies (255) và roles/permissions (50)
     @Column(name = "created_by", length = 255, updatable = false)
     private String createdBy;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
-//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GMT+7")
     private Instant createdAt = Instant.now();
 
     @LastModifiedBy
@@ -38,6 +36,5 @@ public abstract class AbstractAuditingEntity<T> implements Serializable {
 
     @LastModifiedDate
     @Column(name = "updated_at")
-//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GMT+7")
     private Instant updatedAt = Instant.now();
 }

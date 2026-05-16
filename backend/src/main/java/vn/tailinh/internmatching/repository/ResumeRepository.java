@@ -10,5 +10,4 @@ import vn.tailinh.internmatching.entity.Resume;
 public interface ResumeRepository extends
         JpaRepository<Resume, Long>,
         JpaSpecificationExecutor<Resume> {
-
 }

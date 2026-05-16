@@ -1,25 +1,19 @@
 package vn.tailinh.internmatching.service;
 
-import org.hibernate.query.Page;
-import org.springframework.boot.autoconfigure.batch.BatchProperties.Job;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.entity.JobCategory;
 import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.repository.JobCategoryRepository;
-import vn.tailinh.internmatching.util.response.FormatRestResponse;
-import vn.tailinh.internmatching.util.response.FormatResultPagaination;
+
 
 @Service
 @RequiredArgsConstructor
 public class JobCategoryService {
   private final JobCategoryRepository jobCategoryRepository;
 
-  public JobCategoryRepository create(JobCategory jobcategory) throws Exception {
+  public JobCategory create(JobCategory jobcategory) throws Exception {
     if (jobCategoryRepository.existsByName(jobcategory.getName())) {
       throw new IdInvalidException("Category name already exists");
     }
@@ -45,10 +39,10 @@ public class JobCategoryService {
 
 
   
-  public ResultPaginationResponse fetchAll(Specification<JobCategory> specification , Pageable pageable ) {
-    Page<JobCategory> page = jobCategoryRepository.findAll(specification , pageable);
-    return FormatResultPagaination.createPaginationResponse(page); 
-  }
+  // public ResultPaginationResponse fetchAll(Specification<JobCategory> specification , Pageable pageable ) {
+  //   Page<JobCategory> page = jobCategoryRepository.findAll(specification , pageable);
+  //   return FormatResultPagaination.createPaginationResponse(page); 
+  // }
   
 
 

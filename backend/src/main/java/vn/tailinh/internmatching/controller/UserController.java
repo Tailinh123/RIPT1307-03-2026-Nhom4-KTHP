@@ -20,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping(path = "${apiPrefix}/users")
-@RequiredArgsConstructor
 @RestController
 public class UserController {
   private final UserService userService;
@@ -66,9 +65,10 @@ public class UserController {
   }
 
   @PutMapping("/change-password")
-@ApiMessage("Change password")
-public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordDTO req) throws Exception {
+  @ApiMessage("Change password")
+  public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordDTO req) throws Exception {
 
-  return ResponseEntity.ok(this.userService.updateUser(id,));
+    return ResponseEntity.ok(null);
 
+  }
 }

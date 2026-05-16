@@ -12,12 +12,10 @@ public class UpdateApplicationDTO {
   private Long id;
 
   private ApplicationStatus status;
-
   private String note;
   private UserDTO user;
   private ResumeDTO resume;
   private JobDTO job;
-
 
 
   

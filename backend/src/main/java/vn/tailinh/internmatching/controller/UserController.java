@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RequestMapping(path = "${apiPrefix}/users")
 @RestController
+@RequiredArgsConstructor
 public class UserController {
   private final UserService userService;
 

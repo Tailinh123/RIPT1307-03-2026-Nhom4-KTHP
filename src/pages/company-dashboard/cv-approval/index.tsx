@@ -17,7 +17,7 @@ import {
 interface Applicant {
   id: string;
   name: string;
-  student_code: string; // Tùy thuộc vào cấu trúc Backend trả về, có thể là student_code
+  student_code: string;
   gpa: number;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'REVIEWING';
   hrNote?: string;
@@ -25,7 +25,6 @@ interface Applicant {
 }
 
 const ApplicantTable: React.FC = () => {
-  // BẮT BUỘC: State phải nằm TRONG component
   const [data, setData] = useState<Applicant[]>([]);
   const [openRejectModal, setOpenRejectModal] = useState<boolean>(false);
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
@@ -35,11 +34,9 @@ const ApplicantTable: React.FC = () => {
   useEffect(() => {
     const fetchResumes = async () => {
       try {
-        // Tạm hardcode jobId = 1 để test, sau này sẽ lấy từ props hoặc URL params
         const jobId = 1; 
         const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/v1/resumes/job/${jobId}`);
         
-        // Bọc trong try-catch để an toàn, đảm bảo lấy đúng .data.data
         if (response.data && response.data.statusCode === 200) {
           setData(response.data.data); 
         }
@@ -127,7 +124,7 @@ const ApplicantTable: React.FC = () => {
       title: 'Tên sinh viên',
       dataIndex: 'name',
       key: 'name',
-      render: (text) => <strong>{text}</strong>, // Sửa lỗi fontWeight của Antd
+      render: (text) => <strong>{text}</strong>,
     },
     {
       title: 'Mã SV',

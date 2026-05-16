@@ -37,7 +37,7 @@ interface Job {
 const JobManagementTable: React.FC = () => {
 const [jobs, setJobs] = useState<Job[]>([]);
 
-  const [majors, setMajors] = useState<Major[]>([]); // Thêm state quản lý list Chuyên ngành
+  const [majors, setMajors] = useState<Major[]>([]); 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   
@@ -47,7 +47,7 @@ const [formData, setFormData] = useState<Partial<Job>>({
     salary: '',
     level: 'INTERN',
     required_gpa: 0,
-    major_id: undefined // Để undefined lúc đầu
+    major_id: undefined 
   });
   
   // Gọi API lấy dữ liệu khi component render lần đầu
@@ -194,7 +194,6 @@ const handleDelete = async (id: string | number) => {
       title: 'Chuyên ngành',
       key: 'major',
       render: (_, record) => {
-        // Thay MOCK_MAJORS thành majors
         const major = majors.find(m => m.id === record.major_id); 
         return <span>{major?.name || 'Không xác định'}</span>;
       }
@@ -302,7 +301,7 @@ const handleDelete = async (id: string | number) => {
               <InputLabel>Chuyên ngành yêu cầu</InputLabel>
             <Select
               name="major_id"
-              value={formData.major_id?.toString() || ''} // MUI Select đôi khi cần string
+              value={formData.major_id?.toString() || ''} 
               label="Chuyên ngành yêu cầu"
               onChange={handleSelectChange}
             >

@@ -213,8 +213,8 @@ const CompanyDashboard: React.FC = () => {
                 dataKey="cvCount" 
                 name="Số lượng CV" 
                 fill="#8884d8" 
-                radius={[6, 6, 0, 0]} // Bo góc trên của cột
-                barSize={40} // Độ rộng của cột
+                radius={[6, 6, 0, 0]} 
+                barSize={40} 
               />
             </BarChart>
           </ResponsiveContainer>

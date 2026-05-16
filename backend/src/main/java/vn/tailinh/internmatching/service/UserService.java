@@ -139,7 +139,7 @@ public class UserService {
       User user = this.handleGetUserByUsername(email);
       if(user == null) throw new IdInvalidException("User not found");
 
-      if(passwordEncoder.matches(dto.getCurrentPassword(),user.getPassword())) {
+      if(!passwordEncoder.matches(dto.getCurrentPassword(),user.getPassword())) {
           throw new IdInvalidException("Current Password is incorrect");
       } 
       if(!dto.getNewPassword().equals(dto.getConfirmPassword())) {

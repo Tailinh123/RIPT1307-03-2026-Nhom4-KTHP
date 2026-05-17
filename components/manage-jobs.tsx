@@ -1,6 +1,6 @@
 "use client";
-
-import React, { useState, useMemo } from "react";
+import apiClient from '@/lib/api';
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Table,
   Button,
@@ -50,9 +50,24 @@ const { TextArea } = Input;
 
 export default function ManageJobs() {
   // ==================== STATE MANAGEMENT ====================
-  // Jobs data state - Dễ dàng thay thế bằng API fetch
-  const [jobs, setJobs] = useState<Job[]>(mockJobs);
-  const [loading, setLoading] = useState<boolean>(false);
+
+const [jobs, setJobs] = useState<Job[]>([]);
+const [loading, setLoading] = useState<boolean>(true);
+
+useEffect(() => {
+  const fetchJobs = async () => {
+    try {
+      const response = await apiClient.get('/api/v1/jobs');
+      setJobs(response.data.data.result || response.data.data);
+    } catch (error) {
+      console.error("Lỗi lấy danh sách công việc:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  fetchJobs();
+}, []);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -77,7 +92,9 @@ export default function ManageJobs() {
         job.name.toLowerCase().includes(filters.name.toLowerCase());
       const companyMatch =
         !filters.companyName ||
-        job.companyName.toLowerCase().includes(filters.companyName.toLowerCase());
+        (job.company?.name || job.companyName || "")
+          .toLowerCase()
+          .includes(filters.companyName.toLowerCase());
       const statusMatch = !filters.status || job.status === filters.status;
 
       return nameMatch && companyMatch && statusMatch;
@@ -200,6 +217,8 @@ export default function ManageJobs() {
       dataIndex: "companyName",
       key: "companyName",
       width: 180,
+      // Thêm render này để ưu tiên hiển thị tên từ object company của API thật
+      render: (text: string, record: Job) => record.company?.name || record.companyName || text,
     },
     {
       title: "Mức lương",
@@ -379,7 +398,7 @@ export default function ManageJobs() {
           }}
           footer={null}
           width={720}
-          destroyOnHidden
+          destroyOnClose
         >
           <Form
             form={form}

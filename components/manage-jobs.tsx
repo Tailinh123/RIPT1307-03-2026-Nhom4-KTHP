@@ -398,7 +398,7 @@ useEffect(() => {
           }}
           footer={null}
           width={720}
-          destroyOnClose
+          destroyOnHidden
         >
           <Form
             form={form}

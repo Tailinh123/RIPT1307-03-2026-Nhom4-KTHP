@@ -9,9 +9,9 @@ const apiClient = axios.create({
 
 // Tự động gắn Token vào Header nếu người dùng đã đăng nhập
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token'); [cite: 1986]
+  const token = localStorage.getItem('access_token');
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`; [cite: 1988]
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });

@@ -1,22 +1,27 @@
-# JAVA / MAVEN (BACKEND) 
+# JAVA / SPRING BOOT
 target/
+build/
+.gradle/
+bin/
 *.class
 *.jar
 *.war
 *.ear
 *.log
 *.iml
+
+# ECLIPSE / STS
 .settings/
 .project
 .classpath
 .factorypath
-# Không đẩy cấu hình local chứa pass database
-src/main/resources/application-local.properties
 
-# REACT / NODE (FRONTEND)
+.idea/
+.vscode/
+
+# FRONTEND (REACT / NODE)
 node_modules/
 dist/
-build/
 .env
 .env.local
 .env.development.local
@@ -26,18 +31,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# IDE / EDITORS
-.idea/
-.vscode/
-*.swp
-*.swo
-*.sublime-project
-*.sublime-workspace
+# OS / TEMP FILES
+
 .DS_Store
 Thumbs.db
-
-# OTHERS
 *.bak
 *.tmp
 *.zip
 *.dump
+*.swp
+*.swo
+
+
+src/main/resources/application-local.properties

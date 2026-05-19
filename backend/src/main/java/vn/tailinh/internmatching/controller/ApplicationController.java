@@ -11,21 +11,22 @@ import vn.tailinh.internmatching.dto.request.application.UpdateApplicationDTO;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.dto.response.application.CreateApplicationResponse;
 import vn.tailinh.internmatching.entity.Application;
+import vn.tailinh.internmatching.repository.ApplicationRepository;
 import vn.tailinh.internmatching.service.ApplicationService;
 import vn.tailinh.internmatching.util.annotation.ApiMessage;
 
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springdoc.core.converters.models.Pageable;
+
+import javax.naming.spi.DirStateFactory.Result;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.method.P;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -35,29 +36,34 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequiredArgsConstructor
-
 public class ApplicationController {
+  private final ApplicationRepository applicationRepository;
   private final ApplicationService applicationService;
+
+
+  ApplicationController(ApplicationRepository applicationRepository) {
+    this.applicationRepository = applicationRepository;
+  }
 
 
   @PostMapping("")
   @ApiMessage("Create an application")
   public ResponseEntity<CreateApplicationResponse> create(
-    @Valid @RequestBody CreateApplicationDTO  dto ) throws Exception {
-      return ResponseEntity.status(HttpStatus.CREATED).body(this.applicationService.create(dto));
+    @Valid @RequestBody Application application ) throws Exception {
+      return ResponseEntity.status(HttpStatus.CREATED).body(this.applicationService.create(application));
     }
 
     @PutMapping("")
-    @ApiMessage("Update a skill ")
+    @ApiMessage("Update an application startus")
     public ResponseEntity<UpdateApplicationDTO> update(@Valid @RequestBody UpdateApplicationDTO dto )  throws Exception {
-      return ResponseEntity.ok().body(this.applicationService.update(dto));
-    }
+      return ResponseEntity.ok(applicationService.updateStatus(application));
+    }       
     
     @GetMapping("")
     @ApiMessage("fetch all skills")
     public ResponseEntity<ResultPaginationResponse> fetchAll(
       @Filter Specification<Application> specification , Pageable pageable ) {
-        return ResponseEntity.ok().body(this.applicationService.fetchAllSkill(specification , pageable));
+        return ResponseEntity.ok().body(this.applicationService.fetchAllApplication(specification , pageable));   
       }
 
         @DeleteMapping("/{id}")
@@ -66,6 +72,12 @@ public class ApplicationController {
         this.applicationService.deleteApplication(id);
         return ResponseEntity.ok().body(null);
     }
+
+    @PostMapping("/by-user")
+    public ResponseEntity<ResultPaginationResponse> fetchByUser(Pageable pageable) {
+        return ResponseEntity.ok(ApplicationService.fetchByUser(pageable));
+    }
+    
   
     
   

@@ -5,7 +5,7 @@ import vn.tailinh.internmatching.entity.User;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.repository.CompanyRepository;
 import vn.tailinh.internmatching.repository.UserRepository;
-import vn.tailinh.internmatching.util.response.FormatResultPagaination;
+import vn.tailinh.internmatching.util.response.FormatResultPagination;
 import vn.tailinh.internmatching.entity.Company;
 
 import org.springframework.data.domain.Page;
@@ -28,7 +28,7 @@ public class CompanyService {
 
   public ResultPaginationResponse getAllCompany(Pageable pageable, Specification<Company> spec) {
     Page<Company> companyPage = companyRepository.findAll(spec, pageable);
-    ResultPaginationResponse response = FormatResultPagaination.createPaginationResponse(companyPage);
+    ResultPaginationResponse response = FormatResultPagination.createPaginationResponse(companyPage);
     return response;
   }
 

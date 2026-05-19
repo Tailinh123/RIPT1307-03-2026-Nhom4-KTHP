@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.entity.User;
 import vn.tailinh.internmatching.dto.request.user.LoginDTO;
 import vn.tailinh.internmatching.dto.response.auth.LoginResponse;
-import vn.tailinh.internmatching.dto.response.auth.LoginResponse.UserLogin;
 import vn.tailinh.internmatching.dto.response.user.CreatedUserResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.security.SecurityUtils;
@@ -23,7 +22,13 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 
 @RequestMapping(path = "${apiPrefix}/auth")
 @RestController
@@ -43,7 +48,6 @@ public class AuthController {
     CreatedUserResponse newUser = this.userService.createUser(user);
     return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
   }
-
 
   @PostMapping(path = "/login")
   @ApiMessage("Login by credential")
@@ -68,7 +72,7 @@ public class AuthController {
         currentUserDB.getName(),
         roleDTO);
 
-        loginResponse.setUser(userLogin);
+    loginResponse.setUser(userLogin);
 
     // set access token
     loginResponse.setAccessToken(this.securityService.createAccessToken(authentication.getName(), loginResponse));
@@ -89,7 +93,6 @@ public class AuthController {
         .body(loginResponse);
   }
 
-
   @GetMapping("/account")
   @ApiMessage("Get user information")
   public ResponseEntity<LoginResponse.UserLogin> getAccount() {
@@ -98,18 +101,18 @@ public class AuthController {
         : "";
     User currentUserDB = this.userService.handleGetUserByUsername(email);
     LoginResponse.RoleDTO roleDTO = new LoginResponse.RoleDTO();
-    LoginResponse.UserLogin userLogin = new UserLogin();
+
     roleDTO.setId(currentUserDB.getRole().getId());
     roleDTO.setName(currentUserDB.getRole().getName());
-    LoginResponse.UserLogin userGetAccout = new LoginResponse.UserLogin();
+    // roleDTO.setUser(roleDTO);
+    LoginResponse.UserLogin userLogin = new LoginResponse.UserLogin();
     if (currentUserDB != null) {
       userLogin.setId(currentUserDB.getId());
       userLogin.setEmail(currentUserDB.getEmail());
       userLogin.setName(currentUserDB.getName());
     }
-    return ResponseEntity.ok().body(userGetAccout);
+    return ResponseEntity.ok().body(userLogin);
   }
-
 
   @GetMapping("/refresh")
   @ApiMessage("Get user information")
@@ -147,7 +150,6 @@ public class AuthController {
       throw new IdInvalidException("Refresh token is not valid");
     }
   }
-  
 
   @PostMapping("/logout")
   @ApiMessage("Logout user")

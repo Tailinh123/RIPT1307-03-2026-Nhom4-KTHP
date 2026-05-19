@@ -8,9 +8,9 @@ import vn.tailinh.internmatching.entity.Role;
 
 @Repository
 public interface RoleRepository extends
-        JpaRepository<Role, Long>,
-        JpaSpecificationExecutor<Role> {
-    boolean existsByName(String name);
+    JpaRepository<Role, Long>,
+    JpaSpecificationExecutor<Role> {
+  boolean existsByName(String name);
 
-    Role findByName(String name);
+  Role findByName(String name);
 }

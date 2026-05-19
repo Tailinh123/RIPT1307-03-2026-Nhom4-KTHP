@@ -70,58 +70,39 @@ const ApplicationsReview: React.FC = () => {
   // ---------------------------------------------------------------------------
 
   // Fetch danh sách applications
-  const fetchApplications = useCallback(async () => {
+const fetchApplications = useCallback(async () => {
     setLoading(true);
     try {
-      // TODO: Uncomment để sử dụng API thật
-      // const response = await apiClient.get<Application[]>("/api/v1/applications", {
-      //   status: filters.status,
-      //   jobName: filters.jobName,
-      // });
-      // setApplications(response.data);
+      // 1. Mở khóa dòng gọi API thật này:
+      const response = await apiClient.get<Application[]>("/api/v1/applications");
+      
+      // 2. Chú ý: Chuẩn đầu ra hệ thống bọc dữ liệu trong trường .data.data [cite: 4157]
+      // Nếu Backend có phân trang thì lấy .result, nếu mảng phẳng thì lấy response.data.data
+      const backendData = response.data.data?.result || response.data.data || response.data;
+      setApplications(backendData);
 
-      // Mock data - Xóa khi sử dụng API thật
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate loading
+      /* Xóa hoặc comment lại toàn bộ phần Mock data ở phía dưới này đi:
+      await new Promise((resolve) => setTimeout(resolve, 500));
       let filteredData = [...mockApplications];
-
-      if (filters.status) {
-        filteredData = filteredData.filter((app) => app.status === filters.status);
-      }
-      if (filters.jobName) {
-        filteredData = filteredData.filter((app) =>
-          app.jobName.toLowerCase().includes(filters.jobName!.toLowerCase())
-        );
-      }
-
+      ...
       setApplications(filteredData);
+      */
     } catch (error) {
       console.error("Error fetching applications:", error);
       message.error("Không thể tải danh sách đơn ứng tuyển");
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, []);
 
   // Update status (Approve/Reject)
-  const updateApplicationStatus = async (request: UpdateApplicationStatusRequest) => {
+const updateApplicationStatus = async (request: UpdateApplicationStatusRequest) => {
     try {
-      // TODO: Uncomment để sử dụng API thật
-      // await apiClient.put("/api/v1/applications", request);
+      // 1. Bỏ dấu comment dòng API PUT này để đẩy trạng thái APPROVED/REJECTED lên Backend:
+      await apiClient.put("/api/v1/applications", request);
 
-      // Mock update - Xóa khi sử dụng API thật
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setApplications((prev) =>
-        prev.map((app) =>
-          app.id === request.id
-            ? {
-                ...app,
-                status: request.status,
-                note: request.note || app.note,
-                reviewedAt: new Date().toISOString(),
-              }
-            : app
-        )
-      );
+      // 2. Gọi lại hàm fetch để cập nhật lại bảng giao diện ngay lập tức sau khi duyệt:
+      fetchApplications();
 
       const statusText =
         request.status === ApplicationStatus.APPROVED ? "duyệt" : "từ chối";
@@ -471,7 +452,7 @@ const ApplicationsReview: React.FC = () => {
             Xác nhận từ chối
           </Button>,
         ]}
-        destroyOnClose
+        destroyOnHidden
       >
         {selectedApplication && (
           <div style={{ marginBottom: "16px" }}>

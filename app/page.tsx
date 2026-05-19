@@ -1,5 +1,5 @@
-import ManageJobs from "@/components/manage-jobs";
+import ApplicationsReview from "@/components/applications-review";
 
-export default function Home() {
-  return <ManageJobs />;
+export default function ApplicationsPage() {
+  return <ApplicationsReview />;
 }

@@ -25,9 +25,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Permission bằng setter (vì entity không có constructor 4 tham số)
-     */
+    
     private Permission createPerm(String name, String path, String method, String module) {
         Permission p = new Permission();
         p.setName(name);
@@ -35,16 +33,6 @@ public class DatabaseInitializer implements CommandLineRunner {
         p.setMethod(method);
         p.setModule(module);
         return p;
-    }
-
-    private List<Permission> createCrudPerms(String entity, String path, String module) {
-        return List.of(
-            createPerm("Create a " + entity, path, "POST", module),
-            createPerm("Update a " + entity, path, "PUT", module),
-            createPerm("Delete a " + entity, path + "/{id}", "DELETE", module),
-            createPerm("Get a " + entity + " by id", path + "/{id}", "GET", module),
-            createPerm("Get " + entity + "s with pagination", path, "GET", module)
-        );
     }
 
     @Override
@@ -57,16 +45,49 @@ public class DatabaseInitializer implements CommandLineRunner {
         if(countPermissions == 0){
             ArrayList<Permission> arr = new ArrayList<>();
 
-            // Mỗi dòng = 5 permissions CRUD cho 1 module
-            arr.addAll(createCrudPerms("company", "/api/v1/companies", "COMPANIES"));
-            arr.addAll(createCrudPerms("job", "/api/v1/jobs", "JOBS"));
-            arr.addAll(createCrudPerms("permission", "/api/v1/permissions", "PERMISSIONS"));
-            arr.addAll(createCrudPerms("resume", "/api/v1/resumes", "RESUMES"));
-            arr.addAll(createCrudPerms("role", "/api/v1/roles", "ROLES"));
-            arr.addAll(createCrudPerms("user", "/api/v1/users", "USERS"));
-            arr.addAll(createCrudPerms("subscriber", "/api/v1/subscribers", "SUBSCRIBERS"));
+       
+            arr.add(createPerm("Create a company", "/api/v1/companies", "POST", "COMPANIES"));
+            arr.add(createPerm("Update a company", "/api/v1/companies", "PUT", "COMPANIES"));
+            arr.add(createPerm("Delete a company", "/api/v1/companies/{id}", "DELETE", "COMPANIES"));
+            arr.add(createPerm("Get a company by id", "/api/v1/companies/{id}", "GET", "COMPANIES"));
+            arr.add(createPerm("Get companies with pagination", "/api/v1/companies", "GET", "COMPANIES"));
 
-            // Files chỉ có 2 quyền (không theo pattern CRUD chuẩn) nên thêm thủ công
+            arr.add(createPerm("Create a job", "/api/v1/jobs", "POST", "JOBS"));
+            arr.add(createPerm("Update a job", "/api/v1/jobs", "PUT", "JOBS"));
+            arr.add(createPerm("Delete a job", "/api/v1/jobs/{id}", "DELETE", "JOBS"));
+            arr.add(createPerm("Get a job by id", "/api/v1/jobs/{id}", "GET", "JOBS"));
+            arr.add(createPerm("Get jobs with pagination", "/api/v1/jobs", "GET", "JOBS"));
+
+            arr.add(createPerm("Create a permission", "/api/v1/permissions", "POST", "PERMISSIONS"));
+            arr.add(createPerm("Update a permission", "/api/v1/permissions", "PUT", "PERMISSIONS"));
+            arr.add(createPerm("Delete a permission", "/api/v1/permissions/{id}", "DELETE", "PERMISSIONS"));
+            arr.add(createPerm("Get a permission by id", "/api/v1/permissions/{id}", "GET", "PERMISSIONS"));
+            arr.add(createPerm("Get permissions with pagination", "/api/v1/permissions", "GET", "PERMISSIONS"));
+
+            arr.add(createPerm("Create a resume", "/api/v1/resumes", "POST", "RESUMES"));
+            arr.add(createPerm("Update a resume", "/api/v1/resumes", "PUT", "RESUMES"));
+            arr.add(createPerm("Delete a resume", "/api/v1/resumes/{id}", "DELETE", "RESUMES"));
+            arr.add(createPerm("Get a resume by id", "/api/v1/resumes/{id}", "GET", "RESUMES"));
+            arr.add(createPerm("Get resumes with pagination", "/api/v1/resumes", "GET", "RESUMES"));
+
+            arr.add(createPerm("Create a role", "/api/v1/roles", "POST", "ROLES"));
+            arr.add(createPerm("Update a role", "/api/v1/roles", "PUT", "ROLES"));
+            arr.add(createPerm("Delete a role", "/api/v1/roles/{id}", "DELETE", "ROLES"));
+            arr.add(createPerm("Get a role by id", "/api/v1/roles/{id}", "GET", "ROLES"));
+            arr.add(createPerm("Get roles with pagination", "/api/v1/roles", "GET", "ROLES"));
+
+            arr.add(createPerm("Create a user", "/api/v1/users", "POST", "USERS"));
+            arr.add(createPerm("Update a user", "/api/v1/users", "PUT", "USERS"));
+            arr.add(createPerm("Delete a user", "/api/v1/users/{id}", "DELETE", "USERS"));
+            arr.add(createPerm("Get a user by id", "/api/v1/users/{id}", "GET", "USERS"));
+            arr.add(createPerm("Get users with pagination", "/api/v1/users", "GET", "USERS"));
+
+            arr.add(createPerm("Create a subscriber", "/api/v1/subscribers", "POST", "SUBSCRIBERS"));
+            arr.add(createPerm("Update a subscriber", "/api/v1/subscribers", "PUT", "SUBSCRIBERS"));
+            arr.add(createPerm("Delete a subscriber", "/api/v1/subscribers/{id}", "DELETE", "SUBSCRIBERS"));
+            arr.add(createPerm("Get a subscriber by id", "/api/v1/subscribers/{id}", "GET", "SUBSCRIBERS"));
+            arr.add(createPerm("Get subscribers with pagination", "/api/v1/subscribers", "GET", "SUBSCRIBERS"));
+
             arr.add(createPerm("Download a file", "/api/v1/files", "POST", "FILES"));
             arr.add(createPerm("Upload a file", "/api/v1/files", "GET", "FILES"));
 
@@ -94,6 +115,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminUser.setName("I'm super admin");
             adminUser.setPassword(this.passwordEncoder.encode("123456"));
 
+  
             Role adminRole = this.roleRepository.findByName("SUPER_ADMIN");
             if (adminRole != null) {
                 adminUser.setRole(adminRole);

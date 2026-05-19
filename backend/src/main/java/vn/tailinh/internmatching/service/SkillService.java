@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.repository.SkillRepository;
-import vn.tailinh.internmatching.util.response.FormatResultPagaination;
+import vn.tailinh.internmatching.util.response.FormatResultPagination;
 import vn.tailinh.internmatching.entity.Skill;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -44,7 +44,7 @@ public class SkillService {
 
     public ResultPaginationResponse fetchAllSkill(Specification<Skill> spec, Pageable pageable){
         Page<Skill> skillPage = this.skillRepository.findAll(spec, pageable);
-        ResultPaginationResponse response = FormatResultPagaination.createPaginationResponse(skillPage);
+        ResultPaginationResponse response = FormatResultPagination.createPaginationResponse(skillPage);
         return response;
     }
 
@@ -56,9 +56,9 @@ public class SkillService {
         currentSkill.getJobs().forEach(
                 job -> job.getSkills().remove(currentSkill)
         );
-        // currentSkill.getSubscribers().forEach(
-        //         subs -> subs.getSkills().remove(currentSkill)
-        // );
+        currentSkill.getJobs().forEach(
+                subs -> subs.getSkills().remove(currentSkill)
+        );
         this.skillRepository.delete(currentSkill);
     }
 }

@@ -6,7 +6,7 @@ import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.repository.PermissionRepository;
 import vn.tailinh.internmatching.repository.RoleRepository;
-import vn.tailinh.internmatching.util.response.FormatResultPagaination;
+import vn.tailinh.internmatching.util.response.FormatResultPagination;
 import vn.tailinh.internmatching.entity.Role;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -78,7 +78,7 @@ public class RoleService {
 
     public ResultPaginationResponse fetchAll(Specification<Role> spec, Pageable pageable){
         Page<Role> rolePage = this.roleRepository.findAll(spec, pageable);
-        ResultPaginationResponse response = FormatResultPagaination.createPaginationResponse(rolePage);
+        ResultPaginationResponse response = FormatResultPagination.createPaginationResponse(rolePage);
         return response;
     }
 }

@@ -5,7 +5,7 @@ import vn.tailinh.internmatching.entity.Permission;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.repository.PermissionRepository;
-import vn.tailinh.internmatching.util.response.FormatResultPagaination;
+import vn.tailinh.internmatching.util.response.FormatResultPagination;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -74,7 +74,7 @@ public class PermissionService {
 
     public ResultPaginationResponse fetchAll(Specification<Permission> spec, Pageable pageable){
         Page<Permission> permissionPage = this.permissionRepository.findAll(spec, pageable);
-        ResultPaginationResponse response = FormatResultPagaination.createPaginationResponse(permissionPage);
+        ResultPaginationResponse response = FormatResultPagination.createPaginationResponse(permissionPage);
         return response;
     }
 }

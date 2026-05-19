@@ -67,8 +67,8 @@ public class UserController {
 
   @PutMapping("/change-password")
   @ApiMessage("Change password")
-  public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordDTO req) throws Exception {
-
+  public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordDTO req) throws Exception {
+    this.userService.changePassword(req);
     return ResponseEntity.ok(null);
 
   }

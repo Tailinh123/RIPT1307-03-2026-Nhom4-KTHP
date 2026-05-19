@@ -56,7 +56,7 @@ public class SkillService {
         currentSkill.getJobs().forEach(
                 job -> job.getSkills().remove(currentSkill)
         );
-        currentSkill.getJobs().forEach(
+        currentSkill.getUsers().forEach(
                 subs -> subs.getSkills().remove(currentSkill)
         );
         this.skillRepository.delete(currentSkill);

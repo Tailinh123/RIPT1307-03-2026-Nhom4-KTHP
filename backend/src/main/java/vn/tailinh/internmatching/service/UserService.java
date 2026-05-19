@@ -12,7 +12,7 @@ import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.repository.UserRepository;
 import vn.tailinh.internmatching.security.SecurityUtils;
 import vn.tailinh.internmatching.util.mapper.UserMapper;
-import vn.tailinh.internmatching.util.response.FormatResultPagaination;
+import vn.tailinh.internmatching.util.response.FormatResultPagination;
 import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Role;
 
@@ -87,7 +87,7 @@ public class UserService {
     public ResultPaginationResponse getAllUser(Pageable pageable, Specification<User> spec){
         Page<User> userPage = this.userRepository.findAll(spec, pageable);
 
-        return FormatResultPagaination.createPaginateUserRes(userPage);
+        return FormatResultPagination.createPaginateUserRes(userPage);
     }
 
 

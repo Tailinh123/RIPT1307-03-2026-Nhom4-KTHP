@@ -36,7 +36,7 @@ import {
   applicationStatusOptions,
 } from "@/types/application";
 import { mockApplications } from "@/data/mock-applications";
-import { apiClient } from "@/lib/api";
+import apiClient from "@/lib/api";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;

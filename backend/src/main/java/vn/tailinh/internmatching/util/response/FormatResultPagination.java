@@ -15,7 +15,7 @@ import vn.tailinh.internmatching.util.mapper.UserMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FormatResultPagaination {
+public class FormatResultPagination {
     public static ResultPaginationResponse createPaginationResponse(Page page) {
         ResultPaginationResponse rs = new ResultPaginationResponse();
         MetaResponse mr = new MetaResponse();

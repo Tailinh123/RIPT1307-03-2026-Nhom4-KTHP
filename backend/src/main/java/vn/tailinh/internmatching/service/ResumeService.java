@@ -16,7 +16,7 @@ import vn.tailinh.internmatching.repository.ResumeRepository;
 import vn.tailinh.internmatching.repository.UserRepository;
 import vn.tailinh.internmatching.security.SecurityUtils;
 import vn.tailinh.internmatching.util.mapper.ResumeMapper;
-import vn.tailinh.internmatching.util.response.FormatResultPagaination;
+import vn.tailinh.internmatching.util.response.FormatResultPagination;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -65,7 +65,7 @@ public class ResumeService {
 
     public ResultPaginationResponse fetchAllResume(Specification<Resume> spec, Pageable pageable){
         Page<Resume> resumePage = this.resumeRepository.findAll(spec, pageable);
-        ResultPaginationResponse response = FormatResultPagaination.createPaginateResumeRes(resumePage);
+        ResultPaginationResponse response = FormatResultPagination.createPaginateResumeRes(resumePage);
         return response;
     }
 
@@ -77,7 +77,7 @@ public class ResumeService {
         FilterSpecification<Resume> spec = filterSpecificationConverter.convert(node);
 
         Page<Resume> resumePage = this.resumeRepository.findAll(spec, pageable);
-        return FormatResultPagaination.createPaginateResumeRes(resumePage);
+        return FormatResultPagination.createPaginateResumeRes(resumePage);
     }
 
     private boolean checkResumeExistByUserAndJob(Resume resume){

@@ -37,13 +37,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RestController
 @RequiredArgsConstructor
 public class ApplicationController {
-  private final ApplicationRepository applicationRepository;
   private final ApplicationService applicationService;
-
-
-  ApplicationController(ApplicationRepository applicationRepository) {
-    this.applicationRepository = applicationRepository;
-  }
 
 
   @PostMapping("")
@@ -56,7 +50,7 @@ public class ApplicationController {
     @PutMapping("")
     @ApiMessage("Update an application startus")
     public ResponseEntity<UpdateApplicationDTO> update(@Valid @RequestBody UpdateApplicationDTO dto )  throws Exception {
-      return ResponseEntity.ok(applicationService.updateStatus(application));
+      return ResponseEntity.ok(applicationService.updateStatus(dto));
     }       
     
     @GetMapping("")
@@ -79,7 +73,6 @@ public class ApplicationController {
     }
     
   
-    
   
   }
   

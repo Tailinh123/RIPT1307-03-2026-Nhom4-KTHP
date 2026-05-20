@@ -5,18 +5,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.service.annotation.PatchExchange;
 
 import com.turkraft.springfilter.boot.Filter;
-
+import org.springframework.data.domain.Pageable;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.entity.JobCategory;
 import vn.tailinh.internmatching.repository.JobCategoryRepository;
 import vn.tailinh.internmatching.service.JobCategoryService;
 import vn.tailinh.internmatching.util.annotation.ApiMessage;
 
 
-
-import org.hibernate.query.Page;
-import org.springdoc.core.converters.models.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -48,13 +47,18 @@ public class JobCategoryController {
     return ResponseEntity.ok().body(this.jobCategoryService.update(jobCategory));
   }
 
+  @GetMapping("/{id}")
+    public ResponseEntity<JobCategory> fetchById(@PathVariable("id") Long id) throws Exception {
+        return ResponseEntity.ok(jobCategoryService.fetchById(id));
+    }
+
   @GetMapping("")
   @ApiMessage("Fetch all JobCategory ")
-  public ResponseEntity<JobCategory> getAll(@Filter Specification<JobCategory> specification , Pageable pageable) {
-    return ResponseEntity.status(HttpStatus.OK).body(this.jobCategoryService.fetchAlljobCategory(specification , pageable));
+  public ResponseEntity<ResultPaginationResponse> getAll(@Filter Specification<JobCategory> specification , Pageable pageable) {
+    return ResponseEntity.status(HttpStatus.OK).body(this.jobCategoryService.fetchAllJobCategory(specification , pageable));
   }
 
-  @DeleteMapping("")
+  @DeleteMapping("/{id}")
   @ApiMessage("Deleta a JobCategory")
   public ResponseEntity<Void> delete(@PathVariable("id") Long id) throws Exception{
     this.jobCategoryService.delete(id);

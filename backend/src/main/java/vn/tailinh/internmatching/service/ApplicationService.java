@@ -2,10 +2,13 @@ package vn.tailinh.internmatching.service;
 
 import java.util.Optional;
 
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import vn.tailinh.internmatching.dto.request.application.UpdateApplicationDTO;
 import vn.tailinh.internmatching.dto.response.application.CreateApplicationResponse;
+import vn.tailinh.internmatching.dto.response.application.UpdateApplicationResponse;
 import vn.tailinh.internmatching.entity.Application;
 import vn.tailinh.internmatching.entity.Job;
 import vn.tailinh.internmatching.entity.Resume;
@@ -15,7 +18,6 @@ import vn.tailinh.internmatching.repository.JobRepository;
 import vn.tailinh.internmatching.repository.ResumeRepository;
 import vn.tailinh.internmatching.util.mapper.ApplicationMapper;
 
-
 @Service 
 @RequiredArgsConstructor
 public class ApplicationService {
@@ -23,7 +25,6 @@ public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;
     private final ResumeRepository resumeRepository;
-
 
     public CreateApplicationResponse create(Application application) throws Exception {
 
@@ -38,20 +39,38 @@ public class ApplicationService {
       if(resumeOptional.isEmpty()) {
         throw new IdInvalidException("Resume not found");
       }
-
       application = this.applicationRepository.save(application);
-
-
-
         return ApplicationMapper.toCreateApplicationResponse(application);
-    
     }
 
 
-    // public UpdateApplicationResponse update(UpdateApplicationDTO dto ) throws Exception {
+    public UpdateApplicationResponse update(UpdateApplicationDTO dto ) throws Exception {
+        Optional<Application> appOptional = this.applicationRepository.findById(dto.getId());
 
+        if (appOptional.isEmpty()) {
+          throw new IdInvalidException("Application not found");
+        }
+
+        Application currentApp = appOptional.get();
+        currentApp.setStatus(dto.getStatus());
+        currentApp.setNote(dto.getNote());
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+      return null;
       
-    // }
+    }
 
 
 }

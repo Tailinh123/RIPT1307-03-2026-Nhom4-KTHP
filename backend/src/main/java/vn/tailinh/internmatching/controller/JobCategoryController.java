@@ -13,7 +13,7 @@ import vn.tailinh.internmatching.repository.JobCategoryRepository;
 import vn.tailinh.internmatching.service.JobCategoryService;
 import vn.tailinh.internmatching.util.annotation.ApiMessage;
 
-import java.lang.invoke.ClassSpecializer.SpeciesData;
+
 
 import org.hibernate.query.Page;
 import org.springdoc.core.converters.models.Pageable;

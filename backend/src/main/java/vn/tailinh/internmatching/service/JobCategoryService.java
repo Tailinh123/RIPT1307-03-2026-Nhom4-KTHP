@@ -1,13 +1,18 @@
 package vn.tailinh.internmatching.service;
 
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-
+import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.entity.JobCategory;
 import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.repository.JobCategoryRepository;
+import vn.tailinh.internmatching.util.response.FormatResultPagination;
 
 
 
@@ -35,8 +40,21 @@ public class JobCategoryService {
     return jobCategoryRepository.save(current);
   }
 
+
+  public ResultPaginationResponse  fetchAllJobCategory(Specification<JobCategory> specification , Pageable pageable)  {
+
+    Page<JobCategory> jobCategoryPage = this.jobCategoryRepository.findAll(specification , pageable);
+
+    ResultPaginationResponse response = FormatResultPagination.createPaginationResponse(jobCategoryPage);
+
+    return response;
+  }
+
+
+
+
   public void delete(Long id) throws Exception {
-    this.fetchById(id);     //  kiểm tra exists
+    this.fetchById(id);  // check exisst
     jobCategoryRepository.deleteById(id);
   }
 

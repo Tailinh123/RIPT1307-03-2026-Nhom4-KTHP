@@ -1,0 +1,74 @@
+/* ── Google Fonts ───────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── CSS Reset & Base ───────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f5f6fa;
+  color: #1d1d1f;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f5f6fa;
+}
+::-webkit-scrollbar-thumb {
+  background: #d0d5dd;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8b0be;
+}
+
+/* ── Ant Design Menu override ───────────────────────────────────────── */
+.ant-menu-item {
+  border-radius: 8px !important;
+  margin: 2px 0 !important;
+  font-weight: 500 !important;
+}
+
+.ant-menu-item-selected {
+  background: #e6f4ff !important;
+  color: #1677ff !important;
+}
+
+.ant-menu-item-selected .anticon {
+  color: #1677ff !important;
+}
+
+/* ── Ant Design Layout override ─────────────────────────────────────── */
+.ant-layout {
+  background: #f5f6fa !important;
+}
+
+/* ── Page transitions ───────────────────────────────────────────────── */
+.ant-card {
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease !important;
+}
+
+/* ── Typography ─────────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.2px;
+}
+
+/* ── Utility: glass card ─────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+}

@@ -1,0 +1,12 @@
+export interface DashboardStats {
+  totalJobs: number;
+  activeJobs: number;
+  totalApplications: number;
+  pendingApplications: number;
+}
+
+export interface ChartData {
+  name: string;
+  jobs: number;
+  applications: number;
+}

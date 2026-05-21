@@ -2,6 +2,7 @@ package vn.tailinh.internmatching.service;
 
 import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.entity.User;
+import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.repository.CompanyRepository;
 import vn.tailinh.internmatching.repository.UserRepository;
@@ -32,9 +33,9 @@ public class CompanyService {
     return response;
   }
 
-  public Company findCompanyById(Long id) {
+  public Company findCompanyById(Long id) throws Exception {
     Optional<Company> companyOptional = this.companyRepository.findById(id);
-    return companyOptional.orElse(null);
+    return companyOptional.orElseThrow(() -> new IdInvalidException("Company not found"));
   }
 
   public Company updateCompany(Company company) {

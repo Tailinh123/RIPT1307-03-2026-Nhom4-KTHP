@@ -35,7 +35,6 @@ import {
   applicationStatusColors,
   applicationStatusOptions,
 } from "@/types/application";
-import { mockApplications } from "@/data/mock-applications";
 import apiClient from "@/api/api";
 
 const { Title, Text } = Typography;
@@ -84,20 +83,9 @@ const ApplicationsReview: React.FC = () => {
           const data = response.data.data?.result || response.data.data || response.data;
           setApplications(Array.isArray(data) ? data : []);
         } catch (apiError) {
-          console.warn("Applications API failed, using mock data", apiError);
-          await new Promise((resolve) => setTimeout(resolve, 300));
-          let filteredData = [...mockApplications];
-
-          if (filters.status) {
-            filteredData = filteredData.filter((app) => app.status === filters.status);
-          }
-          if (filters.jobName) {
-            filteredData = filteredData.filter((app) =>
-              app.jobName.toLowerCase().includes(filters.jobName!.toLowerCase())
-            );
-          }
-
-          setApplications(filteredData);
+          console.error("Applications API failed", apiError);
+          setApplications([]);
+          message.error("Không thể tải danh sách đơn ứng tuyển từ Database.");
         }
       } catch (error) {
         console.error("Error fetching applications:", error);
@@ -230,7 +218,7 @@ const ApplicationsReview: React.FC = () => {
   // TABLE COLUMNS DEFINITION
   // ---------------------------------------------------------------------------
 
-  const columns: ColumnsType<Application> = [
+const columns: ColumnsType<Application> = [
     {
       title: "STT",
       key: "index",
@@ -245,8 +233,8 @@ const ApplicationsReview: React.FC = () => {
       width: 130,
       align: "center",
       render: (status: ApplicationStatus) => (
-        <Tag color={applicationStatusColors[status]}>
-          {applicationStatusLabels[status]}
+        <Tag color={applicationStatusColors[status] || "blue"}>
+          {applicationStatusLabels[status] || status || "Chờ xử lý"}
         </Tag>
       ),
     },
@@ -254,29 +242,39 @@ const ApplicationsReview: React.FC = () => {
       title: "Ứng viên",
       key: "applicant",
       width: 220,
-      render: (_, record) => (
-        <div>
-          <Text strong>{record.applicantName}</Text>
-          <br />
-          <Text type="secondary" style={{ fontSize: "12px" }}>
-            {record.applicantEmail}
-          </Text>
-        </div>
-      ),
+      render: (_, record: any) => {
+        // Bọc an toàn: Đọc cả trường phẳng hoặc trường nested object từ User thực thể bên Backend
+        const name = record.applicantName || record.user?.name || record.candidate?.name || "Ẩn danh";
+        const email = record.applicantEmail || record.user?.email || record.candidate?.email || "Chưa có email";
+        return (
+          <div>
+            <Text strong>{name}</Text>
+            <br />
+            <Text type="secondary" style={{ fontSize: "12px" }}>
+              {email}
+            </Text>
+          </div>
+        );
+      },
     },
     {
       title: "Công việc ứng tuyển",
       key: "job",
       width: 250,
-      render: (_, record) => (
-        <div>
-          <Text strong>{record.jobName}</Text>
-          <br />
-          <Text type="secondary" style={{ fontSize: "12px" }}>
-            {record.companyName}
-          </Text>
-        </div>
-      ),
+      render: (_, record: any) => {
+        // Bọc an toàn: Đọc tên Job và Công ty từ object Job liên kết bên Backend
+        const jobTitle = record.jobName || record.job?.title || record.job?.name || "Vị trí không rõ";
+        const companyName = record.companyName || record.job?.company?.name || "Doanh nghiệp";
+        return (
+          <div>
+            <Text strong>{jobTitle}</Text>
+            <br />
+            <Text type="secondary" style={{ fontSize: "12px" }}>
+              {companyName}
+            </Text>
+          </div>
+        );
+      },
     },
     {
       title: "Ngày nộp",
@@ -284,6 +282,7 @@ const ApplicationsReview: React.FC = () => {
       key: "appliedAt",
       width: 120,
       render: (date: string) => {
+        if (!date) return "Chưa rõ ngày";
         const d = new Date(date);
         return (
           <div>
@@ -319,10 +318,14 @@ const ApplicationsReview: React.FC = () => {
       width: 200,
       align: "center",
       fixed: "right",
-      render: (_, record) => {
+      render: (_, record: any) => {
         const isPending =
           record.status === ApplicationStatus.PENDING ||
-          record.status === ApplicationStatus.REVIEWING;
+          record.status === ApplicationStatus.REVIEWING ||
+          !record.status; // Bọc nếu status trống thì coi như pending
+
+        // Lấy URL CV bọc an toàn
+        const cvLink = record.cvUrl || record.resumeUrl || "#";
 
         return (
           <Space size="small">
@@ -331,7 +334,8 @@ const ApplicationsReview: React.FC = () => {
                 type="default"
                 icon={<FileTextOutlined />}
                 size="small"
-                onClick={() => handleViewCV(record.cvUrl)}
+                onClick={() => window.open(cvLink, "_blank")}
+                disabled={cvLink === "#"}
               >
                 CV
               </Button>

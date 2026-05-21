@@ -43,7 +43,6 @@ import {
   statusLabels,
   statusColors,
 } from "@/types/job";
-import { mockJobs, generateJobId } from "@/data/mock-jobs";
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -67,8 +66,8 @@ useEffect(() => {
         const data = response.data.data?.result || response.data.data || response.data;
         setJobs(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.warn("Jobs API failed, using mock jobs", error);
-        setJobs(mockJobs);
+        console.error("Jobs API failed", error);
+        message.error("Không thể tải danh sách vị trí tuyển dụng từ Database.");
       } finally {
         setLoading(false);
       }
@@ -156,15 +155,22 @@ useEffect(() => {
     try {
       const safeCategoryId = typeof values.jobCategory === 'number' ? values.jobCategory : 1;
       
+      // Khắc phục lệch pha Enum JobType giữa FE ("INTERNSHIP") và BE ("INTERN")
+      let safeJobType = values.jobType;
+      if (String(safeJobType).toUpperCase() === "INTERNSHIP") {
+        safeJobType = "INTERN" as any;
+      }
+
       const payload = {
         ...values,
+        title: values.name,           // Ánh xạ tên công việc sang title của Backend
+        jobType: safeJobType,         // Ép về chuỗi "INTERN" chuẩn chỉnh
         jobCategory: { id: safeCategoryId },
         skills: values.skills.map((skillValue: any) => ({ 
           id: typeof skillValue === 'number' ? skillValue : 1 
         })),
-        // Bổ sung 2 trường Backend đang đòi hỏi:
-        location: "Hà Nội",  // Giá trị mặc định cho Địa điểm
-        quantity: 1,         // Giá trị mặc định cho Số lượng (Phải >= 1)
+        location: "Hà Nội",  
+        quantity: 1,         
       };
 
       if (editingJob) {
@@ -173,7 +179,6 @@ useEffect(() => {
           id: editingJob.id,
           ...payload
         });
-// ... (Giữ nguyên các đoạn dưới)
         message.success("Cập nhật vị trí thực tập thành công!");
       } else {
         // GỌI API THÊM MỚI (POST)
@@ -184,7 +189,7 @@ useEffect(() => {
       setIsModalOpen(false);
       form.resetFields();
       
-      // Load lại dữ liệu từ Backend
+      // Load lại dữ liệu thực tế từ Backend để hiển thị lên bảng
       const response = await apiClient.get('/api/v1/jobs');
       const data = response.data.data?.result || response.data.data || response.data;
       setJobs(Array.isArray(data) ? data : []);
@@ -215,19 +220,25 @@ useEffect(() => {
       align: "center",
       render: (_, __, index) => index + 1,
     },
-    {
+   {
       title: "Tên công việc",
       dataIndex: "title",
       key: "title",
       width: 250,
-      render: (title: string, record: Job) => (
-        <div>
-          <div className="font-medium text-gray-900">{title}</div>
-          <div className="text-xs text-gray-500">
-            {levelLabels[record.level]} • {record.jobType ? jobTypeLabels[record.jobType] : 'N/A'}
+      render: (title: string, record: Job) => {
+        // Bọc an toàn: Nếu không tìm thấy nhãn dịch, hiển thị luôn giá trị gốc từ DB, tránh bị sập UI
+        const levelText = levelLabels[record.level] || record.level || "Chưa xác định";
+        const typeText = record.jobType ? (jobTypeLabels[record.jobType] || record.jobType) : "N/A";
+
+        return (
+          <div>
+            <div className="font-medium text-gray-900">{title || record.name || "Không có tên"}</div>
+            <div className="text-xs text-gray-500">
+              {levelText} • {typeText}
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       title: "Tên công ty",
@@ -249,27 +260,30 @@ useEffect(() => {
         </span>
       ),
     },
-    {
+{
       title: "Phí dịch vụ",
       dataIndex: "serviceFee",
       key: "serviceFee",
       width: 140,
       align: "right",
-      render: (fee: number) => (
-        <span className="text-orange-600 font-medium">
-          {fee.toLocaleString("vi-VN")} VNĐ
-        </span>
-      ),
-    },
-    {
+render: (fee: number) => (
+  <span className="text-orange-600 font-medium">
+    {fee ? fee.toLocaleString("vi-VN") : "0"} VNĐ
+  </span>
+),
+},
+{
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
       width: 120,
       align: "center",
-      render: (status: JobStatus) => (
-        <Tag color={statusColors[status]}>{statusLabels[status]}</Tag>
-      ),
+      render: (status: JobStatus) => {
+        // Bọc an toàn nếu trạng thái từ DB trả về null hoặc trống
+        const statusText = statusLabels[status] || status || "Đang tuyển";
+        const statusColor = statusColors[status] || "blue";
+        return <Tag color={statusColor}>{statusText}</Tag>;
+      },
     },
     {
       title: "Hành động",

@@ -25,7 +25,7 @@ public class SkillController {
     public ResponseEntity<Skill> create(@Valid @RequestBody Skill skill) throws Exception {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.skillService.create(skill));
     }
-
+    
     @PutMapping("")
     @ApiMessage("Update a skill")
     public ResponseEntity<Skill> update(@Valid @RequestBody Skill skill) throws Exception {

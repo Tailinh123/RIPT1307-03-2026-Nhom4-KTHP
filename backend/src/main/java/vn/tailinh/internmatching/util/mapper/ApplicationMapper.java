@@ -1,8 +1,9 @@
 package vn.tailinh.internmatching.util.mapper;
 
-import vn.tailinh.internmatching.dto.request.application.CreateApplicationDTO;
+
 import vn.tailinh.internmatching.dto.response.application.CreateApplicationResponse;
 import vn.tailinh.internmatching.dto.response.application.FetchApplicationResponse;
+import vn.tailinh.internmatching.dto.response.application.UpdateApplicationResponse;
 import vn.tailinh.internmatching.entity.Application;
 
 public class ApplicationMapper {
@@ -63,5 +64,15 @@ public class ApplicationMapper {
     }
     return res;
   }
+
+  public static UpdateApplicationResponse toUpdateApplicationResponse(Application application) {
+
+    UpdateApplicationResponse response = new UpdateApplicationResponse();
+
+    response.setUpdatedAt(application.getUpdatedAt());
+    response.setUpdatedBy(application.getUpdatedBy());
+
+    return response;
+}
 
 }

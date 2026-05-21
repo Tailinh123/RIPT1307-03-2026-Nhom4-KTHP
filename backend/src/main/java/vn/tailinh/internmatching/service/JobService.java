@@ -10,7 +10,7 @@ import vn.tailinh.internmatching.repository.CompanyRepository;
 import vn.tailinh.internmatching.repository.JobRepository;
 import vn.tailinh.internmatching.repository.SkillRepository;
 import vn.tailinh.internmatching.util.mapper.JobMapper;
-import vn.tailinh.internmatching.util.response.FormatResultPagaination;
+import vn.tailinh.internmatching.util.response.FormatResultPagination;
 import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Skill;
 
@@ -88,7 +88,7 @@ public class JobService {
 
     public ResultPaginationResponse fetchAllJob(Specification<Job> spec, Pageable pageable){
         Page<Job> jobPage = this.jobRepository.findAll(spec, pageable);
-        ResultPaginationResponse response = FormatResultPagaination.createPaginationResponse(jobPage);
+        ResultPaginationResponse response = FormatResultPagination.createPaginationResponse(jobPage);
         return response;
     }
 }

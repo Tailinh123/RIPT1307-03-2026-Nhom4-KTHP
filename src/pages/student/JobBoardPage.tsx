@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Row, Col, Card, Typography, Space, Tag } from 'antd';
 import {
   AppstoreOutlined,
@@ -10,7 +10,6 @@ import type { Job } from '@/types/job';
 import { useJobs } from '@/hooks/useJobs';
 import JobFilter from '@/components/job/JobFilter';
 import JobList from '@/components/job/JobList';
-import ApplyModal from '@/components/job/ApplyModal';
 import type { JobFilterParams } from '@/types/job';
 
 const { Title, Text } = Typography;
@@ -24,16 +23,6 @@ const STAT_CARDS = [
 
 const JobBoardPage: React.FC = () => {
   const { jobs, total, loading, error, filters, setFilters, page, setPage } = useJobs();
-  const [applyJob, setApplyJob] = useState<Job | null>(null);
-  const [applyLoading, setApplyLoading] = useState(false);
-
-  const handleApplySubmit = (_jobId: number, _resumeId: number) => {
-    setApplyLoading(true);
-    setTimeout(() => {
-      setApplyLoading(false);
-      setApplyJob(null);
-    }, 1200);
-  };
 
   return (
     <div>
@@ -141,16 +130,6 @@ const JobBoardPage: React.FC = () => {
         page={page}
         pageSize={12}
         onPageChange={setPage}
-        onApply={(job) => setApplyJob(job)}
-      />
-
-      {/* ── Apply Modal ── */}
-      <ApplyModal
-        job={applyJob}
-        open={!!applyJob}
-        onClose={() => setApplyJob(null)}
-        onSubmit={handleApplySubmit}
-        loading={applyLoading}
       />
     </div>
   );

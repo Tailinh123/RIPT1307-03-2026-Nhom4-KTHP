@@ -14,7 +14,6 @@ interface JobListProps {
   page: number;
   pageSize?: number;
   onPageChange: (page: number) => void;
-  onApply?: (job: Job) => void;
 }
 
 const JobList: React.FC<JobListProps> = ({
@@ -25,22 +24,20 @@ const JobList: React.FC<JobListProps> = ({
   page,
   pageSize = 12,
   onPageChange,
-  onApply,
 }) => {
-  if (error) {
-    return (
-      <Alert
-        type="warning"
-        showIcon
-        message="Không kết nối được Backend"
-        description={`${error} — Đang hiển thị dữ liệu mẫu.`}
-        style={{ marginBottom: 20, borderRadius: 10 }}
-      />
-    );
-  }
-
   return (
     <div>
+      {/* ── Backend Error Alert ── */}
+      {error && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Không kết nối được Backend"
+          description={`${error} — Đang hiển thị dữ liệu mẫu.`}
+          style={{ marginBottom: 20, borderRadius: 10 }}
+        />
+      )}
+
       {/* ── Result summary ── */}
       <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Space>
@@ -91,7 +88,7 @@ const JobList: React.FC<JobListProps> = ({
         <Row gutter={[20, 20]}>
           {jobs.map((job) => (
             <Col key={job.id} xs={24} sm={12} md={12} lg={8} xl={8}>
-              <JobCard job={job} onApply={onApply} />
+              <JobCard job={job} />
             </Col>
           ))}
         </Row>

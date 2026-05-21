@@ -7,7 +7,7 @@ import {
   QuestionCircleOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -27,7 +27,31 @@ interface HeaderBarProps {
 
 const HeaderBar: React.FC<HeaderBarProps> = ({ collapsed, onToggle, sidebarWidth }) => {
   const location = useLocation();
-  const title = PAGE_TITLES[location.pathname] ?? 'InternMatch';
+  const navigate = useNavigate();
+
+  const isJobDetail = /^\/jobs\/\d+/.test(location.pathname);
+  const title = isJobDetail ? 'Chi tiết việc làm' : (PAGE_TITLES[location.pathname] ?? 'InternMatch');
+
+  // Breadcrumb items
+  const breadcrumbItems = isJobDetail
+    ? [
+        { title: <Text style={{ fontSize: 12, color: '#8c8c8c' }}>Trang chủ</Text> },
+        {
+          title: (
+            <span
+              style={{ fontSize: 12, color: '#595959', cursor: 'pointer' }}
+              onClick={() => navigate('/jobs')}
+            >
+              Bảng việc làm
+            </span>
+          ),
+        },
+        { title: <Text style={{ fontSize: 12, color: '#1677ff' }}>Chi tiết việc làm</Text> },
+      ]
+    : [
+        { title: <Text style={{ fontSize: 12, color: '#8c8c8c' }}>Trang chủ</Text> },
+        { title: <Text style={{ fontSize: 12, color: '#1677ff' }}>{title}</Text> },
+      ];
 
   return (
     <Header
@@ -58,10 +82,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ collapsed, onToggle, sidebarWidth
         />
         <div>
           <Breadcrumb
-            items={[
-              { title: <Text style={{ fontSize: 12, color: '#8c8c8c' }}>Trang chủ</Text> },
-              { title: <Text style={{ fontSize: 12, color: '#1677ff' }}>{title}</Text> },
-            ]}
+            items={breadcrumbItems}
             style={{ marginBottom: 2 }}
           />
           <Text strong style={{ fontSize: 18, color: '#1d1d1f', letterSpacing: '-0.2px' }}>

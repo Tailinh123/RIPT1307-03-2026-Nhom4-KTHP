@@ -1,10 +1,9 @@
 import React from 'react';
-import { Card, Typography, Space, Tag, Button, Tooltip, Avatar } from 'antd';
+import { Card, Typography, Space, Tag, Button, Avatar } from 'antd';
 import {
   EnvironmentOutlined,
   DollarOutlined,
   ClockCircleOutlined,
-  SendOutlined,
   EyeOutlined,
   HomeOutlined,
   WifiOutlined,
@@ -35,10 +34,9 @@ const LEVEL_COLOR: Record<string, string> = {
 
 interface JobCardProps {
   job: Job;
-  onApply?: (job: Job) => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, onApply }) => {
+const JobCard: React.FC<JobCardProps> = ({ job }) => {
   const navigate = useNavigate();
   const daysLeft = daysUntil(job.deadline);
   const isUrgent = daysLeft <= 7 && daysLeft >= 0;
@@ -160,28 +158,16 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply }) => {
       </div>
 
       {/* ── Actions ── */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+      <div style={{ marginTop: 'auto' }}>
         <Button
-          type="default"
+          type="primary"
           icon={<EyeOutlined />}
           size="small"
-          style={{ flex: 1, borderRadius: 8, fontSize: 13, height: 34 }}
+          style={{ width: '100%', borderRadius: 8, fontSize: 13, height: 34 }}
           onClick={() => navigate(`/jobs/${job.id}`)}
         >
           Xem chi tiết
         </Button>
-        <Tooltip title={expired ? 'Công việc đã hết hạn' : ''}>
-          <Button
-            type="primary"
-            icon={<SendOutlined />}
-            size="small"
-            disabled={expired}
-            style={{ flex: 1, borderRadius: 8, fontSize: 13, height: 34 }}
-            onClick={() => onApply?.(job)}
-          >
-            Ứng tuyển
-          </Button>
-        </Tooltip>
       </div>
     </Card>
   );

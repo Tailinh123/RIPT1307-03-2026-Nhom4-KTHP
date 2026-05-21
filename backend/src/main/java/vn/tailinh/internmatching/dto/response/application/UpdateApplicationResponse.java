@@ -9,5 +9,5 @@ import lombok.Setter;
 @Setter
 public class UpdateApplicationResponse {
   private Instant updatedAt;
-  private String UpdatedBy;
+  private String updatedBy;
 }

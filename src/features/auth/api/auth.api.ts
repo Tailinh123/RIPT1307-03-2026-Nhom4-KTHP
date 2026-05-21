@@ -1,4 +1,5 @@
 import { axiosClient } from '../../../services/api/axiosClient';
+import { env } from '../../../utils/env';
 import type { LoginFormValues, RegisterFormValues, ApiEnvelope } from '../types/auth.types';
 
 type UnknownRecord = Record<string, unknown>;
@@ -17,9 +18,9 @@ export async function registerRequest(values: RegisterFormValues) {
     name: values.name,
     email: values.email,
     password: values.password,
-    age: values.age ? Number(values.age) : null,
-    gender: values.gender,
-    address: values.address
+    role: {
+      id: env.defaultRegisterRoleId
+    }
   });
 
   return response.data.data;

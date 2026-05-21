@@ -38,6 +38,21 @@ export function extractAccessToken(payload: unknown) {
   return pickString(data, ['accessToken', 'access_token', 'token', 'jwt']);
 }
 
+export function extractUserFromAuthPayload(payload: unknown) {
+  if (typeof payload !== 'object' || payload === null) {
+    return null;
+  }
+
+  const data = payload as UnknownRecord;
+  const user = data.user;
+
+  if (typeof user === 'object' && user !== null) {
+    return user as UnknownRecord;
+  }
+
+  return null;
+}
+
 export function extractRoleName(profile: UnknownRecord) {
   const directRole = pickString(profile, ['role', 'roleName']);
   if (directRole) {

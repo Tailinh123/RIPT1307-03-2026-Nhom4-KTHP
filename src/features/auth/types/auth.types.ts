@@ -13,9 +13,6 @@ export interface LoginFormValues {
 export interface RegisterFormValues {
   name: string;
   email: string;
-  age: string;
-  gender: string;
-  address: string;
   password: string;
   confirmPassword: string;
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -12,10 +12,7 @@ import {
   IconButton,
   InputAdornment,
   InputLabel,
-  Link,
-  MenuItem,
   OutlinedInput,
-  Select,
   Stack,
   Typography
 } from '@mui/material';
@@ -53,18 +50,12 @@ export function RegisterForm() {
       initialValues={{
         name: '',
         email: '',
-        age: '',
-        gender: 'MALE',
-        address: '',
         password: '',
         confirmPassword: '',
         submit: null
       }}
       validationSchema={Yup.object().shape({
         name: Yup.string().max(100).required('Full name is required'),
-        age: Yup.number().typeError('Age must be a number').min(16, 'Age must be at least 16').max(70, 'Age must be at most 70').required('Age is required'),
-        gender: Yup.string().oneOf(['MALE', 'FEMALE', 'OTHER']).required('Gender is required'),
-        address: Yup.string().max(200).required('Address is required'),
         email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
         password: Yup.string()
           .required('Password is required')
@@ -86,7 +77,7 @@ export function RegisterForm() {
         }
       }}
     >
-      {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, setFieldValue, touched, values }) => {
+      {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => {
         const strength = passwordStrength(values.password);
 
         return (
@@ -98,7 +89,7 @@ export function RegisterForm() {
                 </Grid>
               ) : null}
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <Stack sx={{ gap: 1 }}>
                   <InputLabel htmlFor="name-signup">Full Name*</InputLabel>
                   <OutlinedInput
@@ -113,62 +104,6 @@ export function RegisterForm() {
                   />
                 </Stack>
                 {touched.name && errors.name ? <FormHelperText error>{errors.name}</FormHelperText> : null}
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="age-signup">Age*</InputLabel>
-                  <OutlinedInput
-                    id="age-signup"
-                    value={values.age}
-                    name="age"
-                    type="number"
-                    inputProps={{ min: 16, max: 70 }}
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="20"
-                    fullWidth
-                    error={Boolean(touched.age && errors.age)}
-                  />
-                </Stack>
-                {touched.age && errors.age ? <FormHelperText error>{errors.age}</FormHelperText> : null}
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="gender-signup">Gender*</InputLabel>
-                  <Select
-                    id="gender-signup"
-                    name="gender"
-                    value={values.gender}
-                    onBlur={handleBlur}
-                    onChange={(event) => setFieldValue('gender', event.target.value)}
-                    error={Boolean(touched.gender && errors.gender)}
-                    fullWidth
-                  >
-                    <MenuItem value="MALE">Male</MenuItem>
-                    <MenuItem value="FEMALE">Female</MenuItem>
-                    <MenuItem value="OTHER">Other</MenuItem>
-                  </Select>
-                </Stack>
-                {touched.gender && errors.gender ? <FormHelperText error>{errors.gender}</FormHelperText> : null}
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="address-signup">Address*</InputLabel>
-                  <OutlinedInput
-                    id="address-signup"
-                    value={values.address}
-                    name="address"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="Ha Noi"
-                    fullWidth
-                    error={Boolean(touched.address && errors.address)}
-                  />
-                </Stack>
-                {touched.address && errors.address ? <FormHelperText error>{errors.address}</FormHelperText> : null}
               </Grid>
 
               <Grid item xs={12}>
@@ -253,11 +188,7 @@ export function RegisterForm() {
 
               <Grid item xs={12}>
                 <Typography variant="body2">
-                  By Signing up, you agree to create an account for Internship Matching and use your information for authentication.
-                  &nbsp;
-                  <Link variant="subtitle2" component={RouterLink} to="#">
-                    Terms of Service
-                  </Link>
+                  By signing up, you create an account for Internship Matching and use your information for authentication.
                 </Typography>
               </Grid>
 

@@ -2,7 +2,7 @@ import { createContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { getProfileRequest, loginRequest, registerRequest } from '../api/auth.api';
 import type { AuthContextValue, AuthUser, LoginFormValues, RegisterFormValues } from '../types/auth.types';
-import { extractAccessToken, mapProfileToAuthUser } from '../utils/auth-mappers';
+import { extractAccessToken, extractUserFromAuthPayload, mapProfileToAuthUser } from '../utils/auth-mappers';
 import { clearStoredToken, getStoredToken, saveStoredToken } from '../utils/auth-storage';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -55,6 +55,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       saveStoredToken(token, values.rememberMe ? 'local' : 'session');
       setAccessToken(token);
+
+      const loginUser = extractUserFromAuthPayload(loginData);
+      if (loginUser) {
+        const mappedUser = mapProfileToAuthUser(loginUser);
+        setCurrentUser(mappedUser);
+        return mappedUser;
+      }
+
       return await loadProfile();
     } catch (error) {
       throw new Error(normalizeErrorMessage(error, 'Dang nhap that bai.'));

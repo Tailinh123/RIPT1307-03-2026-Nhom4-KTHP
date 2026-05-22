@@ -61,8 +61,8 @@ public class DatabaseInitializer implements CommandLineRunner {
       arr.addAll(createCrudPerms("user", "/api/v1/users", "USERS"));
       arr.addAll(createCrudPerms("subscriber", "/api/v1/subscribers", "SUBSCRIBERS"));
 
-      arr.add(createPerm("Download a file", "/api/v1/files", "POST", "FILES"));
-      arr.add(createPerm("Upload a file", "/api/v1/files", "GET", "FILES"));
+      arr.add(createPerm("Upload a file", "/api/v1/files", "POST", "FILES"));
+      arr.add(createPerm("DownLoad a file", "/api/v1/files", "GET", "FILES"));
 
       this.permissionRepository.saveAll(arr);
     }

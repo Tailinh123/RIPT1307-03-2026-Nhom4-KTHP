@@ -10,15 +10,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.entity.JobCategory;
-import vn.tailinh.internmatching.repository.JobCategoryRepository;
+
 import vn.tailinh.internmatching.service.JobCategoryService;
 import vn.tailinh.internmatching.util.annotation.ApiMessage;
 
 
-import org.springframework.data.domain.Page;
+
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -59,7 +59,7 @@ public class JobCategoryController {
   }
 
   @DeleteMapping("/{id}")
-  @ApiMessage("Deleta a JobCategory")
+  @ApiMessage("Delete a JobCategory")
   public ResponseEntity<Void> delete(@PathVariable("id") Long id) throws Exception{
     this.jobCategoryService.delete(id);
     return ResponseEntity.ok().body(null);

@@ -44,7 +44,7 @@ public class ApplicationController {
 
 
   @PutMapping("")
-  @ApiMessage("Update an application startus")
+  @ApiMessage("Update an application status")
   public ResponseEntity<UpdateApplicationResponse> update(@Valid @RequestBody UpdateApplicationDTO dto) throws Exception {
     return ResponseEntity.ok(applicationService.update(dto));
   }
@@ -66,7 +66,7 @@ public class ApplicationController {
 
   @PostMapping("/by-user")
   public ResponseEntity<ResultPaginationResponse> fetchByUser(Pageable pageable) {
-    return ResponseEntity.ok(applicationService.fetchByUser(pageable));
+    return ResponseEntity.ok(this.applicationService.fetchByUser(pageable));
   }
 
 }

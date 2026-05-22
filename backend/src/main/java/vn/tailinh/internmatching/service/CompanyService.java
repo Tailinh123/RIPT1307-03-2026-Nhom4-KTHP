@@ -38,9 +38,11 @@ public class CompanyService {
     return companyOptional.orElseThrow(() -> new IdInvalidException("Company not found"));
   }
 
-  public Company updateCompany(Company company) {
+  public Company updateCompany(Company company) throws Exception {
     Optional<Company> companyOptional = this.companyRepository.findById(company.getId());
-    if (companyOptional.isPresent()) {
+      if(companyOptional.isEmpty()){
+        throw new IdInvalidException("Company not found");
+      } 
       Company currentCompany = companyOptional.get();
       currentCompany.setName(company.getName());
       currentCompany.setLogoUrl(company.getLogoUrl());
@@ -48,17 +50,12 @@ public class CompanyService {
       currentCompany.setAddress(company.getAddress());
       return this.companyRepository.save(currentCompany);
     }
-    return null;
-  }
+  
 
-  public void deleteCompany(Long id) {
-    Optional<Company> companyOptional = this.companyRepository.findById(id);
-    if (companyOptional.isPresent()) {
-      Company company = companyOptional.get();
-      List<User> users = this.userRepository.findByCompany(company);
-      users.forEach(u -> u.setCompany(null));
-      this.userRepository.saveAll(users);
-      this.companyRepository.deleteById(id);
+  public void deleteCompany(Long id) throws Exception {
+    if(!this.companyRepository.existsById(id)) {
+      throw new IdInvalidException("Company not found");
     }
+    this.companyRepository.deleteById(id);
   }
 }

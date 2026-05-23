@@ -29,7 +29,7 @@ public class UserController {
   @ApiMessage("Create a user")
   public ResponseEntity<CreatedUserResponse> createUser(@Valid @RequestBody User user) throws Exception {
     CreatedUserResponse newUser = this.userService.createUser(user);
-    return ResponseEntity.status(HttpStatus.OK).body(newUser);
+    return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
 
   }
 

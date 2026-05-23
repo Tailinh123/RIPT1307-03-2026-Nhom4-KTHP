@@ -31,7 +31,6 @@ import java.util.Optional;
 public class ResumeService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
-    private final JobRepository jobRepository;
     private final FilterParser filterParser;
     private final FilterSpecificationConverter filterSpecificationConverter;
 
@@ -42,6 +41,7 @@ public class ResumeService {
         return ResumeMapper.convertToResCreatedResumeRes(this.resumeRepository.save(resume));
     }
 
+
     public Resume fetchResumelById(Long id) throws Exception {
         if(this.resumeRepository.existsById(id)){
             return this.resumeRepository.findById(id).get();
@@ -50,10 +50,14 @@ public class ResumeService {
         }
     }
 
+
     public UpdatedResumeResponse update(Resume resume) throws Exception{
         Resume currentResume = this.fetchResumelById(resume.getId());
+        currentResume.setTitle(resume.getTitle());
+        currentResume.setUrl(resume.getUrl());
         return ResumeMapper.convertToResUpdatedResumeRes(this.resumeRepository.save(currentResume));
     }
+
 
     public void delete(Long id) throws Exception {
         Resume currentResume = this.fetchResumelById(id);
@@ -63,11 +67,13 @@ public class ResumeService {
         this.resumeRepository.deleteById(currentResume.getId());
     }
 
+
     public ResultPaginationResponse fetchAllResume(Specification<Resume> spec, Pageable pageable){
         Page<Resume> resumePage = this.resumeRepository.findAll(spec, pageable);
         ResultPaginationResponse response = FormatResultPagination.createPaginateResumeRes(resumePage);
         return response;
     }
+
 
     public ResultPaginationResponse fetchResumeByUser(Pageable pageable){
         String email = SecurityUtils.getCurrentUserLogin().isPresent()
@@ -79,6 +85,7 @@ public class ResumeService {
         Page<Resume> resumePage = this.resumeRepository.findAll(spec, pageable);
         return FormatResultPagination.createPaginateResumeRes(resumePage);
     }
+
 
     private boolean checkResumeExistByUserAndJob(Resume resume){
         if(resume.getUser() == null){

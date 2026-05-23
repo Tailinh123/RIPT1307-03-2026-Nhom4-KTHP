@@ -1,8 +1,7 @@
 export type ApplicationStatus =
   | 'PENDING'
   | 'REVIEWING'
-  | 'INTERVIEW'
-  | 'ACCEPTED'
+  | 'APPROVED'
   | 'REJECTED';
 
 export interface Application {
@@ -10,6 +9,7 @@ export interface Application {
   jobId: number;
   jobTitle: string;
   companyName: string;
+  companyLogo?: string;
   resumeId: number;
   resumeName: string;
   status: ApplicationStatus;

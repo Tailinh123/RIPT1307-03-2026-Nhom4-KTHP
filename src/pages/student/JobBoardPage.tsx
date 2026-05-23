@@ -1,10 +1,15 @@
 import React from 'react';
-import { Row, Col, Card, Typography, Space, Tag } from 'antd';
+import { Row, Col, Card, Typography, Space } from 'antd';
 import {
   AppstoreOutlined,
   FireOutlined,
   EnvironmentOutlined,
   TrophyOutlined,
+  CodeOutlined,
+  LineChartOutlined,
+  HighlightOutlined,
+  DollarOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import type { Job } from '@/types/job';
 import { useJobs } from '@/hooks/useJobs';
@@ -21,59 +26,87 @@ const STAT_CARDS = [
   { label: 'Công ty tuyển dụng', value: 86, icon: <TrophyOutlined />, color: '#fa8c16', bg: '#fff7e6' },
 ];
 
+// ── Category badge config ──
+const CATEGORY_BADGES = [
+  { label: 'IT / Phần mềm', icon: <CodeOutlined style={{ fontSize: 13 }} />, color: '#1677ff', bg: '#e6f4ff', borderColor: '#91caff' },
+  { label: 'Marketing', icon: <LineChartOutlined style={{ fontSize: 13 }} />, color: '#d48806', bg: '#fffbe6', borderColor: '#ffe58f' },
+  { label: 'Thiết kế', icon: <HighlightOutlined style={{ fontSize: 13 }} />, color: '#722ed1', bg: '#f9f0ff', borderColor: '#d3adf7' },
+  { label: 'Tài chính', icon: <DollarOutlined style={{ fontSize: 13 }} />, color: '#389e0d', bg: '#f6ffed', borderColor: '#b7eb8f' },
+  { label: 'Nhân sự', icon: <TeamOutlined style={{ fontSize: 13 }} />, color: '#cf1322', bg: '#fff1f0', borderColor: '#ffa39e' },
+];
+
 const JobBoardPage: React.FC = () => {
   const { jobs, total, loading, error, filters, setFilters, page, setPage } = useJobs();
 
   return (
     <div>
-      {/* ── Page Hero ── */}
+      {/* ── Page Header — Clean SaaS style ── */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 50%, #69b1ff 100%)',
-          borderRadius: 16,
-          padding: '28px 32px',
+          background: '#ffffff',
+          borderRadius: 14,
+          border: '1px solid #eef0f5',
+          padding: '28px 32px 24px',
           marginBottom: 24,
-          position: 'relative',
-          overflow: 'hidden',
         }}
       >
+        {/* Title row */}
         <div
           style={{
-            position: 'absolute', top: -30, right: -30,
-            width: 200, height: 200, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.06)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
+            marginBottom: 20,
           }}
-        />
-        <div
-          style={{
-            position: 'absolute', bottom: -50, right: 80,
-            width: 150, height: 150, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.04)',
-          }}
-        />
-        <Title level={3} style={{ color: '#fff', margin: 0, marginBottom: 6 }}>
-          Tìm kiếm việc làm thực tập
-        </Title>
-        <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 15 }}>
-          Khám phá hàng trăm cơ hội thực tập từ các công ty hàng đầu Việt Nam
-        </Text>
-        <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {['IT / Phần mềm', 'Marketing', 'Thiết kế', 'Tài chính', 'Nhân sự'].map((cat) => (
-            <Tag
-              key={cat}
+        >
+          <div>
+            <Title
+              level={3}
               style={{
-                background: 'rgba(255,255,255,0.18)',
-                color: '#fff',
-                border: '1px solid rgba(255,255,255,0.3)',
-                borderRadius: 20,
-                padding: '2px 14px',
-                fontSize: 13,
-                cursor: 'pointer',
-                backdropFilter: 'blur(4px)',
+                margin: 0,
+                marginBottom: 4,
+                fontSize: 24,
+                fontWeight: 700,
+                color: '#111827',
+                letterSpacing: '-0.3px',
               }}
             >
-              {cat}
-            </Tag>
+              Tìm kiếm việc làm thực tập
+            </Title>
+            <Text style={{ fontSize: 14, color: '#6b7280', lineHeight: '20px' }}>
+              Khám phá hàng trăm cơ hội thực tập từ các công ty hàng đầu Việt Nam
+            </Text>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: '#f0f0f0', marginBottom: 18 }} />
+
+        {/* Category badges */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          {CATEGORY_BADGES.map((badge) => (
+            <div
+              key={badge.label}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 14px',
+                borderRadius: 20,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                background: badge.bg,
+                color: badge.color,
+                border: `1px solid ${badge.borderColor}`,
+              }}
+            >
+              {badge.icon}
+              {badge.label}
+            </div>
           ))}
         </div>
       </div>

@@ -72,3 +72,41 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
   border-radius: 14px;
 }
+
+/* ── Application table rows ──────────────────────────────────────────── */
+.application-table-row {
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.application-table-row:hover td {
+  background: #fafbff !important;
+}
+
+.ant-table-expanded-row > td {
+  background: #fafbff !important;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-table-expand-icon-col {
+  width: 32px;
+}
+
+/* Application table header */
+.ant-table-thead > tr > th {
+  background: #f8f9fc !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid #eef0f5 !important;
+}
+
+/* Pagination active page */
+.ant-pagination-item-active {
+  border-color: #722ed1 !important;
+}
+
+.ant-pagination-item-active a {
+  color: #722ed1 !important;
+}

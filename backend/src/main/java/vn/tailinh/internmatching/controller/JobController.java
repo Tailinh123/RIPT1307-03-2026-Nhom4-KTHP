@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.entity.Job;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
-import vn.tailinh.internmatching.dto.response.job.ResponseCreateJobDTO;
+import vn.tailinh.internmatching.dto.response.job.CreateJobDTOResponse;
 import vn.tailinh.internmatching.dto.response.job.UpdatedJobResponse;
 import vn.tailinh.internmatching.service.JobService;
 import vn.tailinh.internmatching.util.annotation.ApiMessage;
@@ -32,7 +32,7 @@ public class JobController {
 
     @PostMapping("")
     @ApiMessage("Create a job")
-    public ResponseEntity<ResponseCreateJobDTO> create(@Valid @RequestBody Job job){
+    public ResponseEntity<CreateJobDTOResponse> create(@Valid @RequestBody Job job){
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 this.jobService.create(job)
         );

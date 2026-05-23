@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import vn.tailinh.internmatching.entity.Job;
-import vn.tailinh.internmatching.dto.response.job.ResponseCreateJobDTO;
+import vn.tailinh.internmatching.dto.response.job.CreateJobDTOResponse;
 import vn.tailinh.internmatching.dto.response.job.UpdatedJobResponse;
 import vn.tailinh.internmatching.entity.Skill;
 
 public class JobMapper {
   private JobMapper(){}
-  public static ResponseCreateJobDTO toCreatedJobResponse(Job job) {
-    ResponseCreateJobDTO res = new ResponseCreateJobDTO();
+  public static CreateJobDTOResponse toCreatedJobResponse(Job job) {
+    CreateJobDTOResponse res = new CreateJobDTOResponse();
     res.setId(job.getId());
     res.setName(job.getName());
     res.setSalary(job.getSalary());
@@ -31,7 +31,7 @@ public class JobMapper {
     // company
 
     if (job.getCompany() != null) {
-      ResponseCreateJobDTO.CompanyDTO company = new ResponseCreateJobDTO.CompanyDTO();
+      CreateJobDTOResponse.CompanyDTO company = new CreateJobDTOResponse.CompanyDTO();
       company.setId(job.getCompany().getId());
       company.setName(job.getCompany().getName());
       res.setCompany(company);
@@ -40,7 +40,7 @@ public class JobMapper {
     // category
    
     if (job.getJobCategory() != null) {
-      ResponseCreateJobDTO.CategoryDTO category = new ResponseCreateJobDTO.CategoryDTO();
+      CreateJobDTOResponse.CategoryDTO category = new CreateJobDTOResponse.CategoryDTO();
       category.setId(job.getJobCategory().getId());
       category.setName(job.getJobCategory().getName());
       res.setCategory(category);

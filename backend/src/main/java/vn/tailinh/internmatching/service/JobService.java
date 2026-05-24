@@ -63,7 +63,17 @@ public class JobService {
             List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
             jobInDB.setSkills(dbSkills);
         }
-
+        jobInDB.setName(job.getName());
+        jobInDB.setDescription(job.getDescription());
+        jobInDB.setLocation(job.getLocation());
+        jobInDB.setQuantity(job.getQuantity());
+        jobInDB.setSalary(job.getSalary());
+        jobInDB.setJobType(job.getJobType());
+        jobInDB.setWorkMode(job.getWorkMode());
+        jobInDB.setStartDate(job.getStartDate());
+        jobInDB.setEndDate(job.getEndDate());
+        jobInDB.setLevel(job.getLevel());
+        jobInDB.setJobCategory(job.getJobCategory());
 
         if(job.getCompany() != null){
             Optional<Company> companyOptional = this.companyRepository.findById(job.getCompany().getId());
@@ -97,7 +107,7 @@ public class JobService {
 
 
 
-    
+
     public ResultPaginationResponse fetchAllJob(Specification<Job> spec, Pageable pageable){
         Page<Job> jobPage = this.jobRepository.findAll(spec, pageable);
         ResultPaginationResponse response = FormatResultPagination.createPaginationResponse(jobPage);

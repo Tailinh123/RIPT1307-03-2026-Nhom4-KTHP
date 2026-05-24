@@ -64,7 +64,7 @@ function getMockJobs(): Job[] {
       location: 'Hà Nội', salaryMin: 3000000, salaryMax: 5000000,
       level: 'INTERN', workMode: 'HYBRID', category: 'IT_SOFTWARE',
       skills: [{ id: 1, name: 'React' }, { id: 2, name: 'TypeScript' }, { id: 3, name: 'Tailwind CSS' }],
-      deadline: '2025-08-01', createdAt: '2025-06-01', isActive: true,
+      deadline: '2026-08-01', createdAt: '2026-05-01', isActive: true,
     },
     {
       id: 2, title: 'Backend Developer Intern', companyName: 'VNG Corporation',
@@ -72,7 +72,7 @@ function getMockJobs(): Job[] {
       location: 'TP. Hồ Chí Minh', salaryMin: 4000000, salaryMax: 6000000,
       level: 'INTERN', workMode: 'ONSITE', category: 'IT_SOFTWARE',
       skills: [{ id: 4, name: 'Java' }, { id: 5, name: 'Spring Boot' }, { id: 6, name: 'MySQL' }],
-      deadline: '2025-07-15', createdAt: '2025-06-02', isActive: true,
+      deadline: '2026-07-15', createdAt: '2026-05-02', isActive: true,
     },
     {
       id: 3, title: 'UI/UX Designer Intern', companyName: 'Grab Vietnam',
@@ -80,7 +80,7 @@ function getMockJobs(): Job[] {
       location: 'TP. Hồ Chí Minh', salaryMin: 3500000, salaryMax: 5000000,
       level: 'INTERN', workMode: 'HYBRID', category: 'DESIGN',
       skills: [{ id: 7, name: 'Figma' }, { id: 8, name: 'Adobe XD' }, { id: 9, name: 'Prototyping' }],
-      deadline: '2025-07-30', createdAt: '2025-06-03', isActive: true,
+      deadline: '2026-07-30', createdAt: '2026-05-03', isActive: true,
     },
     {
       id: 4, title: 'Marketing Intern', companyName: 'Shopee Vietnam',
@@ -88,7 +88,7 @@ function getMockJobs(): Job[] {
       location: 'Hà Nội', salaryMin: 2500000, salaryMax: 4000000,
       level: 'INTERN', workMode: 'ONSITE', category: 'MARKETING',
       skills: [{ id: 10, name: 'Google Ads' }, { id: 11, name: 'SEO' }, { id: 12, name: 'Content Marketing' }],
-      deadline: '2025-08-10', createdAt: '2025-06-04', isActive: true,
+      deadline: '2026-08-10', createdAt: '2026-05-04', isActive: true,
     },
     {
       id: 5, title: 'Data Analyst Intern', companyName: 'Momo',
@@ -96,7 +96,7 @@ function getMockJobs(): Job[] {
       location: 'TP. Hồ Chí Minh', salaryMin: 4000000, salaryMax: 7000000,
       level: 'FRESHER', workMode: 'REMOTE', category: 'IT_SOFTWARE',
       skills: [{ id: 13, name: 'Python' }, { id: 14, name: 'SQL' }, { id: 15, name: 'Power BI' }],
-      deadline: '2025-08-20', createdAt: '2025-06-05', isActive: true,
+      deadline: '2026-08-20', createdAt: '2026-05-05', isActive: true,
     },
     {
       id: 6, title: 'Mobile Developer Intern', companyName: 'Tiki',
@@ -104,7 +104,7 @@ function getMockJobs(): Job[] {
       location: 'Đà Nẵng', salaryMin: 3500000, salaryMax: 5500000,
       level: 'INTERN', workMode: 'HYBRID', category: 'IT_SOFTWARE',
       skills: [{ id: 16, name: 'React Native' }, { id: 17, name: 'JavaScript' }, { id: 18, name: 'Redux' }],
-      deadline: '2025-07-25', createdAt: '2025-06-06', isActive: true,
+      deadline: '2026-07-25', createdAt: '2026-05-06', isActive: true,
     },
     {
       id: 7, title: 'HR Intern', companyName: 'Viettel',
@@ -112,7 +112,7 @@ function getMockJobs(): Job[] {
       location: 'Hà Nội', salaryMin: 2000000, salaryMax: 3500000,
       level: 'INTERN', workMode: 'ONSITE', category: 'HUMAN_RESOURCES',
       skills: [{ id: 19, name: 'Recruitment' }, { id: 20, name: 'Communication' }],
-      deadline: '2025-08-05', createdAt: '2025-06-07', isActive: true,
+      deadline: '2026-08-05', createdAt: '2026-05-07', isActive: true,
     },
     {
       id: 8, title: 'Finance Intern', companyName: 'BIDV',
@@ -120,7 +120,7 @@ function getMockJobs(): Job[] {
       location: 'Hà Nội', salaryMin: 2500000, salaryMax: 4000000,
       level: 'INTERN', workMode: 'ONSITE', category: 'FINANCE',
       skills: [{ id: 21, name: 'Excel' }, { id: 22, name: 'Financial Analysis' }, { id: 23, name: 'Accounting' }],
-      deadline: '2025-08-15', createdAt: '2025-06-08', isActive: true,
+      deadline: '2026-08-15', createdAt: '2026-05-08', isActive: true,
     },
     {
       id: 9, title: 'DevOps Intern', companyName: 'CMC Technology',
@@ -128,7 +128,7 @@ function getMockJobs(): Job[] {
       location: 'TP. Hồ Chí Minh', salaryMin: 4500000, salaryMax: 7000000,
       level: 'FRESHER', workMode: 'REMOTE', category: 'IT_SOFTWARE',
       skills: [{ id: 24, name: 'Docker' }, { id: 25, name: 'Kubernetes' }, { id: 26, name: 'Linux' }],
-      deadline: '2025-09-01', createdAt: '2025-06-09', isActive: true,
+      deadline: '2026-09-01', createdAt: '2026-05-09', isActive: true,
     },
     {
       id: 10, title: 'Content Creator Intern', companyName: 'Lazada Vietnam',
@@ -136,7 +136,7 @@ function getMockJobs(): Job[] {
       location: 'Hà Nội', salaryMin: 2000000, salaryMax: 3000000,
       level: 'INTERN', workMode: 'HYBRID', category: 'MARKETING',
       skills: [{ id: 27, name: 'Copywriting' }, { id: 28, name: 'Social Media' }, { id: 29, name: 'Canva' }],
-      deadline: '2025-07-20', createdAt: '2025-06-10', isActive: true,
+      deadline: '2026-07-20', createdAt: '2026-05-10', isActive: true,
     },
     {
       id: 11, title: 'QA Tester Intern', companyName: 'KMS Technology',
@@ -144,7 +144,7 @@ function getMockJobs(): Job[] {
       location: 'TP. Hồ Chí Minh', salaryMin: 3000000, salaryMax: 5000000,
       level: 'INTERN', workMode: 'ONSITE', category: 'IT_SOFTWARE',
       skills: [{ id: 30, name: 'Manual Testing' }, { id: 31, name: 'Selenium' }, { id: 32, name: 'JIRA' }],
-      deadline: '2025-08-25', createdAt: '2025-06-11', isActive: true,
+      deadline: '2026-08-25', createdAt: '2026-05-11', isActive: true,
     },
     {
       id: 12, title: 'Sales Intern', companyName: 'Vingroup',
@@ -152,7 +152,7 @@ function getMockJobs(): Job[] {
       location: 'Hà Nội', salaryMin: 3000000, salaryMax: 5000000,
       level: 'INTERN', workMode: 'ONSITE', category: 'SALES',
       skills: [{ id: 33, name: 'Sales' }, { id: 34, name: 'Negotiation' }, { id: 35, name: 'CRM' }],
-      deadline: '2025-08-30', createdAt: '2025-06-12', isActive: true,
+      deadline: '2026-08-30', createdAt: '2026-05-12', isActive: true,
     },
   ];
 }

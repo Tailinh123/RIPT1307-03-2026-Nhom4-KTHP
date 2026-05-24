@@ -36,9 +36,13 @@ export interface Job {
   jobCategory?: JobCategory;
   skills?: Skill[];
   deadline?: string;
+  startDate?: string;
+  endDate?: string;
+  quantity?: number;
+  isActive?: boolean;
+  isHot?: boolean;
   createdAt: string;
   updatedAt?: string;
-  isActive?: boolean;
   status?: JobStatus;
   serviceFee?: number;
 }
@@ -62,6 +66,13 @@ export interface JobFormData {
   workMode: WorkMode;
   skills: number[];
   jobCategory: JobCategory;
+  location?: string;
+  quantity?: number;
+  companyName?: string;
+  startDate?: any;
+  endDate?: any;
+  isActive?: boolean;
+  isHot?: boolean;
 }
 
 export const levelLabels: Record<JobLevel, string> = {

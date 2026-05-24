@@ -16,6 +16,8 @@ import {
   Popconfirm,
   message,
   Typography,
+  DatePicker,
+  Switch,
 } from "antd";
 import {
   PlusOutlined,
@@ -43,6 +45,7 @@ import {
   statusLabels,
   statusColors,
 } from "@/types/job";
+import dayjs from "dayjs";
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -107,6 +110,21 @@ useEffect(() => {
     });
   }, [jobs, filters]);
 
+  const companyOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          jobs
+            .map((job) => job.company?.name || job.companyName)
+            .filter((name): name is string => Boolean(name))
+        )
+      ).map((name) => ({
+        value: name,
+        label: name,
+      })),
+    [jobs]
+  );
+
   // ==================== HANDLERS ====================
   // Mở modal thêm mới
   const handleAddNew = () => {
@@ -131,6 +149,13 @@ useEffect(() => {
           )
         : [],
       jobCategory: record.jobCategory || record.category,
+      location: record.location,
+      quantity: record.quantity,
+      companyName: record.company?.name || record.companyName,
+      startDate: record.startDate ? dayjs(record.startDate) : undefined,
+      endDate: record.endDate ? dayjs(record.endDate) : undefined,
+      isActive: record.isActive ?? true,
+      isHot: record.isHot ?? false,
     });
     setIsModalOpen(true);
   };
@@ -156,21 +181,33 @@ useEffect(() => {
       const safeCategoryId = typeof values.jobCategory === 'number' ? values.jobCategory : 1;
       
       // Khắc phục lệch pha Enum JobType giữa FE ("INTERNSHIP") và BE ("INTERN")
-      let safeJobType = values.jobType;
-      if (String(safeJobType).toUpperCase() === "INTERNSHIP") {
-        safeJobType = "INTERN" as any;
-      }
+      const safeJobType =
+        String(values.jobType).toUpperCase() === "INTERNSHIP"
+          ? ("INTERN" as unknown as JobType)
+          : values.jobType;
 
       const payload = {
-        ...values,
-        title: values.name,           // Ánh xạ tên công việc sang title của Backend
-        jobType: safeJobType,         // Ép về chuỗi "INTERN" chuẩn chỉnh
+        title: values.name,
+        description: values.description,
+        salary: values.salary,
+        level: values.level,
+        jobType: safeJobType,
+        workMode: values.workMode,
         jobCategory: { id: safeCategoryId },
-        skills: values.skills.map((skillValue: any) => ({ 
-          id: typeof skillValue === 'number' ? skillValue : 1 
+        skills: values.skills.map((skillValue: number | string) => ({
+          id: typeof skillValue === 'number' ? skillValue : Number(skillValue) || 1,
         })),
-        location: "Hà Nội",  
-        quantity: 1,         
+        location: values.location || "Hà Nội",
+        quantity: values.quantity ?? 1,
+        companyName: values.companyName,
+        startDate: values.startDate
+          ? (values.startDate as unknown as { toISOString: () => string }).toISOString()
+          : undefined,
+        endDate: values.endDate
+          ? (values.endDate as unknown as { toISOString: () => string }).toISOString()
+          : undefined,
+        isActive: values.isActive ?? true,
+        isHot: values.isHot ?? false,
       };
 
       if (editingJob) {
@@ -450,24 +487,38 @@ render: (fee: number) => (
               <Input placeholder="VD: Frontend Developer Intern" />
             </Form.Item>
 
-            <Form.Item
-              name="description"
-              label="Mô tả công việc"
-              rules={[
-                { required: true, message: "Vui lòng nhập mô tả công việc" },
-                { min: 20, message: "Mô tả phải có ít nhất 20 ký tự" },
-              ]}
-            >
-              <TextArea
-                rows={4}
-                placeholder="Mô tả chi tiết về vị trí tuyển dụng, yêu cầu, quyền lợi..."
-                showCount
-                maxLength={1000}
-              />
-            </Form.Item>
-
             <Row gutter={16}>
               <Col span={12}>
+                <Form.Item
+                  name="skills"
+                  label="Kỹ năng yêu cầu"
+                  rules={[
+                    { required: true, message: "Vui lòng chọn ít nhất 1 kỹ năng" },
+                  ]}
+                >
+                  <Select
+                    mode="multiple"
+                    placeholder="Chọn các kỹ năng"
+                    options={skillOptions}
+                    maxTagCount="responsive"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="location"
+                  label="Địa điểm"
+                  rules={[
+                    { required: true, message: "Vui lòng nhập địa điểm" },
+                  ]}
+                >
+                  <Input placeholder="VD: Hà Nội" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={8}>
                 <Form.Item
                   name="salary"
                   label="Mức lương (VNĐ)"
@@ -489,10 +540,26 @@ render: (fee: number) => (
                   />
                 </Form.Item>
               </Col>
-              <Col span={12}>
+              <Col span={8}>
+                <Form.Item
+                  name="quantity"
+                  label="Số lượng"
+                  rules={[
+                    { required: true, message: "Vui lòng nhập số lượng" },
+                  ]}
+                >
+                  <InputNumber<number>
+                    className="w-full"
+                    min={1}
+                    max={100}
+                    placeholder="VD: 3"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
                 <Form.Item
                   name="level"
-                  label="Cấp độ"
+                  label="Trình độ"
                   rules={[
                     { required: true, message: "Vui lòng chọn cấp độ" },
                   ]}
@@ -548,22 +615,6 @@ render: (fee: number) => (
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  name="skills"
-                  label="Kỹ năng yêu cầu"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn ít nhất 1 kỹ năng" },
-                  ]}
-                >
-                  <Select
-                    mode="multiple"
-                    placeholder="Chọn các kỹ năng"
-                    options={skillOptions}
-                    maxTagCount="responsive"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
                   name="jobCategory"
                   label="Danh mục công việc"
                   rules={[
@@ -576,7 +627,94 @@ render: (fee: number) => (
                   />
                 </Form.Item>
               </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="companyName"
+                  label="Công ty"
+                  rules={[
+                    { required: true, message: "Vui lòng chọn công ty" },
+                  ]}
+                >
+                  <Select
+                    placeholder="Chọn công ty"
+                    options={companyOptions}
+                    showSearch
+                    allowClear
+                    filterOption={(input, option) =>
+                      option?.label
+                        .toString()
+                        .toLowerCase()
+                        .includes(input.toLowerCase()) ?? false
+                    }
+                  />
+                </Form.Item>
+              </Col>
             </Row>
+
+            <Row gutter={16}>
+              <Col span={8}>
+                <Form.Item
+                  name="startDate"
+                  label="Ngày bắt đầu"
+                  rules={[
+                    { required: true, message: "Vui lòng chọn ngày bắt đầu" },
+                  ]}
+                >
+                  <DatePicker className="w-full" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  name="endDate"
+                  label="Ngày kết thúc"
+                  rules={[
+                    { required: true, message: "Vui lòng chọn ngày kết thúc" },
+                  ]}
+                >
+                  <DatePicker className="w-full" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="isActive"
+                      label="Hoạt động"
+                      valuePropName="checked"
+                      initialValue={true}
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="isHot"
+                      label="Hot"
+                      valuePropName="checked"
+                      initialValue={false}
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
+
+            <Form.Item
+              name="description"
+              label="Mô tả công việc"
+              rules={[
+                { required: true, message: "Vui lòng nhập mô tả công việc" },
+                { min: 20, message: "Mô tả phải có ít nhất 20 ký tự" },
+              ]}
+            >
+              <TextArea
+                rows={4}
+                placeholder="Mô tả chi tiết về vị trí tuyển dụng, yêu cầu, quyền lợi..."
+                showCount
+                maxLength={1000}
+              />
+            </Form.Item>
 
             <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
               <Button

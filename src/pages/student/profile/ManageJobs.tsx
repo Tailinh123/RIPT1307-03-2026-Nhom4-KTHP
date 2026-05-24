@@ -58,7 +58,7 @@ type ManageJobFilter = {
 
 export default function ManageJobs() {
   // ==================== STATE MANAGEMENT ====================
-
+const [companies, setCompanies] = useState<any[]>([]);
 const [jobs, setJobs] = useState<Job[]>([]);
 const [loading, setLoading] = useState<boolean>(true);
 
@@ -75,8 +75,17 @@ useEffect(() => {
         setLoading(false);
       }
     };
-
+const fetchCompanies = async () => {
+      try {
+        const response = await apiClient.get('/api/v1/companies');
+        const data = response.data.data?.result || response.data.data || response.data;
+        setCompanies(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Companies API failed", error);
+      }
+    };
     fetchJobs();
+    fetchCompanies();
   }, []);
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -110,20 +119,12 @@ useEffect(() => {
     });
   }, [jobs, filters]);
 
-  const companyOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          jobs
-            .map((job) => job.company?.name || job.companyName)
-            .filter((name): name is string => Boolean(name))
-        )
-      ).map((name) => ({
-        value: name,
-        label: name,
-      })),
-    [jobs]
-  );
+const companyOptions = useMemo(() => {
+    return companies.map((c: any) => ({
+      value: c.id,   // Giá trị gửi lên BE là số ID (1, 2...) để khớp khóa ngoại company_id
+      label: c.name, // Chữ hiển thị trên giao diện dropdown
+    }));
+  }, [companies]);
 
   // ==================== HANDLERS ====================
   // Mở modal thêm mới
@@ -151,7 +152,7 @@ useEffect(() => {
       jobCategory: record.jobCategory || record.category,
       location: record.location,
       quantity: record.quantity,
-      companyName: record.company?.name || record.companyName,
+      companyId: record.company?.id || record.companyId,
       startDate: record.startDate ? dayjs(record.startDate) : undefined,
       endDate: record.endDate ? dayjs(record.endDate) : undefined,
       isActive: record.isActive ?? true,
@@ -187,6 +188,7 @@ useEffect(() => {
           : values.jobType;
 
       const payload = {
+        name: values.name,
         title: values.name,
         description: values.description,
         salary: values.salary,
@@ -199,10 +201,8 @@ useEffect(() => {
         })),
         location: values.location || "Hà Nội",
         quantity: values.quantity ?? 1,
-        companyName: values.companyName,
-        startDate: values.startDate
-          ? (values.startDate as unknown as { toISOString: () => string }).toISOString()
-          : undefined,
+company: values.companyId ? { id: Number(values.companyId) } : undefined,
+startDate: values.startDate ? dayjs(values.startDate).endOf('day').toISOString() : undefined,
         endDate: values.endDate
           ? (values.endDate as unknown as { toISOString: () => string }).toISOString()
           : undefined,
@@ -459,15 +459,19 @@ render: (fee: number) => (
         </Card>
 
         {/* Add/Edit Modal */}
-        <Modal
-          title={editingJob ? "Chỉnh sửa vị trí thực tập" : "Thêm vị trí thực tập mới"}
+<Modal
+          title={
+            <span style={{ fontSize: "18px", fontWeight: 600, color: "#262626" }}>
+              {editingJob ? "Cập nhật Job" : "Thêm vị trí thực tập mới"}
+            </span>
+          }
           open={isModalOpen}
           onCancel={() => {
             setIsModalOpen(false);
             form.resetFields();
           }}
           footer={null}
-          width={720}
+          width={850} // Nới rộng độ rộng modal để vừa khít bố cục 3 cột nằm ngang
           destroyOnClose
         >
           <Form
@@ -476,25 +480,30 @@ render: (fee: number) => (
             onFinish={handleSubmit}
             className="mt-4"
           >
-            <Form.Item
-              name="name"
-              label="Tên công việc"
-              rules={[
-                { required: true, message: "Vui lòng nhập tên công việc" },
-                { min: 5, message: "Tên công việc phải có ít nhất 5 ký tự" },
-              ]}
-            >
-              <Input placeholder="VD: Frontend Developer Intern" />
-            </Form.Item>
+            {/* --- CÁC TRƯỜNG ẨN (HIDDEN) ĐỂ GIỮ CHUẨN VALIDATE VỚI BACKEND SPRING BOOT --- */}
+            <Form.Item name="jobType" hidden initialValue="INTERN"><Input /></Form.Item>
+            <Form.Item name="workMode" hidden initialValue="REMOTE"><Input /></Form.Item>
+            <Form.Item name="jobCategory" hidden initialValue={1}><Input /></Form.Item>
 
+            {/* ROW 1: Tên công việc (8) | Kỹ năng yêu cầu (8) | Địa điểm (8) */}
             <Row gutter={16}>
-              <Col span={12}>
+              <Col span={8}>
+                <Form.Item
+                  name="name"
+                  label={<span style={{ fontWeight: 500 }}>Tên công việc</span>}
+                  rules={[
+                    { required: true, message: "Vui lòng nhập tên công việc" },
+                    { min: 5, message: "Tên công việc phải có ít nhất 5 ký tự" },
+                  ]}
+                >
+                  <Input placeholder="Backend Developer Intern" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
                 <Form.Item
                   name="skills"
-                  label="Kỹ năng yêu cầu"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn ít nhất 1 kỹ năng" },
-                  ]}
+                  label={<span style={{ fontWeight: 500 }}>Kỹ năng yêu cầu</span>}
+                  rules={[{ required: true, message: "Vui lòng chọn ít nhất 1 kỹ năng" }]}
                 >
                   <Select
                     mode="multiple"
@@ -504,219 +513,183 @@ render: (fee: number) => (
                   />
                 </Form.Item>
               </Col>
-              <Col span={12}>
+              <Col span={8}>
                 <Form.Item
                   name="location"
-                  label="Địa điểm"
-                  rules={[
-                    { required: true, message: "Vui lòng nhập địa điểm" },
-                  ]}
+                  label={<span style={{ fontWeight: 500 }}>Địa điểm</span>}
+                  rules={[{ required: true, message: "Vui lòng nhập địa điểm" }]}
                 >
-                  <Input placeholder="VD: Hà Nội" />
+                  <Input placeholder="Ha Noi" />
                 </Form.Item>
               </Col>
             </Row>
 
+            {/* ROW 2: Mức lương (8) | Số lượng (8) | Trình độ (8) */}
             <Row gutter={16}>
               <Col span={8}>
                 <Form.Item
                   name="salary"
-                  label="Mức lương (VNĐ)"
-                  rules={[
-                    { required: true, message: "Vui lòng nhập mức lương" },
-                  ]}
+                  label={<span style={{ fontWeight: 500 }}>Mức lương</span>}
+                  rules={[{ required: true, message: "Vui lòng nhập mức lương" }]}
                 >
                   <InputNumber<number>
                     className="w-full"
                     min={0}
                     step={500000}
-                    formatter={(value) =>
-                      `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                    }
-                    parser={(value) =>
-                      Number(value?.replace(/\$\s?|(,*)/g, "")) || 0
-                    }
-                    placeholder="VD: 5,000,000"
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    parser={(value) => Number(value?.replace(/\$\s?|(,*)/g, "")) || 0}
+                    placeholder="1500"
                   />
                 </Form.Item>
               </Col>
               <Col span={8}>
                 <Form.Item
                   name="quantity"
-                  label="Số lượng"
-                  rules={[
-                    { required: true, message: "Vui lòng nhập số lượng" },
-                  ]}
+                  label={<span style={{ fontWeight: 500 }}>Số lượng</span>}
+                  rules={[{ required: true, message: "Vui lòng nhập số lượng" }]}
                 >
                   <InputNumber<number>
                     className="w-full"
                     min={1}
                     max={100}
-                    placeholder="VD: 3"
+                    placeholder="3"
                   />
                 </Form.Item>
               </Col>
               <Col span={8}>
                 <Form.Item
                   name="level"
-                  label="Trình độ"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn cấp độ" },
-                  ]}
+                  label={<span style={{ fontWeight: 500 }}>Trình độ</span>}
+                  rules={[{ required: true, message: "Vui lòng chọn cấp độ" }]}
                 >
                   <Select
-                    placeholder="Chọn cấp độ"
+                    placeholder="Junior"
                     options={Object.keys(levelLabels).map((level) => ({
-                      value: level as JobLevel,
-                      label: levelLabels[level as JobLevel],
+                      value: level,
+                      label: levelLabels[level],
                     }))}
                   />
                 </Form.Item>
               </Col>
             </Row>
 
-            <Row gutter={16}>
-              <Col span={12}>
+            {/* ROW 3: Công ty (6) | Ngày bắt đầu (5) | Ngày kết thúc (5) | Hoạt động (4) | Hot (4) */}
+            <Row gutter={16} align="middle">
+              <Col span={6}>
                 <Form.Item
-                  name="jobType"
-                  label="Loại hình"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn loại hình" },
-                  ]}
-                >
-                  <Select
-                    placeholder="Chọn loại hình"
-                    options={Object.keys(jobTypeLabels).map((type) => ({
-                      value: type as JobType,
-                      label: jobTypeLabels[type as JobType],
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="workMode"
-                  label="Hình thức làm việc"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn hình thức" },
-                  ]}
-                >
-                  <Select
-                    placeholder="Chọn hình thức"
-                    options={Object.keys(workModeLabels).map((mode) => ({
-                      value: mode as WorkMode,
-                      label: workModeLabels[mode as WorkMode],
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="jobCategory"
-                  label="Danh mục công việc"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn danh mục" },
-                  ]}
-                >
-                  <Select
-                    placeholder="Chọn danh mục"
-                    options={jobCategoryOptions}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="companyName"
-                  label="Công ty"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn công ty" },
-                  ]}
+                  name="companyId"
+                  label={<span style={{ fontWeight: 500 }}>Công ty</span>}
+                  rules={[{ required: true, message: "Vui lòng chọn công ty" }]}
                 >
                   <Select
                     placeholder="Chọn công ty"
                     options={companyOptions}
                     showSearch
                     allowClear
-                    filterOption={(input, option) =>
-                      option?.label
-                        .toString()
-                        .toLowerCase()
-                        .includes(input.toLowerCase()) ?? false
-                    }
                   />
                 </Form.Item>
               </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={8}>
+              <Col span={5}>
                 <Form.Item
                   name="startDate"
-                  label="Ngày bắt đầu"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn ngày bắt đầu" },
-                  ]}
+                  label={<span style={{ fontWeight: 500 }}>Ngày bắt đầu</span>}
+                  rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu" }]}
                 >
-                  <DatePicker className="w-full" />
+                  <DatePicker className="w-full" format="YYYY-MM-DD" />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={5}>
                 <Form.Item
                   name="endDate"
-                  label="Ngày kết thúc"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn ngày kết thúc" },
-                  ]}
+                  label={<span style={{ fontWeight: 500 }}>Ngày kết thúc</span>}
+                  rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc" }]}
                 >
-                  <DatePicker className="w-full" />
+                  <DatePicker className="w-full" format="YYYY-MM-DD" />
                 </Form.Item>
               </Col>
-              <Col span={8}>
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="isActive"
-                      label="Hoạt động"
-                      valuePropName="checked"
-                      initialValue={true}
-                    >
-                      <Switch />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="isHot"
-                      label="Hot"
-                      valuePropName="checked"
-                      initialValue={false}
-                    >
-                      <Switch />
-                    </Form.Item>
-                  </Col>
-                </Row>
+              <Col span={4} style={{ textAlign: "center" }}>
+                <Form.Item
+                  name="isActive"
+                  label={<span style={{ fontWeight: 500 }}>Hoạt động</span>}
+                  valuePropName="checked"
+                  initialValue={true}
+                >
+                  <Switch style={{ marginTop: "4px" }} />
+                </Form.Item>
+              </Col>
+              <Col span={4} style={{ textAlign: "center" }}>
+                <Form.Item
+                  name="isHot"
+                  label={<span style={{ fontWeight: 500 }}>Hot</span>}
+                  valuePropName="checked"
+                  initialValue={false}
+                >
+                  <Switch style={{ marginTop: "4px" }} />
+                </Form.Item>
               </Col>
             </Row>
 
-            <Form.Item
-              name="description"
-              label="Mô tả công việc"
-              rules={[
-                { required: true, message: "Vui lòng nhập mô tả công việc" },
-                { min: 20, message: "Mô tả phải có ít nhất 20 ký tự" },
-              ]}
+            {/* ROW 4: KHUNG SOẠN THẢO VĂN BẢN (MOCK RICH TEXT EDITOR) GIỐNG ẢNH MẪU */}
+            <div className="text-sm font-medium text-gray-700 mb-1" style={{ marginTop: "8px" }}>
+              Miêu tả
+            </div>
+            <div 
+              style={{ 
+                border: "1px solid #d9d9d9", 
+                borderRadius: "6px", 
+                overflow: "hidden",
+                backgroundColor: "#fff"
+              }}
             >
-              <TextArea
-                rows={4}
-                placeholder="Mô tả chi tiết về vị trí tuyển dụng, yêu cầu, quyền lợi..."
-                showCount
-                maxLength={1000}
-              />
-            </Form.Item>
+              {/* Rich Text Editor Mock Toolbar */}
+              <div 
+                style={{ 
+                  backgroundColor: "#fafafa", 
+                  borderBottom: "1px solid #d9d9d9", 
+                  padding: "6px 12px", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: "16px",
+                  color: "#555",
+                  fontSize: "13px",
+                  userSelect: "none"
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "4px", cursor: "pointer", padding: "2px 6px", background: "#fff", border: "1px solid #d9d9d9", borderRadius: "4px" }}>
+                  <span>Normal</span>
+                  <span style={{ fontSize: "8px", color: "#bfbfbf" }}>▼</span>
+                </div>
+                <div style={{ height: "14px", width: "1px", backgroundColor: "#d9d9d9" }} />
+                <span style={{ fontWeight: "bold", cursor: "pointer", padding: "0 4px" }} title="Bold">B</span>
+                <span style={{ fontStyle: "italic", cursor: "pointer", padding: "0 4px" }} title="Italic">I</span>
+                <span style={{ textDecoration: "underline", cursor: "pointer", padding: "0 4px" }} title="Underline">U</span>
+                <span style={{ cursor: "pointer", padding: "0 4px" }} title="Link">🔗</span>
+                <div style={{ height: "14px", width: "1px", backgroundColor: "#d9d9d9" }} />
+                <span style={{ cursor: "pointer", padding: "0 4px" }} title="Bullet List">⋮≡</span>
+                <span style={{ cursor: "pointer", padding: "0 4px" }} title="Ordered List">📋</span>
+                <span style={{ cursor: "pointer", padding: "0 4px", color: "#8c8c8c" }} title="Clear Formatting"><u><i>T</i></u><sub>x</sub></span>
+              </div>
 
-            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+              {/* Text Area Không Viền Lồng Bên Trong */}
+              <Form.Item
+                name="description"
+                noStyle
+                rules={[
+                  { required: true, message: "Vui lòng nhập mô tả công việc" },
+                  { min: 20, message: "Mô tả phải có ít nhất 20 ký tự" },
+                ]}
+              >
+                <TextArea
+                  rows={6}
+                  bordered={false}
+                  placeholder="Phát triển hệ thống backend bằng Spring Boot..."
+                  style={{ padding: "12px", resize: "none", fontSize: "14px" }}
+                />
+              </Form.Item>
+            </div>
+
+            {/* FOOTER BUTTONS */}
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t" style={{ marginTop: "24px" }}>
               <Button
                 onClick={() => {
                   setIsModalOpen(false);
@@ -726,7 +699,7 @@ render: (fee: number) => (
                 Hủy
               </Button>
               <Button type="primary" htmlType="submit" loading={modalLoading}>
-                {editingJob ? "Cập nhật" : "Thêm mới"}
+                OK
               </Button>
             </div>
           </Form>

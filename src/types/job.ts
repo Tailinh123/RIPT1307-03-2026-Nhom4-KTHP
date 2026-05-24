@@ -76,29 +76,29 @@ export interface JobFormData {
 }
 
 export const levelLabels: Record<JobLevel, string> = {
-  INTERN: 'Thực tập',
-  FRESHER: 'Mới tốt nghiệp',
+  INTERN: 'Intern',
+  FRESHER: 'Fresher',
   JUNIOR: 'Junior',
   MIDDLE: 'Mid-level',
   SENIOR: 'Senior',
 };
 
 export const jobTypeLabels: Record<JobType, string> = {
-  INTERNSHIP: 'Thực tập',
-  FULL_TIME: 'Toàn thời gian',
-  PART_TIME: 'Bán thời gian',
+  INTERNSHIP: 'Internship',
+  FULL_TIME: 'Full-time',
+  PART_TIME: 'Part-time',
 };
 
 export const workModeLabels: Record<WorkMode, string> = {
-  ONSITE: 'Tại chỗ',
+  ONSITE: 'On-site',
   REMOTE: 'Remote',
   HYBRID: 'Hybrid',
 };
 
 export const statusLabels: Record<JobStatus, string> = {
-  ACTIVE: 'Đang tuyển',
-  PENDING: 'Chờ duyệt',
-  CLOSED: 'Đã đóng',
+  ACTIVE: 'Active',
+  PENDING: 'Pending',
+  CLOSED: 'Closed',
   DRAFT: 'Bản nháp',
 };
 

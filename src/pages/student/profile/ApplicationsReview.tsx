@@ -315,7 +315,7 @@ const columns: ColumnsType<Application> = [
     {
       title: "Hành động",
       key: "actions",
-      width: 200,
+      width: 250,
       align: "center",
       fixed: "right",
       render: (_, record: any) => {
@@ -328,54 +328,56 @@ const columns: ColumnsType<Application> = [
         const cvLink = record.cvUrl || record.resumeUrl || "#";
 
         return (
-          <Space size="small">
-            <Tooltip title="Xem CV">
-              <Button
-                type="default"
-                icon={<FileTextOutlined />}
-                size="small"
-                onClick={() => window.open(cvLink, "_blank")}
-                disabled={cvLink === "#"}
-              >
-                CV
-              </Button>
-            </Tooltip>
+<div style={{ whiteSpace: "nowrap" }}>
+            <Space size="small">
+              <Tooltip title="Xem CV">
+                <Button
+                  type="default"
+                  icon={<FileTextOutlined />}
+                  size="small"
+                  onClick={() => window.open(cvLink, "_blank")}
+                  disabled={cvLink === "#"}
+                >
+                  CV
+                </Button>
+              </Tooltip>
 
-            {isPending && (
-              <>
-                <Tooltip title="Duyệt đơn">
-                  <Button
-                    type="primary"
-                    icon={<CheckCircleOutlined />}
-                    size="small"
-                    style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
-                    onClick={() => handleApprove(record)}
-                  >
-                    Duyệt
-                  </Button>
-                </Tooltip>
+              {isPending && (
+                <>
+                  <Tooltip title="Duyệt đơn">
+                    <Button
+                      type="primary"
+                      icon={<CheckCircleOutlined />}
+                      size="small"
+                      style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                      onClick={() => handleApprove(record)}
+                    >
+                      Duyệt
+                    </Button>
+                  </Tooltip>
 
-                <Tooltip title="Từ chối">
-                  <Button
-                    danger
-                    icon={<CloseCircleOutlined />}
-                    size="small"
-                    onClick={() => handleOpenRejectModal(record)}
-                  >
-                    Từ chối
-                  </Button>
-                </Tooltip>
-              </>
-            )}
+                  <Tooltip title="Từ chối">
+                    <Button
+                      danger
+                      icon={<CloseCircleOutlined />}
+                      size="small"
+                      onClick={() => handleOpenRejectModal(record)}
+                    >
+                      Từ chối
+                    </Button>
+                  </Tooltip>
+                </>
+              )}
 
-            {record.status === ApplicationStatus.APPROVED && (
-              <Tag color="green">Đã duyệt</Tag>
-            )}
+              {record.status === ApplicationStatus.APPROVED && (
+                <Tag color="green">Đã duyệt</Tag>
+              )}
 
-            {record.status === ApplicationStatus.REJECTED && (
-              <Tag color="red">Đã từ chối</Tag>
-            )}
-          </Space>
+              {record.status === ApplicationStatus.REJECTED && (
+                <Tag color="red">Đã từ chối</Tag>
+              )}
+            </Space>
+          </div>
         );
       },
     },

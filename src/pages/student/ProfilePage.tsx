@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Card,
   Typography,
@@ -6,7 +6,6 @@ import {
   Form,
   Input,
   Select,
-  DatePicker,
   Tag,
   Avatar,
   Row,
@@ -29,6 +28,7 @@ import {
   WomanOutlined,
   CheckCircleOutlined,
   WarningOutlined,
+  CameraOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useProfile } from '@/hooks/useProfile';
@@ -43,10 +43,7 @@ const GENDER_LABEL: Record<string, { label: string; icon: React.ReactNode; color
   OTHER:  { label: 'Khác',  icon: <UserOutlined />,   color: '#722ed1' },
 };
 
-function calcAge(dob?: string): number | null {
-  if (!dob) return null;
-  return dayjs().diff(dayjs(dob), 'year');
-}
+// calcAge removed — field no longer displayed
 
 // ── Reusable info row ──────────────────────────────────────────────────────
 const InfoItem: React.FC<{
@@ -92,6 +89,28 @@ const ProfilePage: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      messageApi.error('Vui lòng chọn file hình ảnh (PNG, JPG, GIF, ...)');
+      return;
+    }
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      messageApi.error('Kích thước ảnh tối đa là 5MB');
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setAvatarUrl(url);
+    messageApi.success('Đã cập nhật ảnh đại diện!');
+    // Reset input so same file can be re-selected
+    e.target.value = '';
+  };
 
   // Initial fetch
   useEffect(() => { fetchProfile(); }, [fetchProfile]);
@@ -103,7 +122,7 @@ const ProfilePage: React.FC = () => {
         name: profile.fullName,
         phone: profile.phone ?? '',
         gender: profile.gender ?? 'MALE',
-        dob: profile.dob ? dayjs(profile.dob) : undefined,
+        dob: profile.dob ? dayjs(profile.dob).format('DD/MM/YYYY') : '',
         address: profile.address ?? '',
         skills: profile.skills.map((s) => s.id),
       });
@@ -117,7 +136,7 @@ const ProfilePage: React.FC = () => {
         name: profile.fullName,
         phone: profile.phone ?? '',
         gender: profile.gender ?? 'MALE',
-        dob: profile.dob ? dayjs(profile.dob) : undefined,
+        dob: profile.dob ? dayjs(profile.dob).format('DD/MM/YYYY') : '',
         address: profile.address ?? '',
         skills: profile.skills.map((s) => s.id),
       });
@@ -135,7 +154,15 @@ const ProfilePage: React.FC = () => {
       const payload: UpdateProfilePayload = {
         name: values.name,
         phone: values.phone,
-        dob: values.dob ? dayjs(values.dob).format('YYYY-MM-DD') : '',
+        dob: (() => {
+          const raw: string = values.dob ?? '';
+          // Convert from DD/MM/YYYY → YYYY-MM-DD for API
+          if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+            const [d, m, y] = raw.split('/');
+            return `${y}-${m}-${d}`;
+          }
+          return raw; // already YYYY-MM-DD or empty
+        })(),
         address: values.address,
         gender: values.gender,
         skills: values.skills ?? [],
@@ -164,7 +191,6 @@ const ProfilePage: React.FC = () => {
   }
 
   const gender = profile?.gender ? GENDER_LABEL[profile.gender] : undefined;
-  const age = calcAge(profile?.dob);
 
   return (
     <>
@@ -225,19 +251,56 @@ const ProfilePage: React.FC = () => {
               marginTop: -44,
             }}
           >
-            <Avatar
-              size={88}
-              style={{
-                background: 'linear-gradient(135deg, #1677ff 0%, #69b1ff 100%)',
-                fontSize: 32,
-                fontWeight: 700,
-                border: '4px solid #fff',
-                boxShadow: '0 4px 16px rgba(22,119,255,0.28)',
-                flexShrink: 0,
-              }}
-            >
-              {profile?.fullName?.charAt(0)?.toUpperCase() ?? 'S'}
-            </Avatar>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <Avatar
+                size={88}
+                src={avatarUrl ?? undefined}
+                style={{
+                  background: avatarUrl ? undefined : 'linear-gradient(135deg, #1677ff 0%, #69b1ff 100%)',
+                  fontSize: 32,
+                  fontWeight: 700,
+                  border: '4px solid #fff',
+                  boxShadow: '0 4px 16px rgba(22,119,255,0.28)',
+                }}
+              >
+                {!avatarUrl && (profile?.fullName?.charAt(0)?.toUpperCase() ?? 'S')}
+              </Avatar>
+              {editing && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml,image/bmp"
+                    onChange={handleAvatarChange}
+                    style={{ display: 'none' }}
+                  />
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      width: 30,
+                      height: 30,
+                      borderRadius: '50%',
+                      background: '#1677ff',
+                      border: '2px solid #fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(22,119,255,0.4)',
+                      transition: 'transform 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.1)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                    title="Thay đổi ảnh đại diện"
+                  >
+                    <CameraOutlined style={{ color: '#fff', fontSize: 14 }} />
+                  </div>
+                </>
+              )}
+            </div>
 
             {!editing && (
               <Button
@@ -281,14 +344,7 @@ const ProfilePage: React.FC = () => {
                 value={profile?.phone}
               />
             </Col>
-            <Col xs={24} sm={12} md={4}>
-              <InfoItem
-                icon={<UserOutlined />}
-                label="Tuổi"
-                value={age !== null ? `${age} tuổi` : undefined}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={4}>
+            <Col xs={24} sm={12} md={8}>
               <InfoItem
                 icon={gender?.icon ?? <UserOutlined />}
                 label="Giới tính"
@@ -456,12 +512,40 @@ const ProfilePage: React.FC = () => {
 
               {/* Ngày sinh */}
               <Col xs={24} md={12}>
-                <Form.Item name="dob" label="Ngày sinh">
-                  <DatePicker
-                    format="DD/MM/YYYY"
-                    placeholder="Chọn ngày sinh"
-                    style={{ width: '100%', borderRadius: 8 }}
-                    disabledDate={(d) => d ? d.isAfter(dayjs(), 'day') : false}
+                <Form.Item
+                  name="dob"
+                  label="Ngày sinh"
+                  rules={[
+                    {
+                      pattern: /^(\d{2}\/\d{2}\/\d{4})?$/,
+                      message: 'Nhập đúng định dạng DD/MM/YYYY',
+                    },
+                    {
+                      validator: (_, val: string) => {
+                        if (!val) return Promise.resolve();
+                        const [d, m, y] = val.split('/').map(Number);
+                        const dt = dayjs(`${y}-${m}-${d}`);
+                        if (!dt.isValid()) return Promise.reject('Ngày không hợp lệ');
+                        if (dt.isAfter(dayjs(), 'day')) return Promise.reject('Ngày sinh không thể là tương lai');
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
+                  <Input
+                    prefix={<CalendarOutlined style={{ color: '#bfbfbf' }} />}
+                    placeholder="VD: 15/05/2002"
+                    maxLength={10}
+                    style={{ borderRadius: 8 }}
+                    onChange={(e) => {
+                      // Auto-insert slashes for convenience
+                      let v = e.target.value.replace(/[^\d/]/g, '');
+                      if (v.length === 2 && !v.includes('/')) v = v + '/';
+                      if (v.length === 5 && v.split('/').length === 2) v = v + '/';
+                      // Don't exceed DD/MM/YYYY
+                      if (v.length > 10) v = v.slice(0, 10);
+                      form.setFieldValue('dob', v);
+                    }}
                   />
                 </Form.Item>
               </Col>

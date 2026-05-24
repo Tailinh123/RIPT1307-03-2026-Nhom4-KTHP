@@ -63,7 +63,7 @@ const JobBoardPage: React.FC = () => {
                 letterSpacing: '-0.3px',
               }}
             >
-              Tìm kiếm việc làm thực tập
+              Tìm kiếm việc làm
             </Title>
             <Text style={{ fontSize: 14, color: '#6b7280', lineHeight: '20px' }}>
               Khám phá hàng trăm cơ hội thực tập từ các công ty hàng đầu Việt Nam

@@ -2,7 +2,6 @@ import React from 'react';
 import { Layout, Menu, Typography, Avatar } from 'antd';
 import {
   AppstoreOutlined,
-  FileTextOutlined,
   ProfileOutlined,
   OrderedListOutlined,
   RocketOutlined,
@@ -14,7 +13,6 @@ const { Text } = Typography;
 
 const menuItems = [
   { key: '/jobs', icon: <AppstoreOutlined />, label: 'Bảng việc làm' },
-  { key: '/resumes', icon: <FileTextOutlined />, label: 'CV của tôi' },
   { key: '/applications', icon: <OrderedListOutlined />, label: 'Đơn ứng tuyển' },
   { key: '/profile', icon: <ProfileOutlined />, label: 'Hồ sơ cá nhân' },
 ];

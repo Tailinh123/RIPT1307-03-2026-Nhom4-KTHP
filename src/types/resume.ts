@@ -1,8 +1,0 @@
-export interface Resume {
-  id: number;
-  name: string;
-  fileUrl: string;
-  fileSize: number;
-  uploadedAt: string;
-  isDefault: boolean;
-}

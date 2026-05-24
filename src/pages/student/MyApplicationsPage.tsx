@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Card, Typography, Space, Alert } from 'antd';
+import { Alert, Card, Typography } from 'antd';
 import {
   OrderedListOutlined,
   ClockCircleOutlined,
@@ -74,12 +74,6 @@ const MyApplicationsPage: React.FC = () => {
     statusCounts,
   } = useApplications();
 
-  const STAT_CARDS = [
-    { label: 'Tổng đơn', value: statusCounts.total, icon: <OrderedListOutlined />, color: '#1677ff', bg: '#e6f4ff' },
-    { label: 'Chờ xét duyệt', value: statusCounts.PENDING, icon: <ClockCircleOutlined />, color: '#faad14', bg: '#fffbe6' },
-    { label: 'Đang xem xét', value: statusCounts.REVIEWING, icon: <SyncOutlined />, color: '#1677ff', bg: '#e6f4ff' },
-    { label: 'Đã duyệt', value: statusCounts.APPROVED, icon: <CheckCircleOutlined />, color: '#52c41a', bg: '#f6ffed' },
-  ];
 
   return (
     <div>
@@ -208,47 +202,6 @@ const MyApplicationsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Stats Row ── */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        {STAT_CARDS.map((stat) => (
-          <Col key={stat.label} xs={12} sm={12} md={6} lg={6}>
-            <Card
-              style={{
-                borderRadius: 12,
-                border: '1px solid #eef0f5',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-              }}
-              styles={{ body: { padding: '16px 20px' } }}
-            >
-              <Space>
-                <div
-                  style={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 10,
-                    background: stat.bg,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 18,
-                    color: stat.color,
-                  }}
-                >
-                  {stat.icon}
-                </div>
-                <div>
-                  <Text style={{ fontSize: 12, color: '#8c8c8c', display: 'block' }}>
-                    {stat.label}
-                  </Text>
-                  <Text strong style={{ fontSize: 22, color: '#1d1d1f', lineHeight: '28px' }}>
-                    {stat.value}
-                  </Text>
-                </div>
-              </Space>
-            </Card>
-          </Col>
-        ))}
-      </Row>
 
       {/* ── Error alert ── */}
       {error && (

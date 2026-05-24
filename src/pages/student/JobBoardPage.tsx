@@ -1,10 +1,6 @@
 import React from 'react';
-import { Row, Col, Card, Typography, Space } from 'antd';
+import { Typography } from 'antd';
 import {
-  AppstoreOutlined,
-  FireOutlined,
-  EnvironmentOutlined,
-  TrophyOutlined,
   CodeOutlined,
   LineChartOutlined,
   HighlightOutlined,
@@ -19,12 +15,6 @@ import type { JobFilterParams } from '@/types/job';
 
 const { Title, Text } = Typography;
 
-const STAT_CARDS = [
-  { label: 'Tổng việc làm', value: 248, icon: <AppstoreOutlined />, color: '#1677ff', bg: '#e6f4ff' },
-  { label: 'Đang hot', value: 32, icon: <FireOutlined />, color: '#ff4d4f', bg: '#fff1f0' },
-  { label: 'Địa điểm', value: 15, icon: <EnvironmentOutlined />, color: '#52c41a', bg: '#f6ffed' },
-  { label: 'Công ty tuyển dụng', value: 86, icon: <TrophyOutlined />, color: '#fa8c16', bg: '#fff7e6' },
-];
 
 // ── Category badge config ──
 const CATEGORY_BADGES = [
@@ -111,41 +101,6 @@ const JobBoardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Stats Row ── */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        {STAT_CARDS.map((stat) => (
-          <Col key={stat.label} xs={12} sm={12} md={6} lg={6}>
-            <Card
-              style={{
-                borderRadius: 12,
-                border: '1px solid #eef0f5',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-              }}
-              bodyStyle={{ padding: '16px 20px' }}
-              styles={{ body: { padding: '16px 20px' } }}
-            >
-              <Space>
-                <div
-                  style={{
-                    width: 42, height: 42, borderRadius: 10,
-                    background: stat.bg, display: 'flex',
-                    alignItems: 'center', justifyContent: 'center',
-                    fontSize: 18, color: stat.color,
-                  }}
-                >
-                  {stat.icon}
-                </div>
-                <div>
-                  <Text style={{ fontSize: 12, color: '#8c8c8c', display: 'block' }}>{stat.label}</Text>
-                  <Text strong style={{ fontSize: 22, color: '#1d1d1f', lineHeight: '28px' }}>
-                    {stat.value}
-                  </Text>
-                </div>
-              </Space>
-            </Card>
-          </Col>
-        ))}
-      </Row>
 
       {/* ── Filter ── */}
       <JobFilter

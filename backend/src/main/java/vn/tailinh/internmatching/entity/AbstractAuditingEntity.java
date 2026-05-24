@@ -19,7 +19,7 @@ import java.time.Instant;
 @Setter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties(value = { "createdBy", "createdAt", "updatedBy", "updatedAt" }, allowGetters = true)
+@JsonIgnoreProperties(value = { "createdBy", "createdAt", "updatedBy", "updatedAt" , "hibernateLazyInitializer", "handler" }, allowGetters = true)
 public abstract class AbstractAuditingEntity<T> implements Serializable {
 
     @CreatedBy

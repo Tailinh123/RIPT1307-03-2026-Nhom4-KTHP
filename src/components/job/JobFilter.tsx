@@ -40,9 +40,9 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
       }}
     >
       <Form form={form} layout="vertical" onFinish={handleFinish} initialValues={filters}>
-        <Row gutter={[16, 0]} align="bottom">
+        <Row gutter={[12, 0]} align="bottom">
           {/* Keyword */}
-          <Col xs={24} sm={24} md={8} lg={7}>
+          <Col xs={24} sm={24} md={8} lg={6}>
             <Form.Item name="keyword" label="Tìm kiếm" style={{ marginBottom: 0 }}>
               <Input
                 prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
@@ -107,22 +107,22 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
           </Col>
 
           {/* Actions */}
-          <Col xs={24} sm={24} md={24} lg={3}>
+          <Col xs={24} sm={24} md={24} lg={4}>
             <Form.Item style={{ marginBottom: 0 }}>
-              <Space style={{ width: '100%' }}>
+              <Space size={8} style={{ width: '100%', flexWrap: 'nowrap' }}>
                 <Button
                   type="primary"
                   htmlType="submit"
                   icon={<FilterOutlined />}
                   loading={loading}
-                  style={{ borderRadius: 8, fontWeight: 500 }}
+                  style={{ borderRadius: 8, fontWeight: 500, whiteSpace: 'nowrap' }}
                 >
                   Lọc
                 </Button>
                 <Button
                   icon={<ReloadOutlined />}
                   onClick={handleReset}
-                  style={{ borderRadius: 8 }}
+                  style={{ borderRadius: 8, whiteSpace: 'nowrap' }}
                 >
                   Đặt lại
                 </Button>

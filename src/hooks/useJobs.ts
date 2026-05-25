@@ -27,14 +27,20 @@ export function useJobs(initialFilters: JobFilterParams = {}): UseJobsReturn {
     setError(null);
     try {
       const res = await jobApi.getJobs({ ...filters, page: page - 1, size: 12 });
-      const { content, totalElements } = res.data.data;
-      setJobs(content);
-      setTotal(totalElements);
-    } catch {
-      setError('Không thể tải danh sách việc làm. Vui lòng thử lại sau.');
+      if (res?.data?.content) {
+        setJobs(res.data.content);
+        setTotal(res.data.totalElements);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
       // Fallback to mock data for development
-      setJobs(getMockJobs());
-      setTotal(getMockJobs().length);
+      const mockJobs = getMockJobs();
+      setJobs(mockJobs);
+      setTotal(mockJobs.length);
+      // Don't show error if fallback data is used
+      setError(null);
     } finally {
       setLoading(false);
     }

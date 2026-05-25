@@ -9,13 +9,11 @@ import {
 } from 'antd';
 import {
   SearchOutlined,
-  AppstoreOutlined,
+  EnvironmentOutlined,
   DownOutlined,
   CloseCircleFilled,
 } from '@ant-design/icons';
 import type { JobFilterParams } from '@/types/job';
-import { JOB_CATEGORY_OPTIONS, JOB_LEVEL_OPTIONS, WORK_MODE_OPTIONS, JOB_LOCATION_OPTIONS } from '@/utils/constants';
-import { useSkills } from '@/hooks/useSkills';
 
 interface JobFilterProps {
   filters: JobFilterParams;
@@ -23,37 +21,35 @@ interface JobFilterProps {
   loading?: boolean;
 }
 
+// Location options - 4 main locations
+const LOCATION_OPTIONS = [
+  { label: 'Hà Nội', value: 'HANOI' },
+  { label: 'TP Hồ Chí Minh', value: 'HCMC' },
+  { label: 'Đà Nẵng', value: 'DANANG' },
+  { label: 'Khác', value: 'OTHER' },
+];
+
 // Ensure all Select dropdowns inside Popover escape overflow:hidden by mounting on body
 const popupToBody = () => document.body;
 const SELECT_DROPDOWN_STYLE: React.CSSProperties = { zIndex: 2000, borderRadius: 10 };
 
 const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => {
-  const { skills } = useSkills();
-
   // Local controlled state
   const [keyword, setKeyword] = useState(filters.keyword ?? '');
   const [location, setLocation] = useState(filters.location ?? undefined);
-  const [category, setCategory] = useState(filters.category ?? undefined);
-  const [level, setLevel] = useState(filters.level ?? undefined);
-  const [workMode, setWorkMode] = useState(filters.workMode ?? undefined);
-  const [selectedSkills, setSelectedSkills] = useState<number[]>(filters.skills ?? []);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
-  // Count active sub-filters
-  const activeCount = [category, level, workMode, location, ...(selectedSkills.length ? [1] : [])].filter(Boolean).length;
+  // Count active filters
+  const activeCount = [location].filter(Boolean).length;
 
   const handleSearch = () => {
-    onChange({ keyword, location, category, level, workMode, skills: selectedSkills });
+    onChange({ keyword, location });
     setPopoverOpen(false);
   };
 
   const handleReset = () => {
     setKeyword('');
     setLocation(undefined);
-    setCategory(undefined);
-    setLevel(undefined);
-    setWorkMode(undefined);
-    setSelectedSkills([]);
     onChange({});
     setPopoverOpen(false);
   };
@@ -71,7 +67,7 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
 
   // ── Popover content ──
   const popoverContent = (
-    <div style={{ width: 350, padding: '2px 0 0' }}>
+    <div style={{ width: 280, padding: '2px 0 0' }}>
 
       {/* Địa chỉ */}
       <div style={{ marginBottom: 14 }}>
@@ -80,78 +76,9 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
           placeholder="Tất cả địa chỉ"
           allowClear
           style={{ width: '100%' }}
-          options={JOB_LOCATION_OPTIONS}
+          options={LOCATION_OPTIONS}
           value={location}
           onChange={(v) => setLocation(v)}
-          getPopupContainer={popupToBody}
-          dropdownStyle={SELECT_DROPDOWN_STYLE}
-          listHeight={200}
-        />
-      </div>
-
-      {/* Lĩnh vực */}
-      <div style={{ marginBottom: 14 }}>
-        <span style={labelStyle}>Lĩnh vực</span>
-        <Select
-          placeholder="Tất cả lĩnh vực"
-          allowClear
-          style={{ width: '100%' }}
-          options={JOB_CATEGORY_OPTIONS}
-          value={category}
-          onChange={(v) => setCategory(v)}
-          getPopupContainer={popupToBody}
-          dropdownStyle={SELECT_DROPDOWN_STYLE}
-          listHeight={200}
-        />
-      </div>
-
-      {/* Cấp bậc */}
-      <div style={{ marginBottom: 14 }}>
-        <span style={labelStyle}>Cấp bậc</span>
-        <Select
-          placeholder="Tất cả cấp bậc"
-          allowClear
-          style={{ width: '100%' }}
-          options={JOB_LEVEL_OPTIONS}
-          value={level}
-          onChange={(v) => setLevel(v)}
-          getPopupContainer={popupToBody}
-          dropdownStyle={SELECT_DROPDOWN_STYLE}
-          listHeight={200}
-        />
-      </div>
-
-      {/* Hình thức làm việc */}
-      <div style={{ marginBottom: 14 }}>
-        <span style={labelStyle}>Hình thức làm việc</span>
-        <Select
-          placeholder="Tất cả hình thức"
-          allowClear
-          style={{ width: '100%' }}
-          options={WORK_MODE_OPTIONS}
-          value={workMode}
-          onChange={(v) => setWorkMode(v)}
-          getPopupContainer={popupToBody}
-          dropdownStyle={SELECT_DROPDOWN_STYLE}
-          listHeight={200}
-        />
-      </div>
-
-      {/* Kỹ năng */}
-      <div style={{ marginBottom: 14 }}>
-        <span style={labelStyle}>Kỹ năng</span>
-        <Select
-          mode="multiple"
-          placeholder="Tìm và chọn kỹ năng..."
-          allowClear
-          maxTagCount={3}
-          style={{ width: '100%' }}
-          options={skills.map((s) => ({ label: s.name, value: s.id }))}
-          value={selectedSkills}
-          onChange={(v) => setSelectedSkills(v)}
-          filterOption={(input, option) =>
-            String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-          }
           getPopupContainer={popupToBody}
           dropdownStyle={SELECT_DROPDOWN_STYLE}
           listHeight={200}
@@ -203,12 +130,12 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
         border: '1px solid rgba(255,255,255,0.6)',
       }}
     >
-      {/* ── Part 1: Danh mục trigger ── */}
+      {/* ── Part 1: Địa chỉ trigger ── */}
       <Popover
         content={popoverContent}
         title={
           <div style={{ fontWeight: 700, fontSize: 15, color: '#111827', padding: '4px 0' }}>
-            Bộ lọc nâng cao
+            Bộ lọc
           </div>
         }
         trigger="click"
@@ -217,7 +144,6 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
         placement="bottomLeft"
         overlayStyle={{ zIndex: 1100 }}
         overlayInnerStyle={{ borderRadius: 14, padding: '16px 20px', boxShadow: '0 12px 40px rgba(0,0,0,0.15)' }}
-        // Allow popover content to overflow so Select dropdowns are not clipped
         getTooltipContainer={popupToBody}
       >
         <div
@@ -234,9 +160,9 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
             flexShrink: 0,
           }}
         >
-          <AppstoreOutlined style={{ color: '#1155cc', fontSize: 16 }} />
+          <EnvironmentOutlined style={{ color: '#1155cc', fontSize: 16 }} />
           <span style={{ color: '#111827', fontWeight: 600, fontSize: 14 }}>
-            Danh mục
+            Địa chỉ
           </span>
           {activeCount > 0 && (
             <Badge

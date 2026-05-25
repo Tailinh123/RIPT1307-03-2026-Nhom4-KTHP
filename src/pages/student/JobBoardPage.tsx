@@ -24,7 +24,7 @@ const JobBoardPage: React.FC = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          paddingBottom: 96,
+          paddingBottom: 140,
           overflow: 'hidden',
           minHeight: 400,
         }}
@@ -83,7 +83,8 @@ const JobBoardPage: React.FC = () => {
           marginLeft: -32,
           marginRight: -32,
           padding: '0 32px',
-          marginTop: -48,
+          marginTop:0,
+          transform: 'translateY(-150px)',
           position: 'relative',
           zIndex: 10,
           marginBottom: 28,

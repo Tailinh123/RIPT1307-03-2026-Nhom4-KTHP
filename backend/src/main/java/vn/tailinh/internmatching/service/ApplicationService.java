@@ -37,6 +37,13 @@ public class ApplicationService {
 
   public CreateApplicationResponse create(Application application) throws Exception {
 
+    String email = SecurityUtils.getCurrentUserLogin().orElse("");
+    User currentUser = this.userRepository.findByEmail(email);
+    if(currentUser == null ) {
+      throw new IdInvalidException("User not found or not logged in");
+    }
+
+
     // check job 
     Optional<Job> jobOptional = this.jobRepository.findById(application.getJob().getId());
     if (jobOptional.isEmpty()) {
@@ -48,6 +55,13 @@ public class ApplicationService {
     if (resumeOptional.isEmpty()) {
       throw new IdInvalidException("Resume not found");
     }
+    Resume dbResume = resumeOptional.get();
+
+    if(dbResume.getUser() == null || !dbResume.getUser().equals(currentUser.getId())) {
+      throw new  IdInvalidException("You don't have permision to use this resume");
+    }
+
+
     application = this.applicationRepository.save(application);
     return ApplicationMapper.toCreateApplicationResponse(application);
   }

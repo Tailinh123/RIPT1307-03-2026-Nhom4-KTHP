@@ -12,34 +12,32 @@ const JobBoardPage: React.FC = () => {
 
   return (
     <div>
-      {/* ── HERO SECTION — true full-width bleed ── */}
+      {/* ── HERO SECTION — Full-width banner with overlay ── */}
       <div
+        className="hero-section"
         style={{
           marginLeft: 'calc(-50vw + 50%)',
           marginRight: 'calc(-50vw + 50%)',
           marginTop: -28,
           position: 'relative',
-          background: 'linear-gradient(135deg, #0a3d8f 0%, #1155cc 45%, #1a6fd4 75%, #1e88e5 100%)',
+          backgroundImage: 'url(/images/banner.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
           paddingBottom: 96,
           overflow: 'hidden',
+          minHeight: 400,
         }}
       >
-        {/* ── Decorative SVG pattern (subtle diagonal lines + circles) ── */}
-        <svg
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.08, pointerEvents: 'none' }}
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <pattern id="diag" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
-              <line x1="0" y1="0" x2="0" y2="40" stroke="white" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#diag)" />
-          {/* Large soft circles */}
-          <circle cx="5%" cy="20%" r="120" fill="white" fillOpacity="0.04" />
-          <circle cx="90%" cy="80%" r="180" fill="white" fillOpacity="0.03" />
-          <circle cx="80%" cy="10%" r="80" fill="white" fillOpacity="0.05" />
-        </svg>
+        {/* ── Dark overlay for better text visibility ── */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(180deg, rgba(10, 61, 143, 0.35) 0%, rgba(10, 61, 143, 0.28) 50%, rgba(10, 61, 143, 0.32) 100%)',
+            pointerEvents: 'none',
+          }}
+        />
 
         {/* ── Hero text (centered) ── */}
         <div
@@ -60,17 +58,18 @@ const JobBoardPage: React.FC = () => {
               fontWeight: 800,
               letterSpacing: '-0.5px',
               lineHeight: 1.2,
-              textShadow: '0 2px 12px rgba(0,0,0,0.2)',
+              textShadow: '0 3px 16px rgba(0,0,0,0.3)',
             }}
           >
             Tìm kiếm việc làm nhanh chóng
           </Title>
           <Text
             style={{
-              color: 'rgba(255,255,255,0.85)',
+              color: 'rgba(255,255,255,0.9)',
               fontSize: 'clamp(14px, 1.8vw, 17px)',
               display: 'block',
               letterSpacing: '0.1px',
+              textShadow: '0 2px 8px rgba(0,0,0,0.2)',
             }}
           >
             Khám phá hàng trăm cơ hội thực tập từ các công ty hàng đầu Việt Nam

@@ -110,3 +110,40 @@ h1, h2, h3, h4, h5, h6 {
 .ant-pagination-item-active a {
   color: #722ed1 !important;
 }
+
+/* ── Hero Section ────────────────────────────────────────────────────── */
+.hero-section {
+  background-attachment: fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    background-attachment: scroll;
+    min-height: 320px !important;
+  }
+
+  .hero-section h1 {
+    font-size: 28px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .hero-section p {
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    margin-top: -16px !important;
+    padding-bottom: 80px !important;
+    min-height: 280px !important;
+  }
+
+  .hero-section > div:not([style*="position: absolute"]) {
+    padding: 40px 16px 32px !important;
+  }
+}

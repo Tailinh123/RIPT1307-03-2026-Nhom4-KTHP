@@ -53,6 +53,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     if (countPermissions == 0) {
       ArrayList<Permission> arr = new ArrayList<>();
 
+      arr.addAll(createCrudPerms("application", "/api/v1/applications", "APPLICATIONS"));
       arr.addAll(createCrudPerms("company", "/api/v1/companies", "COMPANIES"));
       arr.addAll(createCrudPerms("job", "/api/v1/jobs", "JOBS"));
       arr.addAll(createCrudPerms("permission", "/api/v1/permissions", "PERMISSIONS"));

@@ -387,81 +387,96 @@ const columns: ColumnsType<Application> = [
   // RENDER
   // ---------------------------------------------------------------------------
 
-  return (
-    <div style={{ padding: "24px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-      <Card>
-        {/* Header */}
-        <div style={{ marginBottom: "24px" }}>
-          <Title level={3} style={{ margin: 0 }}>
-            Xét duyệt đơn ứng tuyển
-          </Title>
-          <Text type="secondary">
-            Quản lý và xét duyệt các đơn ứng tuyển từ ứng viên
-          </Text>
-        </div>
-
-        {/* Filter Section */}
+return (
+    // Đổi màu nền sang #f8fafc và tăng khoảng cách padding ra 40px hai bên
+    <div style={{ padding: "24px 40px", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
+      
+      {/* Khung bọc giới hạn chiều rộng, tự căn giữa màn hình */}
+      <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
+        
+        {/* Nâng cấp Card: Bỏ viền thô, bo góc 12px, đổ bóng mờ chuẩn hiện đại */}
         <Card
-          size="small"
-          style={{ marginBottom: "16px", backgroundColor: "#fafafa" }}
+          bordered={false}
+          style={{
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03)",
+          }}
+          bodyStyle={{ padding: "24px" }}
         >
-          <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Tìm theo tên công việc..."
-                prefix={<SearchOutlined />}
-                value={filters.jobName || ""}
-                onChange={(e) => handleFilterChange("jobName", e.target.value)}
-                allowClear
-              />
-            </Col>
+          {/* Header */}
+          <div style={{ marginBottom: "24px" }}>
+            <Title level={3} style={{ margin: 0, fontWeight: 600, color: "#0f172a" }}>
+              Xét duyệt đơn ứng tuyển
+            </Title>
+            <Text style={{ color: "#64748b", fontSize: "14px" }}>
+              Quản lý và xét duyệt các đơn ứng tuyển từ ứng viên
+            </Text>
+          </div>
 
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Select
-                placeholder="Lọc theo trạng thái"
-                style={{ width: "100%" }}
-                value={filters.status}
-                onChange={(value) => handleFilterChange("status", value)}
-                allowClear
-                options={applicationStatusOptions}
-              />
-            </Col>
+          {/* Filter Section */}
+          <Card
+            size="small"
+            bordered={true}
+            style={{ marginBottom: "16px", backgroundColor: "#fafafa", borderRadius: "8px" }}
+          >
+            <Row gutter={[16, 16]} align="middle">
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Tìm theo tên công việc..."
+                  prefix={<SearchOutlined />}
+                  value={filters.jobName || ""}
+                  onChange={(e) => handleFilterChange("jobName", e.target.value)}
+                  allowClear
+                />
+              </Col>
 
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Space>
-                <Button icon={<ReloadOutlined />} onClick={handleResetFilters}>
-                  Đặt lại
-                </Button>
-              </Space>
-            </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Select
+                  placeholder="Lọc theo trạng thái"
+                  style={{ width: "100%" }}
+                  value={filters.status}
+                  onChange={(value) => handleFilterChange("status", value)}
+                  allowClear
+                  options={applicationStatusOptions}
+                />
+              </Col>
 
-            <Col xs={24} sm={12} md={24} lg={6} style={{ textAlign: "right" }}>
-              <Text type="secondary">
-                Tổng số: <strong>{applications.length}</strong> đơn ứng tuyển
-              </Text>
-            </Col>
-          </Row>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Space>
+                  <Button icon={<ReloadOutlined />} onClick={handleResetFilters}>
+                    Đặt lại
+                  </Button>
+                </Space>
+              </Col>
+
+              <Col xs={24} sm={12} md={24} lg={6} style={{ textAlign: "right" }}>
+                <Text type="secondary" style={{ fontSize: "13px" }}>
+                  Tổng số: <strong style={{ color: "#0f172a" }}>{applications.length}</strong> đơn ứng tuyển
+                </Text>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* Table */}
+          <Table<Application>
+            columns={columns}
+            dataSource={applications}
+            rowKey="id"
+            loading={loading}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} của ${total} đơn ứng tuyển`,
+            }}
+            scroll={{ x: 1200 }}
+            size="middle"
+          />
         </Card>
 
-        {/* Table */}
-        <Table<Application>
-          columns={columns}
-          dataSource={applications}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} của ${total} đơn ứng tuyển`,
-          }}
-          scroll={{ x: 1200 }}
-          bordered
-          size="middle"
-        />
-      </Card>
-
-      {/* Modal Reject với lý do bắt buộc */}
+      </div> {/* Kết thúc thẻ đóng maxWidth */}
+      
+      {/* Modal Reject giữ nguyên bên dưới của Đại */}
       <Modal
         title={
           <Space>

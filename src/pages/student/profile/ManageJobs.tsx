@@ -354,21 +354,25 @@ render: (fee: number) => (
   ];
 
   // ==================== RENDER ====================
-  return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
+return (
+    // 1. Thay thế class Tailwind bằng style inline cao cấp, đổi nền sang màu xám nhẹ #f8fafc giống Dashboard
+    <div style={{ padding: "24px 40px", background: "#f8fafc", minHeight: "100vh" }}>
+      
+      {/* 2. Giới hạn độ rộng tối đa của khung giữa (1300px) và căn giữa tự động để cách đều 2 bên */}
+      <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
+        
+        {/* Khung Header giữ nguyên bên dưới của Đại */}
         <div className="mb-6">
-          <Title level={2} className="!mb-1">
+          <Title level={3} className="!mb-1" style={{ fontWeight: 600, color: "#0f172a" }}>
             Quản lý vị trí thực tập
           </Title>
-          <p className="text-gray-500">
+          <p className="text-gray-500" style={{ fontSize: "14px" }}>
             Quản lý các vị trí tuyển dụng của doanh nghiệp
           </p>
         </div>
 
         {/* Filter Section */}
-        <Card className="mb-6 shadow-sm">
+        <Card className="mb-6" style={{ borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
           <Row gutter={[16, 16]} align="bottom">
             <Col xs={24} sm={12} md={6}>
               <div className="mb-1 text-sm font-medium text-gray-700">

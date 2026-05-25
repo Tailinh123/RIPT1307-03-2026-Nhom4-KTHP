@@ -17,22 +17,22 @@ const { Text } = Typography;
 
 const NAV_ITEMS = [
   {
-    key: '/jobs',
+    key: '/profile/company-dashboard', // Khớp chuẩn với AppRoutes
     icon: <AppstoreOutlined style={{ fontSize: 16 }} />,
-    label: 'Bảng việc làm',
-    desc: 'Tìm kiếm cơ hội thực tập',
+    label: 'Dashboard công ty',
+    desc: 'Tổng quan phân tích số liệu',
   },
   {
-    key: '/applications',
+    key: '/profile/manage-jobs',        // Khớp chuẩn với AppRoutes
     icon: <OrderedListOutlined style={{ fontSize: 16 }} />,
-    label: 'Đơn ứng tuyển',
-    desc: 'Lịch sử và trạng thái đơn',
+    label: 'Quản lý việc làm',
+    desc: 'Danh sách và cấu hình Job',
   },
   {
-    key: '/profile',
+    key: '/profile/applications-review', // Khớp chuẩn với AppRoutes
     icon: <ProfileOutlined style={{ fontSize: 16 }} />,
-    label: 'Hồ sơ cá nhân',
-    desc: 'Thông tin tài khoản',
+    label: 'Duyệt ứng tuyển',
+    desc: 'Xét duyệt hồ sơ ứng viên',
   },
 ];
 

@@ -26,6 +26,11 @@ export const WORK_MODE_OPTIONS: SelectOption[] = [
   { label: 'Kết hợp', value: 'HYBRID' },
 ];
 
+export const JOB_LOCATION_OPTIONS: SelectOption[] = [
+  { label: 'Hà Nội', value: 'HANOI' },
+  { label: 'TP Hồ Chí Minh', value: 'HCMC' },
+];
+
 export const JOB_LEVEL_LABEL: Record<JobLevel, string> = {
   INTERN: 'Thực tập sinh',
   FRESHER: 'Fresher',

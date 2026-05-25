@@ -14,7 +14,7 @@ import {
   CloseCircleFilled,
 } from '@ant-design/icons';
 import type { JobFilterParams } from '@/types/job';
-import { JOB_CATEGORY_OPTIONS, JOB_LEVEL_OPTIONS, WORK_MODE_OPTIONS } from '@/utils/constants';
+import { JOB_CATEGORY_OPTIONS, JOB_LEVEL_OPTIONS, WORK_MODE_OPTIONS, JOB_LOCATION_OPTIONS } from '@/utils/constants';
 import { useSkills } from '@/hooks/useSkills';
 
 interface JobFilterProps {
@@ -32,6 +32,7 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
 
   // Local controlled state
   const [keyword, setKeyword] = useState(filters.keyword ?? '');
+  const [location, setLocation] = useState(filters.location ?? undefined);
   const [category, setCategory] = useState(filters.category ?? undefined);
   const [level, setLevel] = useState(filters.level ?? undefined);
   const [workMode, setWorkMode] = useState(filters.workMode ?? undefined);
@@ -39,15 +40,16 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   // Count active sub-filters
-  const activeCount = [category, level, workMode, ...(selectedSkills.length ? [1] : [])].filter(Boolean).length;
+  const activeCount = [category, level, workMode, location, ...(selectedSkills.length ? [1] : [])].filter(Boolean).length;
 
   const handleSearch = () => {
-    onChange({ keyword, category, level, workMode, skills: selectedSkills });
+    onChange({ keyword, location, category, level, workMode, skills: selectedSkills });
     setPopoverOpen(false);
   };
 
   const handleReset = () => {
     setKeyword('');
+    setLocation(undefined);
     setCategory(undefined);
     setLevel(undefined);
     setWorkMode(undefined);
@@ -70,6 +72,22 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
   // ── Popover content ──
   const popoverContent = (
     <div style={{ width: 350, padding: '2px 0 0' }}>
+
+      {/* Địa chỉ */}
+      <div style={{ marginBottom: 14 }}>
+        <span style={labelStyle}>Địa chỉ</span>
+        <Select
+          placeholder="Tất cả địa chỉ"
+          allowClear
+          style={{ width: '100%' }}
+          options={JOB_LOCATION_OPTIONS}
+          value={location}
+          onChange={(v) => setLocation(v)}
+          getPopupContainer={popupToBody}
+          dropdownStyle={SELECT_DROPDOWN_STYLE}
+          listHeight={200}
+        />
+      </div>
 
       {/* Lĩnh vực */}
       <div style={{ marginBottom: 14 }}>

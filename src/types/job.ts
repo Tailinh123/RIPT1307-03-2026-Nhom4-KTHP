@@ -33,6 +33,7 @@ export interface Job {
 
 export interface JobFilterParams {
   keyword?: string;
+  location?: string;
   category?: JobCategory;
   skills?: number[];
   level?: JobLevel;

@@ -16,10 +16,10 @@ export default function HrProfile() {
   const [form] = Form.useForm();
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [companies, setCompanies] = useState<any[]>([]); // Khai báo State lưu danh sách công ty từ DB
+  const [companies, setCompanies] = useState<any[]>([]); 
 
   // ===========================================================================
-  // 1. CALL API: LẤY DANH SÁCH CÔNG TY TỪ DATABASE (GIỐNG MANAGE JOBS)
+  // 1. CALL API: LẤY DANH SÁCH CÔNG TY TỪ DATABASE
   // ===========================================================================
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -34,7 +34,6 @@ export default function HrProfile() {
     fetchCompanies();
   }, []);
 
-  // Chuyển đổi mảng công ty thành định dạng Option cho thẻ Select
   const companyOptions = useMemo(() => {
     return companies.map((c: any) => ({
       value: c.id,
@@ -54,14 +53,13 @@ export default function HrProfile() {
       address: "Hà Nội",
       gender: "MALE",
       dateOfBirth: "2000-01-01",
-      companyId: 1, // Mặc định gán ID công ty ban đầu nếu trống
+      companyId: 1, 
       role: "COMPANY"
     };
 
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        
         const cleanData = {
           name: parsed.name || parsed.fullName || defaultHR.name,
           email: parsed.email || defaultHR.email,
@@ -71,10 +69,8 @@ export default function HrProfile() {
           dateOfBirth: parsed.dateOfBirth || parsed.date_of_birth 
             ? dayjs(parsed.dateOfBirth || parsed.date_of_birth) 
             : dayjs(defaultHR.dateOfBirth),
-          // ĐỌC ID CÔNG TY: Hỗ trợ đọc cả đối tượng nested object company.id từ API thật của Linh gửi về
           companyId: parsed.company?.id || parsed.companyId || defaultHR.companyId,
         };
-        
         form.setFieldsValue(cleanData);
         if (parsed.avatarUrl || parsed.avatar) setAvatarUrl(parsed.avatarUrl || parsed.avatar);
       } catch (e) {
@@ -116,12 +112,13 @@ export default function HrProfile() {
   // ===========================================================================
   // 4. HANDLER: SUBMIT FORM GỬI XUỐNG DB
   // ===========================================================================
-const onFinish = async (values: any) => {
+  const onFinish = async (values: any) => {
     setLoading(true);
     try {
       const storedUserStr = localStorage.getItem("user");
       const currentUserObj = storedUserStr ? JSON.parse(storedUserStr) : {};
       const userId = currentUserObj.id || 2; 
+
       const apiPayload = {
         id: userId,
         name: values.name,
@@ -140,12 +137,9 @@ const onFinish = async (values: any) => {
       } catch (apiError) {
         console.warn("Đang lưu tại Local Storage do Backend chưa mở cổng API.");
       }
-      const localUserData = {
-        ...currentUserObj,
-        ...apiPayload,
-      };
+
+      const localUserData = { ...currentUserObj, ...apiPayload };
       localStorage.setItem("user", JSON.stringify(localUserData));
-      
       setTimeout(() => window.location.reload(), 500);
 
     } catch (error) {
@@ -167,7 +161,7 @@ const onFinish = async (values: any) => {
         </div>
 
         <Row gutter={24}>
-          {/* CỘT TRÁI: AVATAR MÁY TÍNH */}
+          {/* CỘT TRÁI: KHU VỰC AVATAR + SIÊU NÚT BẤM ĐỘNG NATIVE CSS */}
           <Col xs={24} md={8}>
             <Card
               bordered={false}
@@ -191,22 +185,50 @@ const onFinish = async (values: any) => {
                 />
               </div>
               
-              <div style={{ marginBottom: "16px" }}>
+              <div style={{ marginBottom: "20px" }}>
                 <Title level={4} style={{ margin: "0 0 4px 0", fontSize: "18px" }}>
                   {form.getFieldValue("name") || "HR Manager"}
                 </Title>
                 <Tag color="blue" icon={<SafetyCertificateOutlined />}>HR Doanh Nghiệp</Tag>
               </div>
 
-              <Upload accept="image/*" showUploadList={false} beforeUpload={handleBeforeUpload}>
-                <Button icon={<UploadOutlined />} type="dashed">
-                  Chọn ảnh từ máy tính
-                </Button>
-              </Upload>
+              {/* KHU VỰC NÚT BẤM ĐÃ ĐƯỢC CHUYỂN ĐỔI SANG CSS THUẦN KHÔNG LỆCH HÀNG */}
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <Upload accept="image/*" showUploadList={false} beforeUpload={handleBeforeUpload}>
+                  
+                  {/* SIÊU NÚT BẤM GLITTER & WAVE PHIÊN BẢN KHÔNG DÙNG TAILWIND */}
+                  <div className="custom-glitter-btn">
+                    
+                    {/* Dải màu chuyển động Gradient động hệ màu InternMatch */}
+                    <div className="btn-bg-gradient" />
+                    <div className="btn-bg-blur" />
+                    
+                    {/* Lớp hạt sáng lấp lánh (Glitter Container) */}
+                    <div className="glitter-container">
+                      <div className="glitter g1" />
+                      <div className="glitter g2" />
+                      <div className="glitter g3" />
+                    </div>
+                    
+                    {/* Viền sáng bao quanh */}
+                    <div className="btn-border-overlay" />
+                    
+                    {/* Hiệu ứng sóng ngầm chạy xuyên suốt */}
+                    <div className="btn-wave-effect" />
+                    
+                    {/* Nội dung chữ và icon */}
+                    <span className="btn-content-text">
+                      <UploadOutlined style={{ fontSize: "14px" }} />
+                      <span style={{ letterSpacing: "0.5px" }}>Tải ảnh lên</span>
+                    </span>
+                  </div>
+
+                </Upload>
+              </div>
             </Card>
           </Col>
 
-          {/* CỘT PHẢI: FORM CHUẨN ĐỒNG BỘ 100% */}
+          {/* CỘT PHẢI: FORM ĐIỀN THÔNG TIN CHI TIẾT */}
           <Col xs={24} md={16}>
             <Card
               bordered={false}
@@ -286,7 +308,6 @@ const onFinish = async (values: any) => {
                   </Col>
                 </Row>
 
-                {/* ROW THÊM MỚI: ĐỒNG BỘ CÔNG TY QUẢN LÝ CỦA TÀI KHOẢN HR */}
                 <Row gutter={16}>
                   <Col span={24}>
                     <Form.Item
@@ -318,6 +339,115 @@ const onFinish = async (values: any) => {
         </Row>
 
       </div>
+
+      <style>{`
+        .custom-glitter-btn {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 7px 15px;
+          font-size: 14px;
+          font-weight: bold;
+          color: #ffffff;
+          border-radius: 9999px;
+          overflow: hidden;
+          cursor: pointer;
+          user-select: none;
+          box-shadow: 0 4px 12px rgba(22, 119, 255, 0.2);
+          transition: all 0.3s ease-in-out;
+        }
+        .custom-glitter-btn:hover {
+          transform: scale(1.05);
+          box-shadow: 0 6px 20px rgba(22, 119, 255, 0.35);
+        }
+        .custom-glitter-btn:active {
+          transform: scale(0.96);
+        }
+        
+        .btn-bg-gradient {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, #1677ff 0%, #4f46e5 50%, #06b6d4 100%);
+          background-size: 200% 200%;
+          border-radius: 9999px;
+          transition: all 0.3s ease-in-out;
+          animation: gradientMove 4s ease infinite;
+        }
+        .custom-glitter-btn:hover .btn-bg-gradient {
+          transform: scale(1.1);
+        }
+        @keyframes gradientMove {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .btn-bg-blur {
+          position: absolute;
+          inset: 0;
+          border-radius: 9999px;
+          opacity: 0;
+          background: #ffffff;
+          filter: blur(8px);
+          transition: opacity 0.3s ease-in-out;
+        }
+        .custom-glitter-btn:hover .btn-bg-blur {
+          opacity: 0.3;
+        }
+
+        .btn-border-overlay {
+          position: absolute;
+          inset: 0;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          transition: all 0.3s ease-in-out;
+        }
+        .custom-glitter-btn:hover .btn-border-overlay {
+          border-color: rgba(255, 255, 255, 0.4);
+          transform: scale(1.03);
+        }
+
+        .glitter-container {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+        }
+        .glitter {
+          position: absolute;
+          background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%);
+          border-radius: 50%;
+          opacity: 0;
+          animation: sparkle 3s infinite ease-in-out;
+        }
+        .glitter.g1 { width: 6px; height: 6px; top: 20%; left: 25%; animation-delay: 0s; }
+        .glitter.g2 { width: 8px; height: 8px; top: 65%; left: 75%; animation-delay: 0.9s; }
+        .glitter.g3 { width: 5px; height: 5px; top: 45%; left: 15%; animation-delay: 1.7s; }
+        @keyframes sparkle {
+          0%, 100% { opacity: 0; transform: scale(0.6); }
+          50% { opacity: 0.7; transform: scale(1.3); }
+        }
+
+        .btn-wave-effect {
+          position: absolute;
+          inset: -50%;
+          background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 65%);
+          animation: waveMove 7s linear infinite;
+        }
+        @keyframes waveMove {
+          0% { transform: rotate(0deg) translate(-3px, -3px); }
+          50% { transform: rotate(180deg) translate(3px, 3px); }
+          100% { transform: rotate(360deg) translate(-3px, -3px); }
+        }
+
+        .btn-content-text {
+          position: relative;
+          z-index: 10;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      `}</style>
     </div>
   );
 }

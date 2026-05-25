@@ -4,6 +4,7 @@ import StudentLayout from '@/layouts/StudentLayout';
 import CompanyDashboard from '@/pages/student/profile/CompanyDashboard';
 import ManageJobs from '@/pages/student/profile/ManageJobs';
 import ApplicationsReview from '@/pages/student/profile/ApplicationsReview';
+import HrProfile from '@/pages/student/profile/HrProfile'; // THÊM DÒNG IMPORT NÀY
 
 const AppRoutes: React.FC = () => {
   return (
@@ -15,6 +16,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/profile/company-dashboard" element={<CompanyDashboard />} />
         <Route path="/profile/manage-jobs" element={<ManageJobs />} />
         <Route path="/profile/applications-review" element={<ApplicationsReview />} />
+        <Route path="/profile/hr-profile" element={<HrProfile />} /> {/* THÊM TUYẾN ĐƯỜNG NÀY */}
       </Route>
 
       {/* Fallback */}

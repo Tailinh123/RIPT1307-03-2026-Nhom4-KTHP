@@ -3,8 +3,6 @@ import { Layout, Menu, Typography, Avatar } from 'antd';
 import {
   AppstoreOutlined,
   FileTextOutlined,
-  ProfileOutlined,
-  OrderedListOutlined,
   RocketOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -13,10 +11,6 @@ const { Sider } = Layout;
 const { Text } = Typography;
 
 const menuItems = [
-  { key: '/jobs', icon: <AppstoreOutlined />, label: 'Bảng việc làm' },
-  { key: '/resumes', icon: <FileTextOutlined />, label: 'CV của tôi' },
-  { key: '/applications', icon: <OrderedListOutlined />, label: 'Đơn ứng tuyển' },
-  { key: '/profile', icon: <ProfileOutlined />, label: 'Hồ sơ cá nhân' },
   { key: '/profile/company-dashboard', icon: <RocketOutlined />, label: 'Dashboard công ty' },
   { key: '/profile/manage-jobs', icon: <AppstoreOutlined />, label: 'Quản lý việc làm' },
   { key: '/profile/applications-review', icon: <FileTextOutlined />, label: 'Duyệt ứng tuyển' },
@@ -33,7 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const selectedKey =
     menuItems.find((item) => location.pathname === item.key)?.key ||
     menuItems.find((item) => location.pathname.startsWith(item.key))?.key ||
-    '/jobs';
+    '/profile/company-dashboard';
 
   return (
     <Sider

@@ -13,10 +13,9 @@ const { Header } = Layout;
 const { Text } = Typography;
 
 const PAGE_TITLES: Record<string, string> = {
-  '/jobs': 'Bảng việc làm',
-  '/resumes': 'CV của tôi',
-  '/applications': 'Đơn ứng tuyển',
-  '/profile': 'Hồ sơ cá nhân',
+  '/profile/company-dashboard': 'Dashboard công ty',
+  '/profile/manage-jobs': 'Quản lý việc làm',
+  '/profile/applications-review': 'Duyệt ứng tuyển',
 };
 
 interface HeaderBarProps {

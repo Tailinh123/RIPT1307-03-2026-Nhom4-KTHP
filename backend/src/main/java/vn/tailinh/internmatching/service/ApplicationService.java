@@ -43,7 +43,6 @@ public class ApplicationService {
       throw new IdInvalidException("User not found or not logged in");
     }
 
-
     // check job 
     Optional<Job> jobOptional = this.jobRepository.findById(application.getJob().getId());
     if (jobOptional.isEmpty()) {
@@ -53,7 +52,7 @@ public class ApplicationService {
     // check job active 
     Job dbJob = jobOptional.get();
     if(!dbJob.isActive()) {
-      throw new IdInvalidException("Job is not longer actve");
+      throw new IdInvalidException("Job is not longer active");
     }
 
     // check endDate
@@ -68,14 +67,15 @@ public class ApplicationService {
     }
     Resume dbResume = resumeOptional.get();
 
-    if(dbResume.getUser() == null || !dbResume.getUser().equals(currentUser.getId())) {
-      throw new  IdInvalidException("You don't have permision to use this resume");
+    if(dbResume.getUser() == null || !dbResume.getUser().getId().equals(currentUser.getId())) {
+      throw new  IdInvalidException("You don't have permission to use this resume");
     }
-
 
     application = this.applicationRepository.save(application);
     return ApplicationMapper.toCreateApplicationResponse(application);
   }
+
+
 
   public UpdateApplicationResponse update(UpdateApplicationDTO dto) throws Exception {
     Optional<Application> appOptional = this.applicationRepository.findById(dto.getId());
@@ -92,6 +92,8 @@ public class ApplicationService {
 
   }
 
+
+
   public ResultPaginationResponse fetchAllApplication(
       Specification<Application> specification, Pageable pageable) {
     Page<Application> page = this.applicationRepository.findAll(specification, pageable);
@@ -106,6 +108,8 @@ public class ApplicationService {
     this.applicationRepository.deleteById(id);
   }
 
+
+  
   public ResultPaginationResponse fetchByUser(Pageable pageable) {
       String email = SecurityUtils.getCurrentUserLogin().orElse("");
       User user = this.userRepository.findByEmail(email);

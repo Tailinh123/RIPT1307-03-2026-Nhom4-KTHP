@@ -83,8 +83,27 @@ public class ApplicationService {
     if (appOptional.isEmpty()) {
       throw new IdInvalidException("Application not found");
     }
-
     Application currentApp = appOptional.get();
+    
+    // check ownership hr
+    String email = SecurityUtils.getCurrentUserLogin().orElse("");
+    User currentUser = this.userRepository.findByEmail(email);
+    if(currentUser == null) {
+      throw new IdInvalidException("User not found or logged in");
+    }
+
+    // get job from application -> get company 
+    Job applicationJob= currentApp.getJob();
+    if(applicationJob == null || applicationJob.getCompany() == null ) {
+      throw new IdInvalidException("Application has no associated job/company");
+    }
+
+    // logic equals
+    if(currentUser.getCompany() == null || !currentUser.getCompany().getId().equals(applicationJob.getCompany().getId())){
+      throw new IdInvalidException("You don't have permission to update this application");
+    }
+
+
     currentApp.setStatus(dto.getStatus());
     currentApp.setNote(dto.getNote());
     currentApp = this.applicationRepository.save(currentApp);

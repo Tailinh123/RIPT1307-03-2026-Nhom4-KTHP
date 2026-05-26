@@ -25,7 +25,8 @@ public class SkillService {
         return this.skillRepository.save(skill);
     }
 
-    public Skill fetchSkillById(Long id) throws Exception {
+    
+    public Skill fetchSkillById(long id) throws Exception {
         if(this.skillRepository.existsById(id)){
             return this.skillRepository.findById(id).get();
         }else{
@@ -33,14 +34,16 @@ public class SkillService {
         }
     }
 
+
     public Skill update(Skill skill) throws Exception{
         Skill currentSkill = this.fetchSkillById(skill.getId());
-        if(skill.getName() != null && this.skillRepository.existsByName(skill.getName())){
-            throw new DataIntegrityViolationException("Skill name already exists");
+        if(currentSkill.getName().equals(skill.getName())){
+          throw new IdInvalidException("Skill with name = " + skill.getName() + " already exist!");
         }
         currentSkill.setName(skill.getName());
         return this.skillRepository.save(currentSkill);
     }
+
 
     public ResultPaginationResponse fetchAllSkill(Specification<Skill> spec, Pageable pageable){
         Page<Skill> skillPage = this.skillRepository.findAll(spec, pageable);
@@ -48,11 +51,9 @@ public class SkillService {
         return response;
     }
 
+
     public void deleteSkill(Long id) throws Exception {
         Skill currentSkill = this.fetchSkillById(id);
-        if(currentSkill == null){
-            throw new IdInvalidException("Skill ID is not found");
-        }
         currentSkill.getJobs().forEach(
                 job -> job.getSkills().remove(currentSkill)
         );

@@ -1,7 +1,6 @@
 package vn.tailinh.internmatching.service;
 
 import lombok.RequiredArgsConstructor;
-import net.bytebuddy.asm.MemberSubstitution.Current;
 import vn.tailinh.internmatching.entity.Job;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.dto.response.job.CreateJobDTOResponse;
@@ -18,7 +17,6 @@ import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Skill;
 import vn.tailinh.internmatching.entity.User;
 
-import org.apache.catalina.security.SecurityUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

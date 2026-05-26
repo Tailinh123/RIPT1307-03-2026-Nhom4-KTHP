@@ -35,12 +35,45 @@ export function useJobs(initialFilters: JobFilterParams = {}): UseJobsReturn {
       }
     } catch (err) {
       console.error('Error fetching jobs:', err);
-      // Fallback to mock data for development
-      const mockJobs = getMockJobs();
+      // Fallback to mock data for development with filters applied
+      let mockJobs = getMockJobs();
+
+      // keyword filter
+      if (filters.keyword) {
+        const kw = filters.keyword.toLowerCase();
+        mockJobs = mockJobs.filter(job =>
+          job.title.toLowerCase().includes(kw) ||
+          job.companyName.toLowerCase().includes(kw)
+        );
+      }
+
+      // location filter
+      if (filters.location && filters.location !== 'OTHER') {
+        const locationMap: Record<string, string> = {
+          'HANOI': 'Hà Nội',
+          'HCMC': 'TP. Hồ Chí Minh',
+          'DANANG': 'Đà Nẵng',
+        };
+        const displayLocation = locationMap[filters.location];
+        if (displayLocation) {
+          mockJobs = mockJobs.filter(job => job.location === displayLocation);
+        }
+      }
+
+      // level filter
+      if (filters.level) {
+        mockJobs = mockJobs.filter(job => job.level === filters.level);
+      }
+
+      // workMode filter
+      if (filters.workMode) {
+        mockJobs = mockJobs.filter(job => job.workMode === filters.workMode);
+      }
+
       setJobs(mockJobs);
       setTotal(mockJobs.length);
-      // Don't show error if fallback data is used
       setError(null);
+
     } finally {
       setLoading(false);
     }

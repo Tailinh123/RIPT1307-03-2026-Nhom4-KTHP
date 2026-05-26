@@ -35,6 +35,7 @@ export interface JobFilterParams {
   keyword?: string;
   location?: string;
   category?: JobCategory;
+  categoryName?: string;   // free-text filter matched against jobCategory.name via Spring Filter
   skills?: number[];
   level?: JobLevel;
   workMode?: WorkMode;

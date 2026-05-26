@@ -27,6 +27,9 @@ import {
   CalendarOutlined,
   ExclamationCircleOutlined,
   CheckCircleOutlined,
+  FileTextOutlined,
+  UserOutlined,
+  GiftOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useJobDetail } from '@/hooks/useJobDetail';
@@ -108,22 +111,7 @@ const SectionBlock: React.FC<{
         borderBottom: '2px solid #f0f4ff',
       }}
     >
-      <div
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: 8,
-          background: `${accentColor}15`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: accentColor,
-          fontSize: 16,
-          flexShrink: 0,
-        }}
-      >
-        {icon}
-      </div>
+      <span style={{ color: accentColor, fontSize: 20 }}>{icon}</span>
       <Title level={5} style={{ margin: 0, color: '#1d1d1f', fontWeight: 700 }}>
         {title}
       </Title>
@@ -403,7 +391,7 @@ const JobDetailPage: React.FC = () => {
             {/* ── Chi tiết công việc ── */}
             <SectionBlock
               title="Chi tiết công việc"
-              icon=""
+              icon={<FileTextOutlined />}
               accentColor="#1677ff"
             >
               <BulletList text={job.description} />
@@ -412,7 +400,7 @@ const JobDetailPage: React.FC = () => {
             {/* ── Yêu cầu ứng viên ── */}
             <SectionBlock
               title="Yêu cầu ứng viên"
-              icon=""
+              icon={<UserOutlined />}
               accentColor="#52c41a"
             >
               <BulletList text={job.requirements} />
@@ -422,7 +410,7 @@ const JobDetailPage: React.FC = () => {
             {job.benefits && (
               <SectionBlock
                 title="Quyền lợi"
-                icon=""
+                icon={<GiftOutlined />}
                 accentColor="#fa8c16"
               >
                 <BulletList text={job.benefits} />

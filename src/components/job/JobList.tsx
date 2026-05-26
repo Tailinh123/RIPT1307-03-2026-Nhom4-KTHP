@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Pagination, Empty, Alert, Typography, Space, Tag, Skeleton } from 'antd';
+import { Row, Col, Pagination, Empty, Alert, Typography, Space, Skeleton } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
 import type { Job } from '@/types/job';
 import JobCard from './JobCard';
@@ -39,7 +39,7 @@ const JobList: React.FC<JobListProps> = ({
       )}
 
       {/* ── Result summary ── */}
-      <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center' }}>
         <Space>
           <AppstoreOutlined style={{ color: '#1677ff' }} />
           <Text style={{ color: '#595959' }}>
@@ -49,9 +49,6 @@ const JobList: React.FC<JobListProps> = ({
             </Text>{' '}
             vị trí tuyển dụng
           </Text>
-        </Space>
-        <Space>
-          <Tag color="blue" style={{ borderRadius: 6 }}>Trang {page}</Tag>
         </Space>
       </div>
 
@@ -95,8 +92,8 @@ const JobList: React.FC<JobListProps> = ({
       )}
 
       {/* ── Pagination ── */}
-      {!loading && total > pageSize && (
-        <div style={{ marginTop: 32, textAlign: 'center' }}>
+      {!loading && jobs.length > 0 && (
+        <div style={{ marginTop: 40, marginBottom: 16, textAlign: 'center' }}>
           <Pagination
             current={page}
             total={total}

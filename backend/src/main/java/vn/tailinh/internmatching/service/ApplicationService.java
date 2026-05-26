@@ -50,6 +50,17 @@ public class ApplicationService {
       throw new IdInvalidException("Job not found");
     }
 
+    // check job active 
+    Job dbJob = jobOptional.get();
+    if(!dbJob.isActive()) {
+      throw new IdInvalidException("Job is not longer actve");
+    }
+
+    // check endDate
+    if(dbJob.getEndDate() != null && dbJob.getEndDate().isBefore(java.time.Instant.now())) {
+      throw new IdInvalidException("This job has expired ");
+    }
+
     // check resume 
     Optional<Resume> resumeOptional = this.resumeRepository.findById(application.getResume().getId());
     if (resumeOptional.isEmpty()) {

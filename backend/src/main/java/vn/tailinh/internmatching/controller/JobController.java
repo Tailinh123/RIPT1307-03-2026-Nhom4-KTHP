@@ -32,10 +32,8 @@ public class JobController {
 
     @PostMapping("")
     @ApiMessage("Create a job")
-    public ResponseEntity<CreateJobDTOResponse> create(@Valid @RequestBody Job job){
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                this.jobService.create(job)
-        );
+    public ResponseEntity<CreateJobDTOResponse> create(@Valid @RequestBody Job job) throws Exception{
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.jobService.create(job));
     }
 
     @PutMapping("")

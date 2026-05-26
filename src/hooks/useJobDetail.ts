@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Job } from '@/types/job';
+import { jobApi } from '@/api/jobApi';
 
 export interface JobDetail extends Job {
   benefits: string;
@@ -221,19 +222,33 @@ export function useJobDetail(id: string | undefined): UseJobDetailReturn {
     setError(null);
     setJob(null);
 
-    const timer = setTimeout(() => {
-      const numId = parseInt(id, 10);
-      if (isNaN(numId)) {
-        setError('ID công việc không hợp lệ.');
-        setLoading(false);
-        return;
-      }
-      const found = MOCK_JOB_DETAILS.find((j) => j.id === numId);
-      setJob(found ?? generateMockDetail(numId));
+    const numId = parseInt(id, 10);
+    if (isNaN(numId)) {
+      setError('ID công việc không hợp lệ.');
       setLoading(false);
-    }, 500);
+      return;
+    }
 
-    return () => clearTimeout(timer);
+    // Try to fetch from API
+    jobApi
+      .getJobById(numId)
+      .then((res) => {
+        setJob(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching job detail:', err);
+        // Fallback to mock data on error
+        const found = MOCK_JOB_DETAILS.find((j) => j.id === numId);
+        if (found) {
+          setJob(found);
+          setError(null);
+        } else {
+          setJob(generateMockDetail(numId));
+          setError(null);
+        }
+        setLoading(false);
+      });
   }, [id]);
 
   return { job, loading, error };

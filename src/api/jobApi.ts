@@ -1,7 +1,7 @@
 import axiosClient from './axiosClient';
 import type { Job, JobFilterParams } from '@/types/job';
 import type { ResultPaginationResponse, PaginatedData } from '@/types/api';
-import { convertResultToPaginatedData } from '@/types/api';
+import type { JobDetail } from '@/hooks/useJobDetail';
 
 // Backend response wrapper
 interface BackendResponse<T> {
@@ -20,12 +20,15 @@ interface BackendJob {
   id: number;
   name: string;
   description: string;
+  requirement?: string;
+  benefits?: string;
   location: string;
   salary: number;
+  quantity?: number;
   jobType: string;
   workMode: string;
   level: string;
-  company: { id: number; name: string };
+  company: { id: number; name: string; description?: string; website?: string; size?: string; industry?: string };
   jobCategory: { id: number; name: string };
   skills: Array<{ id: number; name: string }>;
   startDate: string;
@@ -33,20 +36,47 @@ interface BackendJob {
   active: boolean;
 }
 
-// Map Backend Job to Frontend Job
+// Map Backend Job to Frontend JobDetail
+function mapBackendJobToJobDetail(backendJob: BackendJob): JobDetail {
+  return {
+    id: backendJob.id,
+    title: backendJob.name,
+    companyName: backendJob.company?.name || '',
+    description: backendJob.description,
+    requirements: backendJob.requirement || '',
+    location: backendJob.location,
+    salaryMin: backendJob.salary,
+    salaryMax: backendJob.salary,
+    level: (backendJob.level || 'INTERN') as Job['level'],
+    workMode: (backendJob.workMode || 'ONSITE') as Job['workMode'],
+    category: (backendJob.jobCategory?.name || 'OTHER') as Job['category'],
+    skills: backendJob.skills || [],
+    deadline: backendJob.endDate,
+    createdAt: backendJob.startDate,
+    isActive: backendJob.active,
+    benefits: backendJob.benefits || '',
+    headcount: backendJob.quantity || 0,
+    companyDescription: backendJob.company?.description || '',
+    companyWebsite: backendJob.company?.website,
+    companySize: backendJob.company?.size,
+    companyIndustry: backendJob.company?.industry,
+  };
+}
+
+// Map Backend Job to Frontend Job (for list view)
 function mapBackendJobToFrontend(backendJob: BackendJob): Job {
   return {
     id: backendJob.id,
     title: backendJob.name,
     companyName: backendJob.company?.name || '',
     description: backendJob.description,
-    requirements: '', // Backend doesn't provide this
+    requirements: backendJob.requirement || '',
     location: backendJob.location,
     salaryMin: backendJob.salary,
     salaryMax: backendJob.salary,
-    level: backendJob.level as any,
-    workMode: backendJob.workMode as any,
-    category: backendJob.jobCategory?.name as any,
+    level: (backendJob.level || 'INTERN') as Job['level'],
+    workMode: (backendJob.workMode || 'ONSITE') as Job['workMode'],
+    category: (backendJob.jobCategory?.name || 'OTHER') as Job['category'],
     skills: backendJob.skills || [],
     deadline: backendJob.endDate,
     createdAt: backendJob.startDate,
@@ -68,8 +98,8 @@ export const jobApi = {
     return { data: paginatedData };
   },
 
-  getJobById: async (id: number): Promise<ApiJobResponse<Job>> => {
+  getJobById: async (id: number): Promise<ApiJobResponse<JobDetail>> => {
     const response = await axiosClient.get<BackendResponse<BackendJob>>(`/api/v1/jobs/${id}`);
-    return { data: mapBackendJobToFrontend(response.data.data) };
+    return { data: mapBackendJobToJobDetail(response.data.data) };
   },
 };

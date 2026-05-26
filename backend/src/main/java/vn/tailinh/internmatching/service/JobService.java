@@ -83,10 +83,6 @@ public class JobService {
         jobInDB.setLevel(job.getLevel());
         jobInDB.setJobCategory(job.getJobCategory());
 
-        if (job.getCompany() != null) {
-            Optional<Company> companyOptional = this.companyRepository.findById(job.getCompany().getId());
-            companyOptional.ifPresent(jobInDB::setCompany);
-        }
 
         Job currentJob = this.jobRepository.save(jobInDB);
         return JobMapper.toUpdatedJobResponse(currentJob);

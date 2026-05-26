@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RequestMapping(path = "${apiPrefix}/auth")
 @RestController
 @RequiredArgsConstructor
@@ -102,20 +101,22 @@ public class AuthController {
     String email = optionalEmail.orElse(" ");
 
     User currentUserDB = this.userService.handleGetUserByUsername(email);
-    LoginResponse.RoleDTO roleDTO = new LoginResponse.RoleDTO();
-
-    roleDTO.setId(currentUserDB.getRole().getId());
-    roleDTO.setName(currentUserDB.getRole().getName());
-    // roleDTO.setUser(roleDTO);
     LoginResponse.UserLogin userLogin = new LoginResponse.UserLogin();
+
     if (currentUserDB != null) {
       userLogin.setId(currentUserDB.getId());
       userLogin.setEmail(currentUserDB.getEmail());
       userLogin.setName(currentUserDB.getName());
+
+      if (currentUserDB.getRole() != null) {
+        LoginResponse.RoleDTO roleDTO = new LoginResponse.RoleDTO();
+        roleDTO.setId(currentUserDB.getRole().getId());
+        roleDTO.setName(currentUserDB.getRole().getName());
+        userLogin.setRole(roleDTO);
+      }
     }
     return ResponseEntity.ok().body(userLogin);
   }
-
 
   @PostMapping("/refresh")
   @ApiMessage("Get user information")
@@ -124,6 +125,7 @@ public class AuthController {
     Jwt decodedToken = this.securityUtils.checkValidRefreshToken(refreshToken);
     String email = decodedToken.getSubject();
     User user = this.userService.getUserByRefreshTokenAndEmail(refreshToken, email);
+    
     if (user != null) {
       LoginResponse loginResponse = new LoginResponse();
       LoginResponse.UserLogin userLogin = new LoginResponse.UserLogin();
@@ -132,9 +134,17 @@ public class AuthController {
       userLogin.setEmail(user.getEmail());
       loginResponse.setUser(userLogin);
 
+
+      if (user.getRole() != null) {
+        LoginResponse.RoleDTO roleDTO = new LoginResponse.RoleDTO();
+        roleDTO.setId(user.getRole().getId());
+        roleDTO.setName(user.getRole().getName());
+        userLogin.setRole(roleDTO);
+      }
+      loginResponse.setUser(userLogin);
       // set access token
       loginResponse.setAccessToken(this.securityService.createAccessToken(email, loginResponse));
-      
+
       // create refresh token
       String newRefreshToken = this.securityService.createRefreshToken(email, loginResponse);
       // update user
@@ -155,13 +165,11 @@ public class AuthController {
     }
   }
 
-
   @PostMapping("/logout")
   @ApiMessage("Logout user")
   public ResponseEntity<Void> logout() throws IdInvalidException {
-    Optional<String> optionalEmail= SecurityUtils.getCurrentUserLogin();
+    Optional<String> optionalEmail = SecurityUtils.getCurrentUserLogin();
     String email = optionalEmail.orElse("");
-
 
     if (email.isEmpty()) {
       throw new IdInvalidException("Access token is not valid");

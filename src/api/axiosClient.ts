@@ -16,13 +16,13 @@ axiosClient.interceptors.request.use((config) => {
   return config;
 });
 
-// ── Response interceptor: unwrap data / handle 401 ─────────────────────────
+// ── Response interceptor: handle errors ─────────────────────────────────────
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Clear stale token but do NOT redirect — the app has no /login page
       localStorage.removeItem('accessToken');
-      window.location.href = '/login';
     }
     return Promise.reject(error);
   },

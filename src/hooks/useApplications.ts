@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { applicationApi } from '@/api/applicationApi';
+import { applicationApi, type BackendApplication } from '@/api/applicationApi';
 import type { Application, ApplicationStatus } from '@/types/application';
 
 interface StatusCounts {
@@ -26,6 +26,22 @@ interface UseApplicationsReturn {
   refetch: () => void;
 }
 
+// Map backend Application → frontend Application
+function mapBackendApplication(app: BackendApplication): Application {
+  return {
+    id: app.id,
+    jobId: app.job?.id ?? 0,
+    jobTitle: app.job?.name ?? '(Không rõ vị trí)',
+    companyName: app.job?.company?.name ?? '(Không rõ công ty)',
+    resumeId: app.resume?.id ?? 0,
+    resumeName: app.resume?.title ?? app.resume?.url ?? 'CV',
+    status: (app.status ?? 'PENDING') as ApplicationStatus,
+    rejectNote: app.note ?? undefined,
+    appliedAt: app.createdAt,
+    updatedAt: app.updatedAt,
+  };
+}
+
 export function useApplications(): UseApplicationsReturn {
   const [allApplications, setAllApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,11 +55,12 @@ export function useApplications(): UseApplicationsReturn {
     setLoading(true);
     setError(null);
     try {
-      const res = await applicationApi.getMyApplications();
-      setAllApplications(res.data.data);
-    } catch {
-      setError('Không thể tải danh sách đơn ứng tuyển. Đang hiển thị dữ liệu mẫu.');
-      setAllApplications(getMockApplications());
+      const raw = await applicationApi.getMyApplications();
+      setAllApplications(raw.map(mapBackendApplication));
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.message ?? 'Lỗi kết nối';
+      setError(`Không thể tải danh sách đơn ứng tuyển: ${msg}`);
+      setAllApplications([]);
     } finally {
       setLoading(false);
     }
@@ -94,142 +111,3 @@ export function useApplications(): UseApplicationsReturn {
   };
 }
 
-// ── Mock data for local development without backend ──────────────────────
-function getMockApplications(): Application[] {
-  return [
-    {
-      id: 1,
-      jobId: 1,
-      jobTitle: 'Frontend Developer Intern',
-      companyName: 'FPT Software',
-      resumeId: 1,
-      resumeName: 'CV_NguyenVanA.pdf',
-      status: 'APPROVED',
-      appliedAt: '2026-04-01T09:48:00Z',
-      updatedAt: '2026-04-05T14:00:00Z',
-    },
-    {
-      id: 2,
-      jobId: 2,
-      jobTitle: 'Backend Developer Intern',
-      companyName: 'VNG Corporation',
-      resumeId: 1,
-      resumeName: 'CV_NguyenVanA.pdf',
-      status: 'PENDING',
-      appliedAt: '2026-04-01T09:12:00Z',
-      updatedAt: '2026-04-01T09:12:00Z',
-    },
-    {
-      id: 3,
-      jobId: 3,
-      jobTitle: 'UI/UX Designer Intern',
-      companyName: 'Grab Vietnam',
-      resumeId: 2,
-      resumeName: 'CV_Design_Portfolio.pdf',
-      status: 'REVIEWING',
-      appliedAt: '2026-04-02T10:30:00Z',
-      updatedAt: '2026-04-04T08:15:00Z',
-    },
-    {
-      id: 4,
-      jobId: 4,
-      jobTitle: 'Marketing Intern',
-      companyName: 'Shopee Vietnam',
-      resumeId: 1,
-      resumeName: 'CV_NguyenVanA.pdf',
-      status: 'REJECTED',
-      rejectNote: 'Hồ sơ chưa đáp ứng yêu cầu về kinh nghiệm thực tế trong lĩnh vực Digital Marketing. Vui lòng bổ sung thêm dự án cá nhân hoặc chứng chỉ liên quan.',
-      appliedAt: '2026-04-01T09:18:00Z',
-      updatedAt: '2026-04-06T16:45:00Z',
-    },
-    {
-      id: 5,
-      jobId: 5,
-      jobTitle: 'Data Analyst Intern',
-      companyName: 'Momo',
-      resumeId: 3,
-      resumeName: 'CV_DataScience.pdf',
-      status: 'PENDING',
-      appliedAt: '2026-04-03T14:22:00Z',
-      updatedAt: '2026-04-03T14:22:00Z',
-    },
-    {
-      id: 6,
-      jobId: 6,
-      jobTitle: 'Mobile Developer Intern',
-      companyName: 'Tiki',
-      resumeId: 1,
-      resumeName: 'CV_NguyenVanA.pdf',
-      status: 'REVIEWING',
-      appliedAt: '2026-04-02T16:00:00Z',
-      updatedAt: '2026-04-05T09:30:00Z',
-    },
-    {
-      id: 7,
-      jobId: 7,
-      jobTitle: 'HR Intern',
-      companyName: 'Viettel',
-      resumeId: 1,
-      resumeName: 'CV_NguyenVanA.pdf',
-      status: 'APPROVED',
-      appliedAt: '2026-04-01T09:28:00Z',
-      updatedAt: '2026-04-07T11:00:00Z',
-    },
-    {
-      id: 8,
-      jobId: 8,
-      jobTitle: 'Finance Intern',
-      companyName: 'BIDV',
-      resumeId: 4,
-      resumeName: 'CV_Finance.pdf',
-      status: 'REJECTED',
-      rejectNote: 'Vị trí đã tuyển đủ số lượng. Chúng tôi sẽ liên hệ lại nếu có vị trí phù hợp trong tương lai.',
-      appliedAt: '2026-04-04T08:45:00Z',
-      updatedAt: '2026-04-08T10:20:00Z',
-    },
-    {
-      id: 9,
-      jobId: 9,
-      jobTitle: 'DevOps Intern',
-      companyName: 'CMC Technology',
-      resumeId: 1,
-      resumeName: 'CV_NguyenVanA.pdf',
-      status: 'PENDING',
-      appliedAt: '2026-04-05T11:10:00Z',
-      updatedAt: '2026-04-05T11:10:00Z',
-    },
-    {
-      id: 10,
-      jobId: 10,
-      jobTitle: 'Content Creator Intern',
-      companyName: 'Lazada Vietnam',
-      resumeId: 2,
-      resumeName: 'CV_Design_Portfolio.pdf',
-      status: 'REVIEWING',
-      appliedAt: '2026-04-06T09:00:00Z',
-      updatedAt: '2026-04-08T14:30:00Z',
-    },
-    {
-      id: 11,
-      jobId: 11,
-      jobTitle: 'QA Tester Intern',
-      companyName: 'KMS Technology',
-      resumeId: 1,
-      resumeName: 'CV_NguyenVanA.pdf',
-      status: 'APPROVED',
-      appliedAt: '2026-04-03T15:30:00Z',
-      updatedAt: '2026-04-09T10:00:00Z',
-    },
-    {
-      id: 12,
-      jobId: 12,
-      jobTitle: 'Sales Intern',
-      companyName: 'Vingroup',
-      resumeId: 1,
-      resumeName: 'CV_NguyenVanA.pdf',
-      status: 'PENDING',
-      appliedAt: '2026-04-07T13:45:00Z',
-      updatedAt: '2026-04-07T13:45:00Z',
-    },
-  ];
-}

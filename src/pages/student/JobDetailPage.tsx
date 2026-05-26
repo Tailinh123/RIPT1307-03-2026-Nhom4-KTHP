@@ -13,6 +13,7 @@ import {
   Tooltip,
   Modal,
   Alert,
+  notification,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -39,6 +40,8 @@ import { formatSalary } from '@/utils/formatSalary';
 import { formatDate, daysUntil } from '@/utils/formatDate';
 import { JOB_LEVEL_LABEL, WORK_MODE_LABEL, CATEGORY_LABEL } from '@/utils/constants';
 import type { ApplyFormData } from '@/components/job/ApplyModal';
+import { applicationApi } from '@/api/applicationApi';
+
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -162,14 +165,25 @@ const JobDetailPage: React.FC = () => {
   const [applyLoading, setApplyLoading] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
 
-  const handleApplySubmit = () => {
+  const handleApplySubmit = async (jobId: number, data: ApplyFormData) => {
     setApplyLoading(true);
-    // Mock POST /api/v1/applications
-    setTimeout(() => {
-      setApplyLoading(false);
+    try {
+      await applicationApi.applyToJob(jobId, data.file);
       setApplyOpen(false);
       setSuccessOpen(true);
-    }, 1400);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Vui lòng thử lại sau.';
+      notification.error({
+        message: 'Ứng tuyển thất bại',
+        description: msg,
+        placement: 'topRight',
+      });
+    } finally {
+      setApplyLoading(false);
+    }
   };
 
   // ── Skeleton loading state ──
@@ -259,13 +273,13 @@ const JobDetailPage: React.FC = () => {
         }}
         onClick={() => navigate(-1)}
       >
-        Hủy bỏ
+        Quay lại
       </Button>
 
       <Row gutter={[24, 24]} align="top">
         {/* ════════════════════════════════════════════════
             LEFT COLUMN — Job detail content
-        ════════════════════════════════════════════════ */}
+         */}
         <Col xs={24} lg={16}>
           <Card
             style={{
@@ -401,7 +415,7 @@ const JobDetailPage: React.FC = () => {
             <SectionBlock
               title="Yêu cầu ứng viên"
               icon={<UserOutlined />}
-              accentColor="#52c41a"
+              accentColor="#1677ff"
             >
               <BulletList text={job.requirements} />
             </SectionBlock>
@@ -411,7 +425,7 @@ const JobDetailPage: React.FC = () => {
               <SectionBlock
                 title="Quyền lợi"
                 icon={<GiftOutlined />}
-                accentColor="#fa8c16"
+                accentColor="#1677ff"
               >
                 <BulletList text={job.benefits} />
               </SectionBlock>
@@ -421,7 +435,7 @@ const JobDetailPage: React.FC = () => {
 
         {/* ════════════════════════════════════════════════
             RIGHT COLUMN — Apply sidebar
-        ════════════════════════════════════════════════ */}
+         */}
         <Col xs={24} lg={8}>
           <div style={{ position: 'sticky', top: 88, display: 'flex', flexDirection: 'column', gap: 16 }}>
 

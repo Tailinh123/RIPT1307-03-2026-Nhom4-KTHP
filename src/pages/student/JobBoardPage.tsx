@@ -72,7 +72,7 @@ const JobBoardPage: React.FC = () => {
               textShadow: '0 2px 8px rgba(0,0,0,0.2)',
             }}
           >
-            Khám phá hàng trăm cơ hội thực tập từ các công ty hàng đầu Việt Nam
+            Khám phá hàng trăm cơ hội thực tập từ các công ty hàng đầu Việt Nam!
           </Text>
         </div>
       </div>
@@ -83,7 +83,7 @@ const JobBoardPage: React.FC = () => {
           marginLeft: -32,
           marginRight: -32,
           padding: '0 32px',
-          marginTop:0,
+          marginTop: 0,
           transform: 'translateY(-150px)',
           position: 'relative',
           zIndex: 10,

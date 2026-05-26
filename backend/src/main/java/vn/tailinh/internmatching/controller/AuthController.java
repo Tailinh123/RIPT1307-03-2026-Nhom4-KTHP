@@ -12,6 +12,8 @@ import vn.tailinh.internmatching.service.SecurityService;
 import vn.tailinh.internmatching.service.UserService;
 import vn.tailinh.internmatching.util.annotation.ApiMessage;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -51,7 +53,7 @@ public class AuthController {
 
   @PostMapping(path = "/login")
   @ApiMessage("Login by credential")
-  public ResponseEntity<LoginResponse> login(@RequestBody LoginDTO loginDTO) {
+  public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginDTO loginDTO) {
     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
         loginDTO.getUsername(), loginDTO.getPassword());
 
@@ -96,9 +98,9 @@ public class AuthController {
   @GetMapping("/account")
   @ApiMessage("Get user information")
   public ResponseEntity<LoginResponse.UserLogin> getAccount() {
-    String email = SecurityUtils.getCurrentUserLogin().isPresent()
-        ? SecurityUtils.getCurrentUserLogin().get()
-        : "";
+    Optional<String> optionalEmail = SecurityUtils.getCurrentUserLogin();
+    String email = optionalEmail.orElse(" ");
+
     User currentUserDB = this.userService.handleGetUserByUsername(email);
     LoginResponse.RoleDTO roleDTO = new LoginResponse.RoleDTO();
 
@@ -114,7 +116,8 @@ public class AuthController {
     return ResponseEntity.ok().body(userLogin);
   }
 
-  @GetMapping("/refresh")
+
+  @PostMapping("/refresh")
   @ApiMessage("Get user information")
   public ResponseEntity<LoginResponse> getRefreshToken(
       @CookieValue("refresh_token") String refreshToken) throws IdInvalidException {
@@ -131,13 +134,14 @@ public class AuthController {
 
       // set access token
       loginResponse.setAccessToken(this.securityService.createAccessToken(email, loginResponse));
+      
       // create refresh token
-      String new_refresh_token = this.securityService.createRefreshToken(email, loginResponse);
+      String newRefreshToken = this.securityService.createRefreshToken(email, loginResponse);
       // update user
-      this.userService.updateUserToken(new_refresh_token, email);
+      this.userService.updateUserToken(newRefreshToken, email);
       // set cookies
       ResponseCookie responseCookie = ResponseCookie
-          .from("refresh_token", new_refresh_token)
+          .from("refresh_token", newRefreshToken)
           .httpOnly(true)
           .secure(true)
           .path("/")
@@ -151,13 +155,15 @@ public class AuthController {
     }
   }
 
+
   @PostMapping("/logout")
   @ApiMessage("Logout user")
   public ResponseEntity<Void> logout() throws IdInvalidException {
-    String email = SecurityUtils.getCurrentUserLogin().isPresent()
-        ? SecurityUtils.getCurrentUserLogin().get()
-        : "";
-    if (email.equals("")) {
+    Optional<String> optionalEmail= SecurityUtils.getCurrentUserLogin();
+    String email = optionalEmail.orElse("");
+
+
+    if (email.isEmpty()) {
       throw new IdInvalidException("Access token is not valid");
     }
     this.userService.updateUserToken(null, email);

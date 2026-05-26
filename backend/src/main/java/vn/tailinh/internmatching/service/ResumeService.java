@@ -52,6 +52,18 @@ public class ResumeService {
 
     public UpdatedResumeResponse update(Resume resume) throws Exception{
         Resume currentResume = this.fetchResumelById(resume.getId());
+      // check ownership 
+      String email = SecurityUtils.getCurrentUserLogin().orElse("");
+      User currentUser = this.userRepository.findByEmail(email);
+      if(currentUser == null) {
+        throw new IdInvalidException("User not found");
+      }
+
+      if(currentResume.getUser() == null || !currentResume.getUser().getId().equals(currentUser.getId())) {
+        throw new IdInvalidException("You don't have permission to update this resume ");
+      }
+ 
+
         currentResume.setTitle(resume.getTitle());
         currentResume.setUrl(resume.getUrl());
         return ResumeMapper.convertToResUpdatedResumeRes(this.resumeRepository.save(currentResume));

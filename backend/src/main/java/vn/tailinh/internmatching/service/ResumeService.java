@@ -11,7 +11,6 @@ import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.dto.response.resume.CreatedResumeResponse;
 import vn.tailinh.internmatching.dto.response.resume.UpdatedResumeResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
-import vn.tailinh.internmatching.repository.JobRepository;
 import vn.tailinh.internmatching.repository.ResumeRepository;
 import vn.tailinh.internmatching.repository.UserRepository;
 import vn.tailinh.internmatching.security.SecurityUtils;
@@ -41,7 +40,7 @@ public class ResumeService {
         return ResumeMapper.convertToResCreatedResumeRes(this.resumeRepository.save(resume));
     }
 
-
+    
     public Resume fetchResumelById(Long id) throws Exception {
         if(this.resumeRepository.existsById(id)){
             return this.resumeRepository.findById(id).get();
@@ -76,15 +75,15 @@ public class ResumeService {
 
 
     public ResultPaginationResponse fetchResumeByUser(Pageable pageable){
-        String email = SecurityUtils.getCurrentUserLogin().isPresent()
-                ? SecurityUtils.getCurrentUserLogin().get()
-                : "";
+      Optional<String> optionalEmail = SecurityUtils.getCurrentUserLogin();
+      String email = optionalEmail.orElse("");
+
         FilterNode node = filterParser.parse("email='" + email + "'");
         FilterSpecification<Resume> spec = filterSpecificationConverter.convert(node);
 
         Page<Resume> resumePage = this.resumeRepository.findAll(spec, pageable);
         return FormatResultPagination.createPaginateResumeRes(resumePage);
-    }
+    } 
 
 
     private boolean checkResumeExistByUserAndJob(Resume resume){

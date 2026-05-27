@@ -9,7 +9,6 @@ import ProfilePage from '@/pages/student/ProfilePage';
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Student section — wraps all pages in StudentLayout */}
       <Route element={<StudentLayout />}>
         <Route index element={<Navigate to="/jobs" replace />} />
         <Route path="/jobs" element={<JobBoardPage />} />

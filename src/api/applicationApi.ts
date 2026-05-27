@@ -105,15 +105,15 @@ export const applicationApi = {
   },
 
   /**
-   * Get current user's applications
-   * POST /api/v1/applications/by-user (pageable via query params)
-   * Returns raw Application entities from backend
+   * Get applications by userId
+   * POST /api/v1/applications/by-user?userId=<id>
+   * Auth disabled on backend — userId passed as query param
    */
-  getMyApplications: async (page = 1, size = 100): Promise<BackendApplication[]> => {
+  getMyApplications: async (userId: number = 2, page = 1, size = 100): Promise<BackendApplication[]> => {
     const res = await axiosClient.post<BackendWrapper<ResultPaginationResponse<BackendApplication>>>(
       '/api/v1/applications/by-user',
       null,
-      { params: { page, size } }
+      { params: { userId, page, size } }
     );
     return res.data?.data?.result ?? [];
   },

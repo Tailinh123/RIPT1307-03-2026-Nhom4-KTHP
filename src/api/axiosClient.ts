@@ -20,10 +20,6 @@ axiosClient.interceptors.request.use((config) => {
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Clear stale token but do NOT redirect — the app has no /login page
-      localStorage.removeItem('accessToken');
-    }
     return Promise.reject(error);
   },
 );

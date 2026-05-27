@@ -72,8 +72,14 @@ public class ResumeService {
 
     public void delete(Long id) throws Exception {
         Resume currentResume = this.fetchResumelById(id);
-        if(currentResume == null){
-            throw new IdInvalidException("Resume ID is not found");
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        User currentUser = this.userRepository.findByEmail(email);
+        if(currentUser == null){
+            throw new IdInvalidException("User not found or not logged in");
+        }
+
+        if(currentResume.getUser() == null || !currentResume.getUser().getId().equals(currentUser.getId())) {
+          throw new IdInvalidException("You don't have permission to delete this resume");
         }
         this.resumeRepository.deleteById(currentResume.getId());
     }

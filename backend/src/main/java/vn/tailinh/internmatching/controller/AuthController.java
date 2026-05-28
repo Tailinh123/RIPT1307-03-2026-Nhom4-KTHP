@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.entity.User;
 import vn.tailinh.internmatching.dto.request.user.LoginDTO;
+import vn.tailinh.internmatching.dto.request.user.RegisterDTO;
 import vn.tailinh.internmatching.dto.response.auth.LoginResponse;
 import vn.tailinh.internmatching.dto.response.user.CreatedUserResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
@@ -45,10 +46,12 @@ public class AuthController {
 
   @PostMapping("/register")
   @ApiMessage("Register a new user")
-  public ResponseEntity<CreatedUserResponse> createUser(@Valid @RequestBody User user) throws Exception {
-    CreatedUserResponse newUser = this.userService.createUser(user);
+  public ResponseEntity<CreatedUserResponse> createUser(@Valid @RequestBody RegisterDTO dto) throws Exception {
+    CreatedUserResponse newUser = this.userService.registerUser(dto);
     return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
   }
+
+
 
   @PostMapping(path = "/login")
   @ApiMessage("Login by credential")
@@ -94,6 +97,8 @@ public class AuthController {
         .body(loginResponse);
   }
 
+  
+
   @GetMapping("/account")
   @ApiMessage("Get user information")
   public ResponseEntity<LoginResponse.UserLogin> getAccount() {
@@ -118,8 +123,10 @@ public class AuthController {
     return ResponseEntity.ok().body(userLogin);
   }
 
+
+
   @PostMapping("/refresh")
-  @ApiMessage("Get user information")
+  @ApiMessage("Refresh access token")
   public ResponseEntity<LoginResponse> getRefreshToken(
       @CookieValue("refresh_token") String refreshToken) throws IdInvalidException {
     Jwt decodedToken = this.securityUtils.checkValidRefreshToken(refreshToken);
@@ -164,6 +171,8 @@ public class AuthController {
       throw new IdInvalidException("Refresh token is not valid");
     }
   }
+
+
 
   @PostMapping("/logout")
   @ApiMessage("Logout user")

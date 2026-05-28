@@ -1,7 +1,7 @@
 import axiosClient from './axiosClient';
 
 interface LoginResponse {
-  accessToken: string;
+  access_token: string;
   user: {
     id: number;
     email: string;

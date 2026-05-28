@@ -15,7 +15,7 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('access_token');
 
     if (
       token &&
@@ -40,7 +40,7 @@ axiosClient.interceptors.response.use(
 
     // Token hết hạn
     if (error?.response?.status === 401) {
-      localStorage.removeItem('accessToken');
+      localStorage.removeItem('access_token');
     }
 
     return Promise.reject(error);

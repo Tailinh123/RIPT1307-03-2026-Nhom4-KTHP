@@ -45,9 +45,9 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setActive(true);
 
-        Role userRole = this.roleService.fetchRoleByName("USER");
+        Role userRole = this.roleService.fetchRoleByName("CANDIDATE");
         if(userRole == null ) {
-          throw new IdInvalidException("Default role USER not found in system ");
+          throw new IdInvalidException("Default role CANDIDATE not found in system ");
         }
         user.setRole(userRole);
 
@@ -57,7 +57,7 @@ public class UserService {
 
     public CreatedUserResponse registerUser(RegisterDTO dto) throws Exception {
       if(userRepository.existsByEmail(dto.getEmail())) {
-        throw new DataIntegrityViolationException("Email aready exists");
+        throw new DataIntegrityViolationException("Email already exists");
       }
 
       User user = new User();
@@ -67,9 +67,9 @@ public class UserService {
       user.setActive(true);
 
       // role default User
-      Role userRole = this.roleService.fetchRoleByName("USER");
+      Role userRole = this.roleService.fetchRoleByName("CANDIDATE");
       if(userRole == null ) {
-        throw new IdInvalidException("Default role USER not found in system");
+        throw new IdInvalidException("Default role CANDIDATE not found in system");
       }
       user.setRole(userRole);
 
@@ -89,6 +89,10 @@ public class UserService {
 
 
     public void deleteUser(Long id) throws Exception {
+        User user = this.handleGetUserByUsername(this.userRepository.findById(id).get().getEmail());
+        if (user.getResumes() != null && !user.getResumes().isEmpty()) {
+            throw new IdInvalidException("Cannot delete user because there are resumes/applications associated with them");
+        }
         if (this.userRepository.existsById(id)) {
             this.userRepository.deleteById(id);
         } else {
@@ -114,6 +118,14 @@ public class UserService {
         Optional<User> userOptional = this.userRepository.findById(id);
         if (userOptional.isPresent()) {
             User currentUser = userOptional.get();
+
+            // check ownership or admin
+            String email = SecurityUtils.getCurrentUserLogin().orElse("");
+            User loggedInUser = this.handleGetUserByUsername(email);
+            if (loggedInUser == null || (!loggedInUser.getId().equals(currentUser.getId()) && !loggedInUser.getRole().getName().equals("SUPER_ADMIN"))) {
+                throw new IdInvalidException("You don't have permission to update this user's profile");
+            }
+
             currentUser.setName(requestUser.getName());
             currentUser.setGender(requestUser.getGender());
             currentUser.setAddress(requestUser.getAddress());

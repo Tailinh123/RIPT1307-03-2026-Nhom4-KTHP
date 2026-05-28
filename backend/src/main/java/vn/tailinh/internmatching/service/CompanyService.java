@@ -39,6 +39,13 @@ public class CompanyService {
   }
 
   public Company updateCompany(Company company) throws Exception {
+      // check admin or hr of this company
+      String email = vn.tailinh.internmatching.security.SecurityUtils.getCurrentUserLogin().orElse("");
+      User loggedInUser = this.userRepository.findByEmail(email);
+      if (loggedInUser == null || (!loggedInUser.getRole().getName().equals("SUPER_ADMIN") && (loggedInUser.getCompany() == null || !loggedInUser.getCompany().getId().equals(company.getId())))) {
+          throw new IdInvalidException("You don't have permission to update this company");
+      }
+
     Optional<Company> companyOptional = this.companyRepository.findById(company.getId());
       if(companyOptional.isEmpty()){
         throw new IdInvalidException("Company not found");
@@ -53,8 +60,12 @@ public class CompanyService {
   
 
   public void deleteCompany(Long id) throws Exception {
-    if(!this.companyRepository.existsById(id)) {
-      throw new IdInvalidException("Company not found");
+    Company company = this.findCompanyById(id);
+    if (company.getUsers() != null && !company.getUsers().isEmpty()) {
+      throw new IdInvalidException("Cannot delete company because there are users associated with it");
+    }
+    if (company.getJobs() != null && !company.getJobs().isEmpty()) {
+      throw new IdInvalidException("Cannot delete company because there are jobs associated with it");
     }
     this.companyRepository.deleteById(id);
   }

@@ -40,14 +40,25 @@ public class ResumeService {
       if(currentUser == null) {
         throw new IdInvalidException("User not found or not logged in");
       }
-      resume.setUser(currentUser);
+        resume.setUser(currentUser);
         return ResumeMapper.convertToResCreatedResumeRes(this.resumeRepository.save(resume));
     }
 
     
-    public Resume fetchResumelById(Long id) throws Exception {
+    public Resume fetchResumeById(Long id) throws Exception {
         if(this.resumeRepository.existsById(id)){
-            return this.resumeRepository.findById(id).get();
+            Resume resume = this.resumeRepository.findById(id).get();
+
+            // check ownership if user is a candidate
+            String email = SecurityUtils.getCurrentUserLogin().orElse("");
+            User loggedInUser = this.userRepository.findByEmail(email);
+            if (loggedInUser != null && loggedInUser.getRole().getName().equals("CANDIDATE")) {
+                if (resume.getUser() == null || !resume.getUser().getId().equals(loggedInUser.getId())) {
+                    throw new IdInvalidException("You don't have permission to view other people's resume");
+                }
+            }
+
+            return resume;
         }else{
             throw new IdInvalidException("The specified Resume ID is invalid");
         }
@@ -55,7 +66,7 @@ public class ResumeService {
 
 
     public UpdatedResumeResponse update(Resume resume) throws Exception{
-        Resume currentResume = this.fetchResumelById(resume.getId());
+        Resume currentResume = this.fetchResumeById(resume.getId());
       // check ownership 
       String email = SecurityUtils.getCurrentUserLogin().orElse("");
       User currentUser = this.userRepository.findByEmail(email);
@@ -66,8 +77,8 @@ public class ResumeService {
       if(currentResume.getUser() == null || !currentResume.getUser().getId().equals(currentUser.getId())) {
         throw new IdInvalidException("You don't have permission to update this resume ");
       }
- 
 
+      
         currentResume.setTitle(resume.getTitle());
         currentResume.setUrl(resume.getUrl());
         return ResumeMapper.convertToResUpdatedResumeRes(this.resumeRepository.save(currentResume));
@@ -75,7 +86,7 @@ public class ResumeService {
 
 
     public void delete(Long id) throws Exception {
-        Resume currentResume = this.fetchResumelById(id);
+        Resume currentResume = this.fetchResumeById(id);
         String email = SecurityUtils.getCurrentUserLogin().orElse("");
         User currentUser = this.userRepository.findByEmail(email);
         if(currentUser == null){
@@ -100,7 +111,7 @@ public class ResumeService {
       Optional<String> optionalEmail = SecurityUtils.getCurrentUserLogin();
       String email = optionalEmail.orElse("");
 
-        FilterNode node = filterParser.parse("email='" + email + "'");
+        FilterNode node = filterParser.parse("user.email='" + email + "'");
         FilterSpecification<Resume> spec = filterSpecificationConverter.convert(node);
 
         Page<Resume> resumePage = this.resumeRepository.findAll(spec, pageable);

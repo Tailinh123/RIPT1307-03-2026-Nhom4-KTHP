@@ -21,6 +21,9 @@ public class UserDetailsService implements org.springframework.security.core.use
         if(user == null){
             throw new UsernameNotFoundException("username / password not found");
         }
+        if(!user.isActive()) {
+          throw new UsernameNotFoundException("User account has been deactivated ");
+        }
         return new User(
                 user.getEmail(),
                 user.getPassword(),

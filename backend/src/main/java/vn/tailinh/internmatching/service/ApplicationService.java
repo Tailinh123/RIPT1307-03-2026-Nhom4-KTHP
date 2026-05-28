@@ -104,7 +104,6 @@ public class ApplicationService {
       throw new IdInvalidException("You don't have permission to update this application");
     }
 
-
     currentApp.setStatus(dto.getStatus());
     currentApp.setNote(dto.getNote());
     currentApp = this.applicationRepository.save(currentApp);
@@ -158,15 +157,43 @@ public class ApplicationService {
     return FormatResultPagination.createPaginationResponse(page);
   }
 
+
+
   public void deleteApplication(Long id) throws Exception {
-    if (!this.applicationRepository.existsById(id)) {
-      throw new IdInvalidException("Application not found");
+    Optional<Application> applicationOptional = this.applicationRepository.findById(id);
+    if(applicationOptional.isEmpty()) {
+      throw new IdInvalidException("Application not found ");
+    }
+    Application currentApplication = applicationOptional.get();
+
+    // get user login 
+    String email = SecurityUtils.getCurrentUserLogin().orElse("");
+    User currentUser = this.userRepository.findByEmail(email);
+    if(currentUser == null ) {
+      throw new IdInvalidException("User not found or logged in");
     }
 
-    this.applicationRepository.deleteById(id);
+    // currentUser is candidate
+    Resume applicationResume = currentApplication.getResume();
+    if(applicationResume != null && applicationResume.getUser() != null) {
+      if(currentUser.getId().equals(applicationResume.getUser().getId())) {
+        this.applicationRepository.deleteById(id);
+        return;
+      }
+    }
+
+    // currentUser is HR
+    Job applicationJob = currentApplication.getJob();
+    if(applicationJob != null && applicationJob.getCompany() != null ) {
+      if(currentUser.getCompany() != null || currentUser.getCompany().getId().equals(applicationJob.getCompany().getId())) {
+        this.applicationRepository.deleteById(id);
+        return;
+      }
+    }
+    throw new IdInvalidException("You don't have a permission to delete this application");
   }
 
-
+  
   
   public ResultPaginationResponse fetchByUser(Pageable pageable) {
       String email = SecurityUtils.getCurrentUserLogin().orElse("");

@@ -22,63 +22,66 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class RoleService {
-    private final RoleRepository roleRepository;
-    private final PermissionRepository permissionRepository;
+  private final RoleRepository roleRepository;
+  private final PermissionRepository permissionRepository;
 
-    public Role create(Role role) throws Exception{
-        if(this.roleRepository.existsByName(
-              role.getName()
-        )){
-            throw new DataIntegrityViolationException("Role already exists");
-        }
-        if(role.getPermissions() != null){
-            List<Long> reqPermissions = role.getPermissions()
-                    .stream().map(
-                            permission -> permission.getId()
-                    ).collect(Collectors.toList());
-            List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
-            role.setPermissions(dbPermissions);
-        }
-        return this.roleRepository.save(role);
+  public Role create(Role role) throws Exception {
+    if (this.roleRepository.existsByName(
+        role.getName())) {
+      throw new DataIntegrityViolationException("Role already exists");
+    }
+    if (role.getPermissions() != null) {
+      List<Long> reqPermissions = role.getPermissions()
+          .stream().map(
+              permission -> permission.getId())
+          .collect(Collectors.toList());
+      List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
+      role.setPermissions(dbPermissions);
+    }
+    return this.roleRepository.save(role);
+  }
+
+  public Role fetchRoleById(Long id) throws Exception {
+    Optional<Role> role = this.roleRepository.findById(id);
+    if (role.isPresent()) {
+      return role.get();
+    } else {
+      throw new IdInvalidException("The specified Role ID is invalid");
+    }
+  }
+
+  public Role fetchRoleByName(String name) {
+    return this.roleRepository.findByName(name);
+  }
+
+  public Role update(Role role) throws Exception {
+    Role currentRole = this.fetchRoleById(role.getId());
+
+    if (role.getPermissions() != null) {
+      List<Long> reqPermissions = role.getPermissions()
+          .stream().map(
+              Permission::getId)
+          .collect(Collectors.toList());
+      List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
+      role.setPermissions(dbPermissions);
     }
 
-    public Role fetchRoleById(Long id) throws Exception {
-        Optional<Role> role = this.roleRepository.findById(id);
-        if(role.isPresent()){
-            return role.get();
-        }else{
-            throw new IdInvalidException("The specified Role ID is invalid");
-        }
-    }
+    currentRole.setName(role.getName());
+    currentRole.setActive(role.isActive());
+    currentRole.setDescription(role.getDescription());
+    currentRole.setPermissions(role.getPermissions());
+    return this.roleRepository.save(currentRole);
+  }
 
-    public Role update(Role role) throws Exception{
-        Role currentRole = this.fetchRoleById(role.getId());
+  public void delete(Long id) throws Exception {
+    Role role = this.fetchRoleById(id);
 
-        if(role.getPermissions() != null){
-            List<Long> reqPermissions = role.getPermissions()
-                    .stream().map(
-                            Permission::getId
-                    ).collect(Collectors.toList());
-            List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
-            role.setPermissions(dbPermissions);
-        }
+    this.roleRepository.delete(role);
+  }
 
-        currentRole.setName(role.getName());
-        currentRole.setActive(role.isActive());
-        currentRole.setDescription(role.getDescription());
-        currentRole.setPermissions(role.getPermissions());
-        return this.roleRepository.save(currentRole);
-    }
-
-    public void delete(Long id) throws Exception {
-        Role role = this.fetchRoleById(id);
-
-        this.roleRepository.delete(role);
-    }
-
-    public ResultPaginationResponse fetchAll(Specification<Role> spec, Pageable pageable){
-        Page<Role> rolePage = this.roleRepository.findAll(spec, pageable);
-        ResultPaginationResponse response = FormatResultPagination.createPaginationResponse(rolePage);
-        return response;
-    }
+  public ResultPaginationResponse fetchAll(Specification<Role> spec, Pageable pageable) {
+    Page<Role> rolePage = this.roleRepository.findAll(spec, pageable);
+    ResultPaginationResponse response = FormatResultPagination.createPaginationResponse(rolePage);
+    return response;
+  }
 }

@@ -6,9 +6,11 @@ import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.entity.Job;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.dto.response.job.CreateJobDTOResponse;
+import vn.tailinh.internmatching.dto.response.job.FetchJobResponse;
 import vn.tailinh.internmatching.dto.response.job.UpdatedJobResponse;
 import vn.tailinh.internmatching.service.JobService;
 import vn.tailinh.internmatching.util.annotation.ApiMessage;
+import vn.tailinh.internmatching.util.mapper.JobMapper;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -51,8 +53,8 @@ public class JobController {
 
     @GetMapping("/{id}")
     @ApiMessage("Get job by id")
-    public ResponseEntity<Job> getJob(@PathVariable("id") Long id) throws Exception{
-        return ResponseEntity.ok().body(this.jobService.fetchJobById(id));
+    public ResponseEntity<FetchJobResponse> getJob(@PathVariable("id") Long id) throws Exception{
+        return ResponseEntity.ok().body(JobMapper.toFetchJobResponse(this.jobService.fetchJobById(id)));
     }
 
     @GetMapping("")

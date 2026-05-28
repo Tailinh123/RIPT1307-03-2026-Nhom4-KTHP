@@ -58,11 +58,21 @@ public class JobService {
         return JobMapper.toCreatedJobResponse(currentJob);
     }
 
+
+
     public UpdatedJobResponse update(Job job) throws Exception {
         if (job.getId() == null) {
             throw new IdInvalidException("Job ID not found");
         }
         Job jobInDB = this.fetchJobById(job.getId());
+      
+        // check company ownership
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        
+        User currentUser = this.userRepository.findByEmail(email);
+        if(currentUser == null || currentUser.getCompany() == null || !currentUser.getCompany().getId().equals(jobInDB.getCompany().getId())) {
+          throw new IdInvalidException("You don't have permission to update this job");
+        }
 
         if (job.getSkills() != null) {
             List<Long> reqSkills = job.getSkills()
@@ -83,17 +93,26 @@ public class JobService {
         jobInDB.setLevel(job.getLevel());
         jobInDB.setJobCategory(job.getJobCategory());
 
-
         Job currentJob = this.jobRepository.save(jobInDB);
         return JobMapper.toUpdatedJobResponse(currentJob);
     }
 
+
+
     public void delete(Long id) throws Exception {
-        if (!this.jobRepository.existsById(id)) {
-            throw new IdInvalidException("Job not found");
-        }
+       Job job = this.fetchJobById(id);
+
+       // Check company ownership
+
+       String email = SecurityUtils.getCurrentUserLogin().orElse("");
+       User currentUser = this.userRepository.findByEmail(email);
+       if(currentUser == null || currentUser.getCompany() == null || !currentUser.getCompany().getId().equals(job.getCompany().getId()) ) {
+        throw new IdInvalidException("You don't have permission to delete this job");
+       }
         this.jobRepository.deleteById(id);
     }
+
+
 
     public Job fetchJobById(Long id) throws Exception {
         Optional<Job> currentJob = this.jobRepository.findById(id);
@@ -102,6 +121,8 @@ public class JobService {
         }
         return currentJob.get();
     }
+
+
 
     public ResultPaginationResponse fetchAllJob(Specification<Job> spec, Pageable pageable) {
         Page<Job> jobPage = this.jobRepository.findAll(spec, pageable);

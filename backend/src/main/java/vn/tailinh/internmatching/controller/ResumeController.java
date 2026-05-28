@@ -44,11 +44,13 @@ public class ResumeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.resumeService.create(resume));
     }
 
+
     @PutMapping("")
     @ApiMessage("Update a resume")
     public ResponseEntity<UpdatedResumeResponse> update(@Valid @RequestBody Resume resume) throws Exception {
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.resumeService.update(resume));
+        return ResponseEntity.status(HttpStatus.OK).body(this.resumeService.update(resume));
     }
+
 
     @DeleteMapping("/{id}")
     @ApiMessage("Delete a resume")
@@ -56,6 +58,7 @@ public class ResumeController {
         this.resumeService.delete(id);
         return ResponseEntity.ok().body(null);
     }
+
 
     @GetMapping("/{id}")
     @ApiMessage("Fetch a resume by id")
@@ -65,6 +68,7 @@ public class ResumeController {
                 ResumeMapper.convertToResFetchResumeRes(this.resumeService.fetchResumelById(id))
         );
     }
+
 
     @GetMapping("")
     @ApiMessage("fetch all resume")
@@ -96,7 +100,8 @@ public class ResumeController {
         return ResponseEntity.ok().body(this.resumeService.fetchAllResume(finalSpec, pageable));
     }
 
-    @PostMapping("/by-user")
+
+    @GetMapping("/by-user")
     @ApiMessage("Get list resumes by user")
     public ResponseEntity<ResultPaginationResponse> fetchResumeByUser(Pageable pageable) throws Exception {
         return ResponseEntity.status(HttpStatus.OK).body(this.resumeService.fetchResumeByUser(pageable));

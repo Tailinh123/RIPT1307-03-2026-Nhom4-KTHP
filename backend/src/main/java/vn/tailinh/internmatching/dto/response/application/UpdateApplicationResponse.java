@@ -5,9 +5,12 @@ import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
+@Getter @Setter
 public class UpdateApplicationResponse {
-  private Instant updatedAt;
-  private String updatedBy;
+    private Long id;
+    private String status;
+    private String note;
+    private Instant updatedAt;
+    private String updatedBy;
 }
+

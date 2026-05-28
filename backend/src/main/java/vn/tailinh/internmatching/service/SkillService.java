@@ -35,9 +35,11 @@ public class SkillService {
     }
 
 
+
     public Skill update(Skill skill) throws Exception{
         Skill currentSkill = this.fetchSkillById(skill.getId());
-        if(currentSkill.getName().equals(skill.getName())){
+        if(!currentSkill.getName().equals(skill.getName()) 
+        && this.skillRepository.existsByName(skill.getName())){
           throw new IdInvalidException("Skill with name = " + skill.getName() + " already exist!");
         }
         currentSkill.setName(skill.getName());
@@ -45,11 +47,13 @@ public class SkillService {
     }
 
 
+
     public ResultPaginationResponse fetchAllSkill(Specification<Skill> spec, Pageable pageable){
         Page<Skill> skillPage = this.skillRepository.findAll(spec, pageable);
         ResultPaginationResponse response = FormatResultPagination.createPaginationResponse(skillPage);
         return response;
     }
+
 
 
     public void deleteSkill(Long id) throws Exception {

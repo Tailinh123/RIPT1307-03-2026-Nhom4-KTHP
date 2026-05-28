@@ -38,7 +38,6 @@ public class Resume extends AbstractAuditingEntity<Long> {
   private String url;
   
   @ManyToOne(fetch = FetchType.LAZY)
-  @JsonIgnore
   @JoinColumn(name = "user_id" , nullable = false)
   private User user;
 

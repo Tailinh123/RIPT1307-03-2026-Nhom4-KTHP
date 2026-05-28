@@ -19,13 +19,13 @@ const LoginPage: React.FC = () => {
 
       const data = await authApi.login(username, password);
 
-      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('access_token', data.access_token);
 
       localStorage.setItem('user', JSON.stringify(data.user));
 
       message.success('Đăng nhập thành công');
 
-      navigate('/jobs');
+      window.location.href = '/jobs';
     } catch (error) {
       console.error(error);
       message.error('Sai tài khoản hoặc mật khẩu');

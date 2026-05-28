@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Role;
+import vn.tailinh.internmatching.entity.Skill;
 import vn.tailinh.internmatching.util.constant.Gender;
 
 @Getter
@@ -28,11 +29,17 @@ public class UpdateUserDTO {
   @JsonFormat(pattern = "yyyy-MM-dd")
   private LocalDate dateOfBirth;
 
-  private String address;
+  private String address; 
 
   private Gender gender;
 
   private Company company;
+  
+  private String avatarUrl;
+
+  private String phone;
 
   private Role role;
+
+  private List<Skill> skills;
 }

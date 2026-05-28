@@ -1,6 +1,7 @@
 package vn.tailinh.internmatching.dto.request.user;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

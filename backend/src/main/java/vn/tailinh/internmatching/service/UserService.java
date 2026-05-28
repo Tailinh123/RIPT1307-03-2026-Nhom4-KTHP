@@ -3,6 +3,7 @@ package vn.tailinh.internmatching.service;
 import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.entity.User;
 import vn.tailinh.internmatching.dto.request.user.ChangePasswordDTO;
+import vn.tailinh.internmatching.dto.request.user.RegisterDTO;
 import vn.tailinh.internmatching.dto.request.user.UpdateUserDTO;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.dto.response.user.CreatedUserResponse;
@@ -23,6 +24,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -33,28 +35,48 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
-    public CreatedUserResponse createUser(User user) throws Exception {
-        String email = user.getEmail();
+    public CreatedUserResponse createUser(RegisterDTO dto) throws Exception {
+      if(userRepository.existsByEmail(dto.getEmail())) {
+          throw new IdInvalidException("Email already exists");
+      }
+        User user = new User();
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setActive(true);
 
-        if (user.getCompany() != null) {
-            Company company = this.companyService.findCompanyById(user.getCompany().getId());
-            user.setCompany(company);
+        Role userRole = this.roleService.fetchRoleByName("USER");
+        if(userRole == null ) {
+          throw new IdInvalidException("Default role USER not found in system ");
         }
-
-        if (userRepository.existsByEmail(email)) {
-            throw new DataIntegrityViolationException("Email already exists");
-        }
-
-        if (user.getRole() != null) {
-            Role role = this.roleService.fetchRoleById(user.getRole().getId());
-            user.setRole(role);
-        }
-
-        String hashPassword = this.passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashPassword);
+        user.setRole(userRole);
 
         return UserMapper.convertToResCreatedUserRes(this.userRepository.save(user));
     }
+
+
+    public CreatedUserResponse registerUser(RegisterDTO dto) throws Exception {
+      if(userRepository.existsByEmail(dto.getEmail())) {
+        throw new DataIntegrityViolationException("Email aready exists");
+      }
+
+      User user = new User();
+      user.setName(dto.getName());
+      user.setEmail(dto.getEmail());
+      user.setPassword(passwordEncoder.encode(dto.getPassword()));
+      user.setActive(true);
+
+      // role default User
+      Role userRole = this.roleService.fetchRoleByName("USER");
+      if(userRole == null ) {
+        throw new IdInvalidException("Default role USER not found in system");
+      }
+      user.setRole(userRole);
+
+      return UserMapper.convertToResCreatedUserRes(this.userRepository.save(user));
+    }
+
+
 
     public ResUserDTO fetchUserById(Long id) throws Exception {
         if (userRepository.existsById(id)) {
@@ -64,6 +86,8 @@ public class UserService {
         }
     }
 
+
+
     public void deleteUser(Long id) throws Exception {
         if (this.userRepository.existsById(id)) {
             this.userRepository.deleteById(id);
@@ -71,6 +95,8 @@ public class UserService {
             throw new IdInvalidException("The specified User ID is invalid");
         }
     }
+
+
 
     public User handleGetUserByUsername(String username) {
         return this.userRepository.findByEmail(username);
@@ -81,6 +107,8 @@ public class UserService {
 
         return FormatResultPagination.createPaginateUserRes(userPage);
     }
+
+
 
     public UpdatedUserResponse updateUser(Long id, UpdateUserDTO requestUser) throws Exception {
         Optional<User> userOptional = this.userRepository.findById(id);
@@ -107,6 +135,8 @@ public class UserService {
         throw new IdInvalidException("User ID = " + id + " not found");
     }
 
+
+
     public void updateUserToken(String token, String email) {
         User user = this.handleGetUserByUsername(email);
         if (user != null) {
@@ -115,9 +145,13 @@ public class UserService {
         }
     }
 
+
+
     public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
     }
+
+
 
     public void changePassword(ChangePasswordDTO dto) throws Exception {
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";

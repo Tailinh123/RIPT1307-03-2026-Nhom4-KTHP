@@ -72,6 +72,10 @@ public class ApplicationService {
       throw new  IdInvalidException("You don't have permission to use this resume");
     }
 
+    if (this.applicationRepository.existsByJobIdAndResumeUserId(application.getJob().getId(), currentUser.getId())) {
+      throw new IdInvalidException("You have already applied to this job");
+    }
+
     application = this.applicationRepository.save(application);
     return ApplicationMapper.toCreateApplicationResponse(application);
   }

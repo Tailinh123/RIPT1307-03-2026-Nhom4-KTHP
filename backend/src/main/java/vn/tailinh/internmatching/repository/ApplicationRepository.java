@@ -15,4 +15,6 @@ public interface ApplicationRepository extends
 
   Page<Application> findByResumeUserId(Long userId, Pageable pageable);
   
+  boolean existsByJobIdAndResumeUserId(Long jobId, Long userId);
+  
 }

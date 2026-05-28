@@ -76,7 +76,7 @@ public class ResumeController {
             @Filter Specification<Resume> spec,
             Pageable pageable
     ){
-        List<Long> arrJobIds = null;
+        List<Long> arrJobIds = new java.util.ArrayList<>();
         String email = SecurityUtils.getCurrentUserLogin().isPresent()
                 ? SecurityUtils.getCurrentUserLogin().get()
                 : "";
@@ -92,8 +92,15 @@ public class ResumeController {
             }
         }
 
-        Specification<Resume> jobInSpec = filterSpecificationConverter.convert(filterBuilder.field("job")
-                .in(filterBuilder.input(arrJobIds)).get());
+        final List<Long> finalJobIds = arrJobIds;
+        Specification<Resume> jobInSpec = (root, query, cb) -> {
+            if (finalJobIds.isEmpty()) {
+                return cb.disjunction();
+            }
+            query.distinct(true);
+            jakarta.persistence.criteria.Join<Resume, vn.tailinh.internmatching.entity.Application> appJoin = root.join("applications", jakarta.persistence.criteria.JoinType.INNER);
+            return appJoin.get("job").get("id").in(finalJobIds);
+        };
 
         Specification<Resume> finalSpec = jobInSpec.and(spec);
 

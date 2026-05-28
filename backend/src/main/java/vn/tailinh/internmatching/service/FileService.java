@@ -24,12 +24,13 @@ import java.time.Instant;
 public class FileService {
     @Value("${tailinh.upload-file.base-uri}")
     private String baseURI;
+
     public void createUploadFolder(String folder) throws URISyntaxException {
         Path path = Paths.get(folder);
         File tmpDir = new File(path.toString());
         if (!tmpDir.isDirectory()) {
             try {
-                Files.createDirectory(tmpDir.toPath());
+                Files.createDirectories(tmpDir.toPath());
                 System.out.println(">>> CREATE NEW DIRECTORY SUCCESSFUL, PATH = " + tmpDir.toPath());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -56,7 +57,7 @@ public class FileService {
 
         File tmpDir = new File(path.toString());
 
-    // If the file does not exist or is a directory => return 0
+        // If the file does not exist or is a directory
         if (!tmpDir.exists() || tmpDir.isDirectory())
             return 0;
         return tmpDir.length();

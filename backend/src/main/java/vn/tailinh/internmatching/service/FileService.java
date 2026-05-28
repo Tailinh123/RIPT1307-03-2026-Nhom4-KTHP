@@ -25,8 +25,7 @@ public class FileService {
     @Value("${tailinh.upload-file.base-uri}")
     private String baseURI;
     public void createUploadFolder(String folder) throws URISyntaxException {
-        URI uri = new URI(folder);
-        Path path = Paths.get(uri);
+        Path path = Paths.get(folder);
         File tmpDir = new File(path.toString());
         if (!tmpDir.isDirectory()) {
             try {
@@ -44,8 +43,7 @@ public class FileService {
             IOException {
         // create unique filename
         String finalName = System.currentTimeMillis() + "-" + StringUtils.cleanPath(file.getOriginalFilename());
-        URI uri = new URI(baseURI + folder + "/" + finalName);
-        Path path = Paths.get(uri);
+        Path path = Paths.get(baseURI, folder, finalName);
         try (InputStream inputStream = file.getInputStream()) {
             Files.copy(inputStream, path,
                     StandardCopyOption.REPLACE_EXISTING);
@@ -54,8 +52,7 @@ public class FileService {
     }
 
     public long getFileLength(String fileName, String folder) throws URISyntaxException {
-        URI uri = new URI(baseURI + folder + "/" + fileName);
-        Path path = Paths.get(uri);
+        Path path = Paths.get(baseURI, folder, fileName);
 
         File tmpDir = new File(path.toString());
 
@@ -67,8 +64,7 @@ public class FileService {
 
     public InputStreamResource getResource(String fileName, String folder)
             throws URISyntaxException, FileNotFoundException {
-        URI uri = new URI(baseURI + folder + "/" + fileName);
-        Path path = Paths.get(uri);
+        Path path = Paths.get(baseURI, folder, fileName);
 
         File file = new File(path.toString());
         return new InputStreamResource(new FileInputStream(file));

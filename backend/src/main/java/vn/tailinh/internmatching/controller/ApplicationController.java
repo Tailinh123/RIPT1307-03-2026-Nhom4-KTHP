@@ -64,7 +64,8 @@ public class ApplicationController {
     return ResponseEntity.ok().body(null);
   }
 
-  @PostMapping("/by-user")
+  @GetMapping("/by-user")
+  @ApiMessage("Get applications by current user")
   public ResponseEntity<ResultPaginationResponse> fetchByUser(Pageable pageable) {
     return ResponseEntity.ok(this.applicationService.fetchByUser(pageable));
   }

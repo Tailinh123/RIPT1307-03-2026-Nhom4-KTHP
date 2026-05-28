@@ -65,7 +65,7 @@ public class ResumeController {
     public ResponseEntity<FetchResumeResponse> fetchById(@PathVariable("id") Long id) throws Exception {
 
         return ResponseEntity.status(HttpStatus.OK).body(
-                ResumeMapper.convertToResFetchResumeRes(this.resumeService.fetchResumelById(id))
+                ResumeMapper.convertToResFetchResumeRes(this.resumeService.fetchResumeById(id))
         );
     }
 

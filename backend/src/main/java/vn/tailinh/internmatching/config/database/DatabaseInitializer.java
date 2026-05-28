@@ -79,20 +79,20 @@ public class DatabaseInitializer implements CommandLineRunner {
 
       this.roleRepository.save(adminRole);
 
-      // create role USER
+      // create role CANDIDATE
       Role userRole = new Role();
-      userRole.setName("USER");
+      userRole.setName("CANDIDATE");
       userRole.setDescription("Default user role for candidates");
       userRole.setActive(true);
       userRole.setPermissions(new ArrayList<>()); 
       this.roleRepository.save(userRole);
 
-      // create role HR
+      // create role HR_MANAGER
       Role hrRole = new Role();
-      hrRole.setName("HR");
+      hrRole.setName("HR_MANAGER");
       hrRole.setDescription("HR role for company recruiters");
       hrRole.setActive(true);
-      //  permission  HR
+      //  permission  HR_MANAGER
       List<Permission> hrPermissions = allPermissions.stream()
           .filter(p -> p.getModule().equals("JOBS") || p.getModule().equals("APPLICATIONS")
               || p.getModule().equals("COMPANIES"))

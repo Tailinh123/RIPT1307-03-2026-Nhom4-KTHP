@@ -34,6 +34,7 @@ public class ApplicationService {
   private final JobRepository jobRepository;
   private final ResumeRepository resumeRepository;
   private final UserRepository userRepository;
+  private final EmailService emailService;
 
   public CreateApplicationResponse create(Application application) throws Exception {
 
@@ -107,6 +108,44 @@ public class ApplicationService {
     currentApp.setStatus(dto.getStatus());
     currentApp.setNote(dto.getNote());
     currentApp = this.applicationRepository.save(currentApp);
+
+      try {
+        // get info student from resume -> user
+        User student = currentApp.getResume().getUser();
+      if (student != null && student.getEmail() != null) {
+            String studentEmail = student.getEmail();
+            String studentName = student.getName();
+           
+           // get job
+           String jobName = applicationJob.getName();
+            String companyName = applicationJob.getCompany().getName();
+          
+           // Create subject ( status)
+          String subject = switch (dto.getStatus()) {
+                case APPROVED -> " Chúc mừng! Đơn ứng tuyển " + jobName + " đã được duyệt";
+              case REJECTED -> " Thông báo kết quả ứng tuyển " + jobName;
+              case REVIEWING -> " Đơn ứng tuyển " + jobName + " đang được xem xét";
+                default -> "Cập nhật trạng thái ứng tuyển " + jobName;
+            };
+            
+           //  email async (not block response)
+           this.emailService.sendApplicationNotification(
+              studentEmail,
+                subject,
+                "application-notification",
+                studentName,
+                jobName,
+               companyName,
+             dto.getStatus().name(),
+                dto.getNote()
+            );
+        }
+    } catch (Exception e) {
+
+        System.out.println("WARNING: Failed to send email notification: " + e.getMessage());
+   }
+
+
     return ApplicationMapper.toUpdateApplicationResponse(currentApp);
 
   }

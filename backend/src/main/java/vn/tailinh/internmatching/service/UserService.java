@@ -36,16 +36,16 @@ public class UserService {
     public CreatedUserResponse createUser(User user) throws Exception {
         String email = user.getEmail();
 
-        if(user.getCompany() != null){
+        if (user.getCompany() != null) {
             Company company = this.companyService.findCompanyById(user.getCompany().getId());
             user.setCompany(company);
         }
 
-        if(userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmail(email)) {
             throw new DataIntegrityViolationException("Email already exists");
         }
 
-        if(user.getRole() != null){
+        if (user.getRole() != null) {
             Role role = this.roleService.fetchRoleById(user.getRole().getId());
             user.setRole(role);
         }
@@ -56,58 +56,48 @@ public class UserService {
         return UserMapper.convertToResCreatedUserRes(this.userRepository.save(user));
     }
 
-
-    
     public ResUserDTO fetchUserById(Long id) throws Exception {
-        if(userRepository.existsById(id)){
+        if (userRepository.existsById(id)) {
             return UserMapper.convertToUserDTO(this.userRepository.findById(id).get());
-        }else{
+        } else {
             throw new IdInvalidException("The specified User ID is invalid");
         }
     }
 
-
-
     public void deleteUser(Long id) throws Exception {
-        if(this.userRepository.existsById(id)){
+        if (this.userRepository.existsById(id)) {
             this.userRepository.deleteById(id);
-        }else{
-         throw new IdInvalidException("The specified User ID is invalid");
+        } else {
+            throw new IdInvalidException("The specified User ID is invalid");
         }
     }
-
-
 
     public User handleGetUserByUsername(String username) {
         return this.userRepository.findByEmail(username);
     }
 
-
-
-    public ResultPaginationResponse getAllUser(Pageable pageable, Specification<User> spec){
+    public ResultPaginationResponse getAllUser(Pageable pageable, Specification<User> spec) {
         Page<User> userPage = this.userRepository.findAll(spec, pageable);
 
         return FormatResultPagination.createPaginateUserRes(userPage);
     }
 
-
-
     public UpdatedUserResponse updateUser(Long id, UpdateUserDTO requestUser) throws Exception {
         Optional<User> userOptional = this.userRepository.findById(id);
-        if(userOptional.isPresent()){
+        if (userOptional.isPresent()) {
             User currentUser = userOptional.get();
             currentUser.setName(requestUser.getName());
             currentUser.setGender(requestUser.getGender());
             currentUser.setAddress(requestUser.getAddress());
             currentUser.setDateOfBirth(requestUser.getDateOfBirth());
-            if(requestUser.getCompany() != null){
+            if (requestUser.getCompany() != null) {
                 Company company = this.companyService.findCompanyById(requestUser.getCompany().getId());
-                if(company == null){
+                if (company == null) {
                     throw new IdInvalidException("Company Id is invalid");
                 }
                 currentUser.setCompany(company);
             }
-            if(requestUser.getRole() != null){
+            if (requestUser.getRole() != null) {
                 Role role = this.roleService.fetchRoleById(requestUser.getRole().getId());
                 currentUser.setRole(role);
             }
@@ -117,39 +107,34 @@ public class UserService {
         throw new IdInvalidException("User ID = " + id + " not found");
     }
 
-
-
-    public void updateUserToken(String token, String email){
+    public void updateUserToken(String token, String email) {
         User user = this.handleGetUserByUsername(email);
-        if(user != null){
+        if (user != null) {
             user.setRefreshToken(token);
             this.userRepository.save(user);
         }
     }
 
-
-
-    public User getUserByRefreshTokenAndEmail(String token, String email){
+    public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
     }
 
-
     public void changePassword(ChangePasswordDTO dto) throws Exception {
-      String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
-      User user = this.handleGetUserByUsername(email);
-      if(user == null) throw new IdInvalidException("User not found");
+        String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
+        User user = this.handleGetUserByUsername(email);
+        if (user == null)
+            throw new IdInvalidException("User not found");
 
-      if(!passwordEncoder.matches(dto.getCurrentPassword(),user.getPassword())) {
-          throw new IdInvalidException("Current Password is incorrect");
-      } 
-      if(!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-        throw new IdInvalidException("Passwords do not match");
-      }
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new IdInvalidException("Current Password is incorrect");
+        }
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new IdInvalidException("Passwords do not match");
+        }
 
-      user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-      this.userRepository.save(user);
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        this.userRepository.save(user);
 
-    
-}
+    }
 
 }

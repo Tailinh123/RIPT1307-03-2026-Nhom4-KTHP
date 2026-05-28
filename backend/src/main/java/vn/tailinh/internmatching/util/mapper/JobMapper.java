@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import vn.tailinh.internmatching.entity.Job;
 import vn.tailinh.internmatching.dto.response.job.CreateJobDTOResponse;
+import vn.tailinh.internmatching.dto.response.job.FetchJobResponse;
 import vn.tailinh.internmatching.dto.response.job.UpdatedJobResponse;
 import vn.tailinh.internmatching.entity.Skill;
 
@@ -84,4 +85,43 @@ public class JobMapper {
     }
     return res;
   }
+
+  public static FetchJobResponse toFetchJobResponse(Job job) {
+    FetchJobResponse res = new FetchJobResponse();
+    res.setId(job.getId());
+    res.setName(job.getName());
+    res.setDescription(job.getDescription());
+    res.setLocation(job.getLocation());
+    res.setQuantity(job.getQuantity());
+    res.setSalary(job.getSalary());
+    res.setJobType(job.getJobType());
+    res.setWorkMode(job.getWorkMode());
+    res.setLevel(job.getLevel());
+    res.setActive(job.isActive());
+    res.setStartDate(job.getStartDate());
+    res.setEndDate(job.getEndDate());
+    res.setCreatedAt(job.getCreatedAt());
+    res.setUpdatedAt(job.getUpdatedAt());
+    
+    if (job.getCompany() != null) {
+        res.setCompany(new FetchJobResponse.CompanyInfo(
+            job.getCompany().getId(),
+            job.getCompany().getName(),
+            job.getCompany().getLogoUrl()
+        ));
+    }
+    if (job.getJobCategory() != null) {
+        res.setJobCategory(new FetchJobResponse.CategoryInfo(
+            job.getJobCategory().getId(),
+            job.getJobCategory().getName()
+        ));
+    }
+    if (job.getSkills() != null) {
+        res.setSkills(job.getSkills().stream()
+            .map(s -> new FetchJobResponse.SkillInfo(s.getId(), s.getName()))
+            .toList());
+    }
+    return res;
+}
+
 }

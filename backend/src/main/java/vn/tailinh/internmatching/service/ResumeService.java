@@ -34,9 +34,13 @@ public class ResumeService {
     private final FilterSpecificationConverter filterSpecificationConverter;
 
     public CreatedResumeResponse create(Resume resume) throws Exception{
-        if(!this.checkResumeExistByUserAndJob(resume)){
-            throw new DataIntegrityViolationException("Job or User do not exist");
-        }
+      // get current user
+      String email = SecurityUtils.getCurrentUserLogin().orElse("");
+      User currentUser = this.userRepository.findByEmail(email);
+      if(currentUser == null) {
+        throw new IdInvalidException("User not found or not logged in");
+      }
+      resume.setUser(currentUser);
         return ResumeMapper.convertToResCreatedResumeRes(this.resumeRepository.save(resume));
     }
 

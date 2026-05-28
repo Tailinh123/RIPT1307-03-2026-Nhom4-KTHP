@@ -4,6 +4,7 @@ import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.entity.User;
+import vn.tailinh.internmatching.dto.request.user.RegisterDTO;
 import vn.tailinh.internmatching.dto.request.user.ChangePasswordDTO;
 import vn.tailinh.internmatching.dto.request.user.UpdateUserDTO;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
@@ -27,7 +28,7 @@ public class UserController {
 
   @PostMapping("")
   @ApiMessage("Create a user")
-  public ResponseEntity<CreatedUserResponse> createUser(@Valid @RequestBody User user) throws Exception {
+  public ResponseEntity<CreatedUserResponse> createUser(@Valid @RequestBody RegisterDTO user) throws Exception {
     CreatedUserResponse newUser = this.userService.createUser(user);
     return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
 

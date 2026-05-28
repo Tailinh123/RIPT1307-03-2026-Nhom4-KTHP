@@ -185,10 +185,10 @@ public class ApplicationService {
     // currentUser is HR
     Job applicationJob = currentApplication.getJob();
     if(applicationJob != null && applicationJob.getCompany() != null ) {
-      if(currentUser.getCompany() != null || currentUser.getCompany().getId().equals(applicationJob.getCompany().getId())) {
-        this.applicationRepository.deleteById(id);
-        return;
-      }
+    if(currentUser.getCompany() != null && currentUser.getCompany().getId().equals(applicationJob.getCompany().getId())) {
+      this.applicationRepository.deleteById(id);
+      return;
+}
     }
     throw new IdInvalidException("You don't have a permission to delete this application");
   }

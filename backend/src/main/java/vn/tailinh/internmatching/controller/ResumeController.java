@@ -1,21 +1,15 @@
 package vn.tailinh.internmatching.controller;
 
 import com.turkraft.springfilter.boot.Filter;
-import com.turkraft.springfilter.builder.FilterBuilder;
-import com.turkraft.springfilter.converter.FilterSpecificationConverter;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.dto.response.resume.CreatedResumeResponse;
 import vn.tailinh.internmatching.dto.response.resume.FetchResumeResponse;
 import vn.tailinh.internmatching.dto.response.resume.UpdatedResumeResponse;
-import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Resume;
-import vn.tailinh.internmatching.entity.Job;
-import vn.tailinh.internmatching.entity.User;
-import vn.tailinh.internmatching.security.SecurityUtils;
 import vn.tailinh.internmatching.service.ResumeService;
-import vn.tailinh.internmatching.service.UserService;
 import vn.tailinh.internmatching.util.annotation.ApiMessage;
 import vn.tailinh.internmatching.util.mapper.ResumeMapper;
 
@@ -26,17 +20,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RequestMapping(path = "${apiPrefix}/resumes")
 @RequiredArgsConstructor
 @RestController
 public class ResumeController {
     private final ResumeService resumeService;
-    private final UserService userService;
-    private final FilterSpecificationConverter filterSpecificationConverter;
-    private final FilterBuilder filterBuilder;
+
 
     @PostMapping("")
     @ApiMessage("Create a resume")
@@ -65,7 +55,7 @@ public class ResumeController {
     public ResponseEntity<FetchResumeResponse> fetchById(@PathVariable("id") Long id) throws Exception {
 
         return ResponseEntity.status(HttpStatus.OK).body(
-                ResumeMapper.convertToResFetchResumeRes(this.resumeService.fetchResumeById(id))
+                ResumeMapper.convertToResFetchResumeRes(this.resumeService.fetchResumeByIdForView(id))
         );
     }
 
@@ -73,40 +63,12 @@ public class ResumeController {
     @GetMapping("")
     @ApiMessage("fetch all resume")
     public ResponseEntity<ResultPaginationResponse> getAll(
-            @Filter Specification<Resume> spec,
+            @Filter Specification<Resume> specification,
             Pageable pageable
     ){
-        List<Long> arrJobIds = new java.util.ArrayList<>();
-        String email = SecurityUtils.getCurrentUserLogin().isPresent()
-                ? SecurityUtils.getCurrentUserLogin().get()
-                : "";
-        User currentUser = this.userService.handleGetUserByUsername(email);
-        if (currentUser != null) {
-            Company userCompany = currentUser.getCompany();
-            if (userCompany != null) {
-                List<Job> companyJobs = userCompany.getJobs();
-                if (companyJobs != null && !companyJobs.isEmpty()) {
-                    arrJobIds = companyJobs.stream().map(Job::getId)
-                            .collect(Collectors.toList());
-                }
-            }
-        }
-
-        final List<Long> finalJobIds = arrJobIds;
-        Specification<Resume> jobInSpec = (root, query, cb) -> {
-            if (finalJobIds.isEmpty()) {
-                return cb.disjunction();
-            }
-            query.distinct(true);
-            jakarta.persistence.criteria.Join<Resume, vn.tailinh.internmatching.entity.Application> appJoin = root.join("applications", jakarta.persistence.criteria.JoinType.INNER);
-            return appJoin.get("job").get("id").in(finalJobIds);
-        };
-
-        Specification<Resume> finalSpec = jobInSpec.and(spec);
-
-        return ResponseEntity.ok().body(this.resumeService.fetchAllResume(finalSpec, pageable));
+      return ResponseEntity.ok().body(this.resumeService.fetchAllResume(specification, pageable));
     }
-
+  
 
     @GetMapping("/by-user")
     @ApiMessage("Get list resumes by user")

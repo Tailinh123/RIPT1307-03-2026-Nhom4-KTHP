@@ -17,7 +17,6 @@ import vn.tailinh.internmatching.security.SecurityUtils;
 import vn.tailinh.internmatching.util.mapper.ResumeMapper;
 import vn.tailinh.internmatching.util.response.FormatResultPagination;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -33,100 +32,85 @@ public class ResumeService {
     private final FilterParser filterParser;
     private final FilterSpecificationConverter filterSpecificationConverter;
 
-    public CreatedResumeResponse create(Resume resume) throws Exception{
-      // get current user
-      String email = SecurityUtils.getCurrentUserLogin().orElse("");
-      User currentUser = this.userRepository.findByEmail(email);
-      if(currentUser == null) {
-        throw new IdInvalidException("User not found or not logged in");
-      }
+    public CreatedResumeResponse create(Resume resume) throws Exception {
+        // get current user
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        User currentUser = this.userRepository.findByEmail(email);
+        if (currentUser == null) {
+            throw new IdInvalidException("User not found or not logged in");
+        }
         resume.setUser(currentUser);
         return ResumeMapper.convertToResCreatedResumeRes(this.resumeRepository.save(resume));
     }
 
-    
     public Resume fetchResumeById(Long id) throws Exception {
-        if(this.resumeRepository.existsById(id)){
-            Resume resume = this.resumeRepository.findById(id).get();
-
-            // check ownership if user is a candidate
-            String email = SecurityUtils.getCurrentUserLogin().orElse("");
-            User loggedInUser = this.userRepository.findByEmail(email);
-            if (loggedInUser != null && loggedInUser.getRole().getName().equals("CANDIDATE")) {
-                if (resume.getUser() == null || !resume.getUser().getId().equals(loggedInUser.getId())) {
-                    throw new IdInvalidException("You don't have permission to view other people's resume");
-                }
-            }
-
-            return resume;
-        }else{
+        Optional<Resume> optionalResume = this.resumeRepository.findById(id);
+        if (optionalResume.isPresent()) {
+            return optionalResume.get();
+        } else {
             throw new IdInvalidException("The specified Resume ID is invalid");
         }
     }
 
+    // CANDIDATE can only view their own resume, HR/ADMIN can view any
+    public Resume fetchResumeByIdForView(Long id) throws Exception {
+        Resume resume = this.fetchResumeById(id);
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        User loggedInUser = this.userRepository.findByEmail(email);
+        if (loggedInUser != null && loggedInUser.getRole().getName().equals("CANDIDATE")) {
+            if (resume.getUser() == null || !resume.getUser().getId().equals(loggedInUser.getId())) {
+                throw new IdInvalidException("You don't have permission to view other people's resume");
+            }
+        }
+        return resume;
+    }
 
-    public UpdatedResumeResponse update(Resume resume) throws Exception{
+    public UpdatedResumeResponse update(Resume resume) throws Exception {
         Resume currentResume = this.fetchResumeById(resume.getId());
-      // check ownership 
-      String email = SecurityUtils.getCurrentUserLogin().orElse("");
-      User currentUser = this.userRepository.findByEmail(email);
-      if(currentUser == null) {
-        throw new IdInvalidException("User not found");
-      }
+        // check ownership
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        User currentUser = this.userRepository.findByEmail(email);
+        if (currentUser == null) {
+            throw new IdInvalidException("User not found");
+        }
 
-      if(currentResume.getUser() == null || !currentResume.getUser().getId().equals(currentUser.getId())) {
-        throw new IdInvalidException("You don't have permission to update this resume ");
-      }
-
-      
+        if (currentResume.getUser() == null || !currentResume.getUser().getId().equals(currentUser.getId())) {
+            throw new IdInvalidException("You don't have permission to update this resume ");
+        }
         currentResume.setTitle(resume.getTitle());
         currentResume.setUrl(resume.getUrl());
         return ResumeMapper.convertToResUpdatedResumeRes(this.resumeRepository.save(currentResume));
     }
 
-
     public void delete(Long id) throws Exception {
         Resume currentResume = this.fetchResumeById(id);
         String email = SecurityUtils.getCurrentUserLogin().orElse("");
         User currentUser = this.userRepository.findByEmail(email);
-        if(currentUser == null){
+        if (currentUser == null) {
             throw new IdInvalidException("User not found or not logged in");
         }
 
-        if(currentResume.getUser() == null || !currentResume.getUser().getId().equals(currentUser.getId())) {
-          throw new IdInvalidException("You don't have permission to delete this resume");
+        if (currentResume.getUser() == null || !currentResume.getUser().getId().equals(currentUser.getId())) {
+            throw new IdInvalidException("You don't have permission to delete this resume");
         }
         this.resumeRepository.deleteById(currentResume.getId());
     }
 
-
-    public ResultPaginationResponse fetchAllResume(Specification<Resume> spec, Pageable pageable){
+    public ResultPaginationResponse fetchAllResume(Specification<Resume> spec, Pageable pageable) {
         Page<Resume> resumePage = this.resumeRepository.findAll(spec, pageable);
         ResultPaginationResponse response = FormatResultPagination.createPaginateResumeRes(resumePage);
         return response;
     }
 
-
-    public ResultPaginationResponse fetchResumeByUser(Pageable pageable){
-      Optional<String> optionalEmail = SecurityUtils.getCurrentUserLogin();
-      String email = optionalEmail.orElse("");
+    public ResultPaginationResponse fetchResumeByUser(Pageable pageable) {
+        Optional<String> optionalEmail = SecurityUtils.getCurrentUserLogin();
+        String email = optionalEmail.orElse("");
 
         FilterNode node = filterParser.parse("user.email='" + email + "'");
         FilterSpecification<Resume> spec = filterSpecificationConverter.convert(node);
 
         Page<Resume> resumePage = this.resumeRepository.findAll(spec, pageable);
         return FormatResultPagination.createPaginateResumeRes(resumePage);
-    } 
-
-
-    private boolean checkResumeExistByUserAndJob(Resume resume){
-        if(resume.getUser() == null){
-            return false;
-        }
-        Optional<User> user = this.userRepository.findById(resume.getUser().getId());
-        if(user.isEmpty()){
-            return false;
-        }
-        return true;
     }
+
 }

@@ -17,7 +17,6 @@ import {
   message,
   Typography,
   DatePicker,
-  Switch,
 } from "antd";
 import {
   PlusOutlined,
@@ -52,7 +51,6 @@ const { TextArea } = Input;
 
 type ManageJobFilter = {
   name?: string;
-  companyName?: string;
   status?: JobStatus;
 };
 
@@ -61,32 +59,40 @@ export default function ManageJobs() {
 const [companies, setCompanies] = useState<any[]>([]);
 const [jobs, setJobs] = useState<Job[]>([]);
 const [loading, setLoading] = useState<boolean>(true);
+const [myCompanyId, setMyCompanyId] = useState<number | undefined>(undefined);
+const [myCompanyName, setMyCompanyName] = useState<string>('');
 
 useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const userObj = JSON.parse(userStr);
+        const cId = userObj?.company?.id || userObj?.companyId;
+        const cName = userObj?.company?.name || userObj?.companyName || '';
+        setMyCompanyId(cId ? Number(cId) : undefined);
+        setMyCompanyName(cName);
+      } catch { /* ignore */ }
+    }
+
     const fetchJobs = async () => {
       try {
+        const userStr2 = localStorage.getItem('user');
+        const userObj2 = userStr2 ? JSON.parse(userStr2) : null;
+        const cId = userObj2?.company?.id || userObj2?.companyId;
         const response = await apiClient.get('/api/v1/jobs');
         const data = response.data.data?.result || response.data.data || response.data;
-        setJobs(Array.isArray(data) ? data : []);
+        const allJobs = Array.isArray(data) ? data : [];
+        const filtered = cId ? allJobs.filter((j: any) => String(j.company?.id) === String(cId)) : allJobs;
+        setJobs(filtered);
       } catch (error) {
-        console.error("Jobs API failed", error);
-        message.error("Không thể tải danh sách vị trí tuyển dụng từ Database.");
+        console.error('Jobs API failed', error);
+        message.error('Không thể tải danh sách viế trí tuyển dụng.');
       } finally {
         setLoading(false);
       }
     };
-const fetchCompanies = async () => {
-      try {
-        const response = await apiClient.get('/api/v1/companies');
-        const data = response.data.data?.result || response.data.data || response.data;
-        setCompanies(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Companies API failed", error);
-      }
-    };
     fetchJobs();
-    fetchCompanies();
-  }, []);
+  }, []);;
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
@@ -95,7 +101,6 @@ const fetchCompanies = async () => {
   // Filter state
   const [filters, setFilters] = useState<ManageJobFilter>({
     name: undefined,
-    companyName: undefined,
     status: undefined,
   });
 
@@ -105,36 +110,31 @@ const fetchCompanies = async () => {
   // ==================== FILTERED DATA ====================
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
-      const nameMatch =
-        !filters.name ||
-        (job.title || "").toLowerCase().includes(filters.name.toLowerCase());
-      const companyMatch =
-        !filters.companyName ||
-        (job.company?.name || job.companyName || "")
-          .toLowerCase()
-          .includes(filters.companyName.toLowerCase());
-      const statusMatch = !filters.status || job.status === filters.status;
-
-      return nameMatch && companyMatch && statusMatch;
+      const jobTitle = (job.title || (job as any).name || '').toLowerCase();
+      const nameMatch = !filters.name || jobTitle.includes(filters.name.toLowerCase());
+      const jobStatus: string = job.status ||
+        ((job as any).active === true || (job as any).active === 1 ? 'ACTIVE' :
+         (job as any).active === false || (job as any).active === 0 ? 'PENDING' : '');
+      const statusMatch = !filters.status || jobStatus === filters.status;
+      return nameMatch && statusMatch;
     });
   }, [jobs, filters]);
 
 const companyOptions = useMemo(() => {
     return companies.map((c: any) => ({
-      value: c.id,   // Giá trị gửi lên BE là số ID (1, 2...) để khớp khóa ngoại company_id
-      label: c.name, // Chữ hiển thị trên giao diện dropdown
+      value: c.id,  
+      label: c.name, 
     }));
   }, [companies]);
 
   // ==================== HANDLERS ====================
-  // Mở modal thêm mới
   const handleAddNew = () => {
     setEditingJob(null);
     form.resetFields();
+    if (myCompanyId) form.setFieldValue('companyId', myCompanyId);
     setIsModalOpen(true);
   };
 
-  // Mở modal chỉnh sửa
   const handleEdit = (record: Job) => {
     setEditingJob(record);
     form.setFieldsValue({
@@ -145,31 +145,42 @@ const companyOptions = useMemo(() => {
       jobType: record.jobType,
       workMode: record.workMode,
       skills: Array.isArray(record.skills)
-        ? record.skills.map((skill) =>
-            typeof skill === 'object' ? skill.id : skill
-          )
+        ? record.skills.map((skill) => (typeof skill === 'object' ? skill.id : skill))
         : [],
       jobCategory: record.jobCategory || record.category,
       location: record.location,
       quantity: record.quantity,
-      companyId: record.company?.id || record.companyId,
       startDate: record.startDate ? dayjs(record.startDate) : undefined,
       endDate: record.endDate ? dayjs(record.endDate) : undefined,
-      isActive: record.isActive ?? true,
-      isHot: record.isHot ?? false,
     });
     setIsModalOpen(true);
   };
 
-// Xóa job
   const handleDelete = async (id: string | number) => {
     setLoading(true);
     try {
       await apiClient.delete(`/api/v1/jobs/${id}`);
       setJobs((prev) => prev.filter((job) => job.id !== id));
-      message.success("Xóa vị trí thực tập thành công!");
-    } catch {
-      message.error("Có lỗi xảy ra khi xóa!");
+      message.success('Xóa vị trí thực tập thành công!');
+    } catch (err: any) {
+      if (err?.response?.status === 400) {
+        try {
+          const job = jobs.find((j) => j.id === id);
+          await apiClient.put('/api/v1/jobs', {
+            id,
+            name: (job as any)?.title || (job as any)?.name || 'job',
+            active: false,
+            isActive: false,
+          });
+          await apiClient.delete(`/api/v1/jobs/${id}`);
+          setJobs((prev) => prev.filter((j) => j.id !== id));
+          message.success('Xóa vị trí thực tập thành công!');
+        } catch {
+          message.error('Không thể xóa vị trí này. Vui lòng thử lại!');
+        }
+      } else {
+        message.error('Có lỗi xảy ra khi xóa!');
+      }
     } finally {
       setLoading(false);
     }
@@ -181,7 +192,6 @@ const companyOptions = useMemo(() => {
     try {
       const safeCategoryId = typeof values.jobCategory === 'number' ? values.jobCategory : 1;
       
-      // Khắc phục lệch pha Enum JobType giữa FE ("INTERNSHIP") và BE ("INTERN")
       const safeJobType =
         String(values.jobType).toUpperCase() === "INTERNSHIP"
           ? ("INTERN" as unknown as JobType)
@@ -199,37 +209,32 @@ const companyOptions = useMemo(() => {
         skills: values.skills.map((skillValue: number | string) => ({
           id: typeof skillValue === 'number' ? skillValue : Number(skillValue) || 1,
         })),
-        location: values.location || "Hà Nội",
+        location: values.location || 'Hà Nội',
         quantity: values.quantity ?? 1,
-company: values.companyId ? { id: Number(values.companyId) } : undefined,
-startDate: values.startDate ? dayjs(values.startDate).endOf('day').toISOString() : undefined,
-        endDate: values.endDate
-          ? (values.endDate as unknown as { toISOString: () => string }).toISOString()
+        company: myCompanyId ? { id: Number(myCompanyId) } : undefined,
+        startDate: values.startDate
+          ? dayjs(values.startDate).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ')
           : undefined,
-        isActive: values.isActive ?? true,
-        isHot: values.isHot ?? false,
+        endDate: values.endDate
+          ? dayjs(values.endDate).endOf('day').format('YYYY-MM-DDTHH:mm:ssZ')
+          : undefined,
+        isHot: false,
       };
 
       if (editingJob) {
-        // GỌI API SỬA (PUT)
-        await apiClient.put('/api/v1/jobs', {
-          id: editingJob.id,
-          ...payload
-        });
-        message.success("Cập nhật vị trí thực tập thành công!");
+        await apiClient.put('/api/v1/jobs', { id: editingJob.id, ...payload });
+        message.success('Cập nhật vị trí thực tập thành công!');
       } else {
-        // GỌI API THÊM MỚI (POST)
         await apiClient.post('/api/v1/jobs', payload);
-        message.success("Thêm vị trí thực tập mới thành công!");
+        message.success('Thêm vị trí thực tập mới thành công!');
       }
-      
       setIsModalOpen(false);
       form.resetFields();
-      
-      // Load lại dữ liệu thực tế từ Backend để hiển thị lên bảng
       const response = await apiClient.get('/api/v1/jobs');
       const data = response.data.data?.result || response.data.data || response.data;
-      setJobs(Array.isArray(data) ? data : []);
+      const allJobs = Array.isArray(data) ? data : [];
+      const filtered = myCompanyId ? allJobs.filter((j: any) => String(j.company?.id) === String(myCompanyId)) : allJobs;
+      setJobs(filtered);
       
     } catch (error) {
       console.error("Lỗi lưu dữ liệu:", error);
@@ -241,11 +246,7 @@ startDate: values.startDate ? dayjs(values.startDate).endOf('day').toISOString()
 
   // Reset filters
   const handleResetFilters = () => {
-    setFilters({
-      name: undefined,
-      companyName: undefined,
-      status: undefined,
-    });
+    setFilters({ name: undefined, status: undefined });
   };
 
   // ==================== TABLE COLUMNS ====================
@@ -263,7 +264,7 @@ startDate: values.startDate ? dayjs(values.startDate).endOf('day').toISOString()
       key: "title",
       width: 250,
       render: (title: string, record: Job) => {
-        // Bọc an toàn: Nếu không tìm thấy nhãn dịch, hiển thị luôn giá trị gốc từ DB, tránh bị sập UI
+
         const levelText = levelLabels[record.level] || record.level || "Chưa xác định";
         const typeText = record.jobType ? (jobTypeLabels[record.jobType] || record.jobType) : "N/A";
 
@@ -282,7 +283,6 @@ startDate: values.startDate ? dayjs(values.startDate).endOf('day').toISOString()
       dataIndex: "companyName",
       key: "companyName",
       width: 180,
-      // Thêm render này để ưu tiên hiển thị tên từ object company của API thật
       render: (text: string, record: Job) => record.company?.name || record.companyName || text,
     },
     {
@@ -293,32 +293,23 @@ startDate: values.startDate ? dayjs(values.startDate).endOf('day').toISOString()
       align: "right",
       render: (salary: number) => (
         <span className="font-medium">
-          {salary.toLocaleString("vi-VN")} VNĐ
+          {salary?.toLocaleString('vi-VN')} VNĐ
         </span>
       ),
     },
-{
-      title: "Phí dịch vụ",
-      dataIndex: "serviceFee",
-      key: "serviceFee",
-      width: 140,
-      align: "right",
-render: (fee: number) => (
-  <span className="text-orange-600 font-medium">
-    {fee ? fee.toLocaleString("vi-VN") : "0"} VNĐ
-  </span>
-),
-},
-{
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      width: 120,
-      align: "center",
-      render: (status: JobStatus) => {
-        // Bọc an toàn nếu trạng thái từ DB trả về null hoặc trống
-        const statusText = statusLabels[status] || status || "Đang tuyển";
-        const statusColor = statusColors[status] || "blue";
+    {
+      title: 'Trạng thái',
+      key: 'status',
+      width: 130,
+      align: 'center',
+      render: (_: any, record: Job) => {
+        const rawActive = (record as any).active;
+        let resolvedStatus: string = record.status || '';
+        if (!resolvedStatus) {
+          resolvedStatus = (rawActive === true || rawActive === 1) ? 'ACTIVE' : 'PENDING';
+        }
+        const statusText = statusLabels[resolvedStatus as JobStatus] || resolvedStatus || 'Chờ duyệt';
+        const statusColor = statusColors[resolvedStatus as JobStatus] || 'orange';
         return <Tag color={statusColor}>{statusText}</Tag>;
       },
     },
@@ -355,13 +346,8 @@ render: (fee: number) => (
 
   // ==================== RENDER ====================
 return (
-    // 1. Thay thế class Tailwind bằng style inline cao cấp, đổi nền sang màu xám nhẹ #f8fafc giống Dashboard
     <div style={{ padding: "24px 40px", background: "#f8fafc", minHeight: "100vh" }}>
-      
-      {/* 2. Giới hạn độ rộng tối đa của khung giữa (1300px) và căn giữa tự động để cách đều 2 bên */}
       <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
-        
-        {/* Khung Header giữ nguyên bên dưới của Đại */}
         <div className="mb-6">
           <Title level={3} className="!mb-1" style={{ fontWeight: 600, color: "#0f172a" }}>
             Quản lý vị trí thực tập
@@ -372,75 +358,34 @@ return (
         </div>
 
         {/* Filter Section */}
-        <Card className="mb-6" style={{ borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+        <Card className="mb-6" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <Row gutter={[16, 16]} align="bottom">
-            <Col xs={24} sm={12} md={6}>
-              <div className="mb-1 text-sm font-medium text-gray-700">
-                Tên công việc
-              </div>
+            <Col xs={24} sm={12} md={8}>
+              <div className="mb-1 text-sm font-medium text-gray-700">Tên công việc</div>
               <Input
                 placeholder="Tìm theo tên công việc..."
                 prefix={<SearchOutlined className="text-gray-400" />}
-                value={filters.name || ""}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    name: e.target.value || undefined,
-                  }))
-                }
+                value={filters.name || ''}
+                onChange={(e) => setFilters((prev) => ({ ...prev, name: e.target.value || undefined }))}
                 allowClear
               />
             </Col>
-            <Col xs={24} sm={12} md={6}>
-              <div className="mb-1 text-sm font-medium text-gray-700">
-                Tên công ty
-              </div>
-              <Input
-                placeholder="Tìm theo tên công ty..."
-                prefix={<SearchOutlined className="text-gray-400" />}
-                value={filters.companyName || ""}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    companyName: e.target.value || undefined,
-                  }))
-                }
-                allowClear
-              />
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <div className="mb-1 text-sm font-medium text-gray-700">
-                Trạng thái
-              </div>
+            <Col xs={24} sm={12} md={8}>
+              <div className="mb-1 text-sm font-medium text-gray-700">Trạng thái</div>
               <Select
                 placeholder="Chọn trạng thái"
                 className="w-full"
+                style={{ width: '100%' }}
                 value={filters.status}
-                onChange={(value) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    status: value as JobStatus | undefined,
-                  }))
-                }
+                onChange={(value) => setFilters((prev) => ({ ...prev, status: value as JobStatus | undefined }))}
                 allowClear
-                options={Object.keys(statusLabels).map((status) => ({
-                  value: status as JobStatus,
-                  label: statusLabels[status as JobStatus],
-                }))}
+                options={Object.keys(statusLabels).map((status) => ({ value: status as JobStatus, label: statusLabels[status as JobStatus] }))}
               />
             </Col>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={8}>
               <Space>
-                <Button icon={<ReloadOutlined />} onClick={handleResetFilters}>
-                  Đặt lại
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleAddNew}
-                >
-                  Thêm mới
-                </Button>
+                <Button icon={<ReloadOutlined />} onClick={handleResetFilters}>Đặt lại</Button>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleAddNew}>Thêm mới</Button>
               </Space>
             </Col>
           </Row>
@@ -475,7 +420,7 @@ return (
             form.resetFields();
           }}
           footer={null}
-          width={850} // Nới rộng độ rộng modal để vừa khít bố cục 3 cột nằm ngang
+          width={850} 
           destroyOnClose
         >
           <Form
@@ -484,12 +429,10 @@ return (
             onFinish={handleSubmit}
             className="mt-4"
           >
-            {/* --- CÁC TRƯỜNG ẨN (HIDDEN) ĐỂ GIỮ CHUẨN VALIDATE VỚI BACKEND SPRING BOOT --- */}
             <Form.Item name="jobType" hidden initialValue="INTERN"><Input /></Form.Item>
             <Form.Item name="workMode" hidden initialValue="REMOTE"><Input /></Form.Item>
             <Form.Item name="jobCategory" hidden initialValue={1}><Input /></Form.Item>
 
-            {/* ROW 1: Tên công việc (8) | Kỹ năng yêu cầu (8) | Địa điểm (8) */}
             <Row gutter={16}>
               <Col span={8}>
                 <Form.Item
@@ -528,7 +471,6 @@ return (
               </Col>
             </Row>
 
-            {/* ROW 2: Mức lương (8) | Số lượng (8) | Trình độ (8) */}
             <Row gutter={16}>
               <Col span={8}>
                 <Form.Item
@@ -577,63 +519,38 @@ return (
               </Col>
             </Row>
 
-            {/* ROW 3: Công ty (6) | Ngày bắt đầu (5) | Ngày kết thúc (5) | Hoạt động (4) | Hot (4) */}
-            <Row gutter={16} align="middle">
-              <Col span={6}>
+            <Row gutter={16}>
+              <Col span={8}>
                 <Form.Item
-                  name="companyId"
                   label={<span style={{ fontWeight: 500 }}>Công ty</span>}
-                  rules={[{ required: true, message: "Vui lòng chọn công ty" }]}
                 >
-                  <Select
-                    placeholder="Chọn công ty"
-                    options={companyOptions}
-                    showSearch
-                    allowClear
+                  <Input
+                    disabled
+                    style={{ background: '#f9fafb', cursor: 'not-allowed' }}
+                    value={myCompanyName || String(myCompanyId || '')}
                   />
                 </Form.Item>
               </Col>
-              <Col span={5}>
+              <Col span={8}>
                 <Form.Item
                   name="startDate"
                   label={<span style={{ fontWeight: 500 }}>Ngày bắt đầu</span>}
-                  rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu" }]}
+                  rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu' }]}
                 >
-                  <DatePicker className="w-full" format="YYYY-MM-DD" />
+                  <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
                 </Form.Item>
               </Col>
-              <Col span={5}>
+              <Col span={8}>
                 <Form.Item
                   name="endDate"
                   label={<span style={{ fontWeight: 500 }}>Ngày kết thúc</span>}
-                  rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc" }]}
+                  rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc' }]}
                 >
-                  <DatePicker className="w-full" format="YYYY-MM-DD" />
-                </Form.Item>
-              </Col>
-              <Col span={4} style={{ textAlign: "center" }}>
-                <Form.Item
-                  name="isActive"
-                  label={<span style={{ fontWeight: 500 }}>Hoạt động</span>}
-                  valuePropName="checked"
-                  initialValue={true}
-                >
-                  <Switch style={{ marginTop: "4px" }} />
-                </Form.Item>
-              </Col>
-              <Col span={4} style={{ textAlign: "center" }}>
-                <Form.Item
-                  name="isHot"
-                  label={<span style={{ fontWeight: 500 }}>Hot</span>}
-                  valuePropName="checked"
-                  initialValue={false}
-                >
-                  <Switch style={{ marginTop: "4px" }} />
+                  <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
                 </Form.Item>
               </Col>
             </Row>
 
-            {/* ROW 4: KHUNG SOẠN THẢO VĂN BẢN (MOCK RICH TEXT EDITOR) GIỐNG ẢNH MẪU */}
             <div className="text-sm font-medium text-gray-700 mb-1" style={{ marginTop: "8px" }}>
               Miêu tả
             </div>
@@ -645,7 +562,6 @@ return (
                 backgroundColor: "#fff"
               }}
             >
-              {/* Rich Text Editor Mock Toolbar */}
               <div 
                 style={{ 
                   backgroundColor: "#fafafa", 
@@ -674,20 +590,24 @@ return (
                 <span style={{ cursor: "pointer", padding: "0 4px", color: "#8c8c8c" }} title="Clear Formatting"><u><i>T</i></u><sub>x</sub></span>
               </div>
 
-              {/* Text Area Không Viền Lồng Bên Trong */}
               <Form.Item
                 name="description"
                 noStyle
                 rules={[
-                  { required: true, message: "Vui lòng nhập mô tả công việc" },
-                  { min: 20, message: "Mô tả phải có ít nhất 20 ký tự" },
+                  { required: true, message: 'Vui lòng nhập mô tả công việc' },
+                  { min: 20, message: 'Mô tả phải có ít nhất 20 ký tự' },
                 ]}
               >
-                <TextArea
+                <Input.TextArea
                   rows={6}
+                  maxLength={2000}
+                  showCount={{
+                    formatter: ({ count, maxLength }) =>
+                      `${count}/${maxLength} ký tự (tối thiểu 20)`,
+                  }}
                   bordered={false}
                   placeholder="Phát triển hệ thống backend bằng Spring Boot..."
-                  style={{ padding: "12px", resize: "none", fontSize: "14px" }}
+                  style={{ padding: '12px', resize: 'none', fontSize: '14px' }}
                 />
               </Form.Item>
             </div>

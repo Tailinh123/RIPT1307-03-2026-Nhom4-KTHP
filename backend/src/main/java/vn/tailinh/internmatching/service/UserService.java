@@ -82,7 +82,17 @@ public class UserService {
         }
     }
 
+
+
     public void deleteUser(Long id) throws Exception {
+      String email = SecurityUtils.getCurrentUserLogin().orElse("");
+      User loggedUser = this.handleGetUserByUsername(email);
+      if( loggedUser == null || (!loggedUser.getId().equals(id)) && !loggedUser.getRole().getName().equals("SUPER_ADMIN")) {
+        throw new IdInvalidException("You don't have permission to delete this user");
+      }
+
+
+
         User user = this.handleGetUserByUsername(this.userRepository.findById(id).get().getEmail());
         if (user.getResumes() != null && !user.getResumes().isEmpty()) {
             throw new IdInvalidException(
@@ -99,11 +109,15 @@ public class UserService {
         return this.userRepository.findByEmail(username);
     }
 
+
+
     public ResultPaginationResponse getAllUser(Pageable pageable, Specification<User> spec) {
         Page<User> userPage = this.userRepository.findAll(spec, pageable);
 
         return FormatResultPagination.createPaginateUserRes(userPage);
     }
+
+
 
     public UpdatedUserResponse updateUser(Long id, UpdateUserDTO requestUser) throws Exception {
         Optional<User> userOptional = this.userRepository.findById(id);
@@ -129,15 +143,17 @@ public class UserService {
                 }
                 currentUser.setCompany(company);
             }
-            if (requestUser.getRole() != null) {
-                Role role = this.roleService.fetchRoleById(requestUser.getRole().getId());
-                currentUser.setRole(role);
+            if(requestUser.getRole() != null & loggedInUser.getRole().getId().equals("SUPER_ADMIN")) {
+              Role role = this.roleService.fetchRoleById(requestUser.getRole().getId());
+              currentUser.setRole(role);
             }
 
             return UserMapper.convertToResUpdatedUserRes(this.userRepository.save(currentUser));
         }
         throw new IdInvalidException("User ID = " + id + " not found");
     }
+
+
 
     public void updateUserToken(String token, String email) {
         User user = this.handleGetUserByUsername(email);
@@ -150,6 +166,8 @@ public class UserService {
     public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
     }
+
+
 
     public void changePassword(ChangePasswordDTO dto) throws Exception {
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";

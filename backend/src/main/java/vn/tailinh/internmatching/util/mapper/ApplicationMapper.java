@@ -71,7 +71,7 @@ public class ApplicationMapper {
 
     response.setId(application.getId());
     response.setNote(application.getNote());
-    response.setStatus(application.getNote());
+    response.setStatus(application.getStatus().name());
     response.setUpdatedAt(application.getUpdatedAt());
     response.setUpdatedBy(application.getUpdatedBy());
 

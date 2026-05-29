@@ -34,4 +34,6 @@ public class CreatedUserResponse {
     private String createdBy;
     private CompanyUser company;
     private Role role;
+    private String avatarUrl;
+    private boolean active;
 }

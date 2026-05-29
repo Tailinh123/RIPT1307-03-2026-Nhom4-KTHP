@@ -18,6 +18,8 @@ public class UserMapper {
         res.setCreatedBy(user.getCreatedBy());
         res.setGender(user.getGender());
         res.setName(user.getName());
+        res.setAvatarUrl(user.getAvatarUrl());
+        res.setActive(user.isActive());
 
         if(user.getCompany() != null){
             companyUser.setId(user.getCompany().getId());
@@ -29,6 +31,8 @@ public class UserMapper {
         }
         return res;
     }
+
+
 
     public static UpdatedUserResponse convertToResUpdatedUserRes(User user){
         UpdatedUserResponse res = new UpdatedUserResponse();
@@ -60,6 +64,7 @@ public class UserMapper {
       res.setGender(user.getGender());
       res.setName(user.getName());
       res.setSubscribed(user.isSubscribed());
+      res.setAvatarUrl(user.getAvatarUrl());
 
       
       //set Role Convert

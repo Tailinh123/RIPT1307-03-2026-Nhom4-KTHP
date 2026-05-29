@@ -10,12 +10,14 @@ import vn.tailinh.internmatching.dto.response.user.CreatedUserResponse;
 import vn.tailinh.internmatching.dto.response.user.ResUserDTO;
 import vn.tailinh.internmatching.dto.response.user.UpdatedUserResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
+import vn.tailinh.internmatching.repository.SkillRepository;
 import vn.tailinh.internmatching.repository.UserRepository;
 import vn.tailinh.internmatching.security.SecurityUtils;
 import vn.tailinh.internmatching.util.mapper.UserMapper;
 import vn.tailinh.internmatching.util.response.FormatResultPagination;
 import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Role;
+import vn.tailinh.internmatching.entity.Skill;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -24,7 +26,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -33,6 +37,7 @@ public class UserService {
     private final CompanyService companyService;
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
+    private final SkillRepository skillRepository;
 
     public CreatedUserResponse createUser(RegisterDTO dto) throws Exception {
         if (userRepository.existsByEmail(dto.getEmail())) {
@@ -53,11 +58,12 @@ public class UserService {
         return UserMapper.convertToResCreatedUserRes(this.userRepository.save(user));
     }
 
+
+
     public CreatedUserResponse registerUser(RegisterDTO dto) throws Exception {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new DataIntegrityViolationException("Email already exists");
         }
-
         User user = new User();
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
@@ -74,6 +80,8 @@ public class UserService {
         return UserMapper.convertToResCreatedUserRes(this.userRepository.save(user));
     }
 
+
+
     public ResUserDTO fetchUserById(Long id) throws Exception {
         if (userRepository.existsById(id)) {
             return UserMapper.convertToUserDTO(this.userRepository.findById(id).get());
@@ -85,13 +93,12 @@ public class UserService {
 
 
     public void deleteUser(Long id) throws Exception {
-      String email = SecurityUtils.getCurrentUserLogin().orElse("");
-      User loggedUser = this.handleGetUserByUsername(email);
-      if( loggedUser == null || (!loggedUser.getId().equals(id)) && !loggedUser.getRole().getName().equals("SUPER_ADMIN")) {
-        throw new IdInvalidException("You don't have permission to delete this user");
-      }
-
-
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        User loggedUser = this.handleGetUserByUsername(email);
+        if (loggedUser == null
+                || (!loggedUser.getId().equals(id)) && !loggedUser.getRole().getName().equals("SUPER_ADMIN")) {
+            throw new IdInvalidException("You don't have permission to delete this user");
+        }
 
         User user = this.handleGetUserByUsername(this.userRepository.findById(id).get().getEmail());
         if (user.getResumes() != null && !user.getResumes().isEmpty()) {
@@ -104,6 +111,8 @@ public class UserService {
             throw new IdInvalidException("The specified User ID is invalid");
         }
     }
+
+
 
     public User handleGetUserByUsername(String username) {
         return this.userRepository.findByEmail(username);
@@ -136,6 +145,9 @@ public class UserService {
             currentUser.setGender(requestUser.getGender());
             currentUser.setAddress(requestUser.getAddress());
             currentUser.setDateOfBirth(requestUser.getDateOfBirth());
+            currentUser.setAvatarUrl(requestUser.getAvatarUrl());
+            currentUser.setPhone(requestUser.getPhone());
+            
             if (requestUser.getCompany() != null) {
                 Company company = this.companyService.findCompanyById(requestUser.getCompany().getId());
                 if (company == null) {
@@ -143,9 +155,17 @@ public class UserService {
                 }
                 currentUser.setCompany(company);
             }
-            if(requestUser.getRole() != null & loggedInUser.getRole().getId().equals("SUPER_ADMIN")) {
-              Role role = this.roleService.fetchRoleById(requestUser.getRole().getId());
-              currentUser.setRole(role);
+             if (requestUser.getSkills() != null) {
+                List<Long> reqSkills = requestUser.getSkills()
+                        .stream().map(
+                                skill -> skill.getId())
+                        .collect(Collectors.toList());
+                List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
+                currentUser.setSkills(dbSkills);
+            }
+            if (requestUser.getRole() != null && loggedInUser.getRole().getName().equals("SUPER_ADMIN")) {
+                Role role = this.roleService.fetchRoleById(requestUser.getRole().getId());
+                currentUser.setRole(role);
             }
 
             return UserMapper.convertToResUpdatedUserRes(this.userRepository.save(currentUser));
@@ -162,6 +182,8 @@ public class UserService {
             this.userRepository.save(user);
         }
     }
+
+
 
     public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);

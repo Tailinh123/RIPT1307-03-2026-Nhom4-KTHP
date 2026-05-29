@@ -23,11 +23,20 @@ public class LoginResponse {
     private String email;
     private String name;
     private RoleDTO role;
+    private String avatarUrl;
+    private CompanyDTO company;
   }
 
   @Getter
   @Setter
   public static class RoleDTO {
+    private Long id;
+    private String name;
+  }
+
+  @Getter
+  @Setter
+  public static class CompanyDTO {
     private Long id;
     private String name;
   }

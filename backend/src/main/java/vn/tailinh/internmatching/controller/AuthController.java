@@ -60,9 +60,7 @@ public class AuthController {
         loginDTO.getUsername(), loginDTO.getPassword());
 
     Authentication authentication = this.authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-
     SecurityContextHolder.getContext().setAuthentication(authentication);
-
     LoginResponse loginResponse = new LoginResponse();
 
     User currentUserDB = this.userService.handleGetUserByUsername(loginDTO.getUsername());
@@ -70,14 +68,15 @@ public class AuthController {
     roleDTO.setId(currentUserDB.getRole().getId());
     roleDTO.setName(currentUserDB.getRole().getName());
 
-    LoginResponse.UserLogin userLogin = new LoginResponse.UserLogin(
-        currentUserDB.getId(),
-        currentUserDB.getEmail(),
-        currentUserDB.getName(),
-        roleDTO);
+    LoginResponse.UserLogin userLogin = new LoginResponse.UserLogin();
+   if (currentUserDB != null) {
+      userLogin.setId(currentUserDB.getId());
+      userLogin.setEmail(currentUserDB.getEmail());
+      userLogin.setName(currentUserDB.getName());
+      userLogin.setAvatarUrl(currentUserDB.getAvatarUrl());
 
     loginResponse.setUser(userLogin);
-
+   }
     // set access token
     loginResponse.setAccessToken(this.securityService.createAccessToken(authentication.getName(), loginResponse));
     // create refresh token
@@ -95,9 +94,10 @@ public class AuthController {
     return ResponseEntity.ok()
         .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
         .body(loginResponse);
+        
   }
 
-  
+
 
   @GetMapping("/account")
   @ApiMessage("Get user information")
@@ -112,6 +112,14 @@ public class AuthController {
       userLogin.setId(currentUserDB.getId());
       userLogin.setEmail(currentUserDB.getEmail());
       userLogin.setName(currentUserDB.getName());
+      userLogin.setAvatarUrl(currentUserDB.getAvatarUrl());
+
+      if (currentUserDB.getCompany() != null) {
+        LoginResponse.CompanyDTO company = new LoginResponse.CompanyDTO();
+        company.setId(currentUserDB.getCompany().getId());
+        company.setName(currentUserDB.getCompany().getName());
+        userLogin.setCompany(company);
+      }
 
       if (currentUserDB.getRole() != null) {
         LoginResponse.RoleDTO roleDTO = new LoginResponse.RoleDTO();
@@ -132,7 +140,7 @@ public class AuthController {
     Jwt decodedToken = this.securityUtils.checkValidRefreshToken(refreshToken);
     String email = decodedToken.getSubject();
     User user = this.userService.getUserByRefreshTokenAndEmail(refreshToken, email);
-    
+
     if (user != null) {
       LoginResponse loginResponse = new LoginResponse();
       LoginResponse.UserLogin userLogin = new LoginResponse.UserLogin();
@@ -140,7 +148,6 @@ public class AuthController {
       userLogin.setName(user.getName());
       userLogin.setEmail(user.getEmail());
       loginResponse.setUser(userLogin);
-
 
       if (user.getRole() != null) {
         LoginResponse.RoleDTO roleDTO = new LoginResponse.RoleDTO();
@@ -197,3 +204,4 @@ public class AuthController {
         .body(null);
   }
 }
+

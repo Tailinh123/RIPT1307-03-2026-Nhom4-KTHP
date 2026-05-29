@@ -23,6 +23,7 @@ import vn.tailinh.internmatching.repository.JobRepository;
 import vn.tailinh.internmatching.repository.ResumeRepository;
 import vn.tailinh.internmatching.repository.UserRepository;
 import vn.tailinh.internmatching.security.SecurityUtils;
+import vn.tailinh.internmatching.util.constant.ApplicationStatus;
 import vn.tailinh.internmatching.util.mapper.ApplicationMapper;
 import vn.tailinh.internmatching.util.response.FormatResultPagination;
 
@@ -37,7 +38,7 @@ public class ApplicationService {
   private final EmailService emailService;
 
   public CreateApplicationResponse create(Application application) throws Exception {
-
+    application.setStatus(ApplicationStatus.PENDING);
     String email = SecurityUtils.getCurrentUserLogin().orElse("");
     User currentUser = this.userRepository.findByEmail(email);
     if(currentUser == null ) {
@@ -148,7 +149,6 @@ public class ApplicationService {
         System.out.println("WARNING: Failed to send email notification: " + e.getMessage());
    }
 
-
     return ApplicationMapper.toUpdateApplicationResponse(currentApp);
 
   }
@@ -157,7 +157,7 @@ public class ApplicationService {
 
   public ResultPaginationResponse fetchAllApplication(
       Specification<Application> specification, Pageable pageable) {
-    Page<Application> page = this.applicationRepository.findAll(specification, pageable);
+      Page<Application> page = this.applicationRepository.findAll(specification, pageable);
     return FormatResultPagination.createPaginationResponse(page);
   }
 

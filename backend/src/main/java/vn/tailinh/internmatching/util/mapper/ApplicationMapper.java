@@ -69,6 +69,9 @@ public class ApplicationMapper {
 
     UpdateApplicationResponse response = new UpdateApplicationResponse();
 
+    response.setId(application.getId());
+    response.setNote(application.getNote());
+    response.setStatus(application.getNote());
     response.setUpdatedAt(application.getUpdatedAt());
     response.setUpdatedBy(application.getUpdatedBy());
 

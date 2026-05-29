@@ -1,7 +1,7 @@
 package vn.tailinh.internmatching.service;
 
 import lombok.RequiredArgsConstructor;
-import vn.tailinh.internmatching.controller.RoleController;
+
 import vn.tailinh.internmatching.entity.Permission;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class RoleService {
-  private final RoleController roleController;
+
   private final RoleRepository roleRepository;
   private final PermissionRepository permissionRepository;
 

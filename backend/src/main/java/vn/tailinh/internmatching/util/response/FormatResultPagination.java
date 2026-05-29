@@ -1,6 +1,7 @@
 package vn.tailinh.internmatching.util.response;
 
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 
 import vn.tailinh.internmatching.entity.Resume;
 import vn.tailinh.internmatching.entity.User;
@@ -15,6 +16,7 @@ import vn.tailinh.internmatching.util.mapper.UserMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Transactional(readOnly=true)
 public class FormatResultPagination {
     public static ResultPaginationResponse createPaginationResponse(Page page) {
         ResultPaginationResponse rs = new ResultPaginationResponse();
@@ -24,10 +26,8 @@ public class FormatResultPagination {
         mr.setPageSize(page.getSize());
         mr.setPages(page.getTotalPages());
         mr.setTotal(page.getTotalElements());
-
         rs.setMeta(mr);
         rs.setResult(page.getContent());
-
         return rs;
     }
 
@@ -39,7 +39,6 @@ public class FormatResultPagination {
         mr.setPageSize(page.getSize());
         mr.setPages(page.getTotalPages());
         mr.setTotal(page.getTotalElements());
-
         rs.setMeta(mr);
 
         List<CreatedUserResponse> listUser = page.getContent()
@@ -47,7 +46,6 @@ public class FormatResultPagination {
                 .collect(Collectors.toList());
 
         rs.setResult(listUser);
-
         return rs;
     }
 
@@ -59,7 +57,6 @@ public class FormatResultPagination {
         mr.setPageSize(page.getSize());
         mr.setPages(page.getTotalPages());
         mr.setTotal(page.getTotalElements());
-
         rs.setMeta(mr);
 
         List<FetchResumeResponse> listResume = page.getContent()

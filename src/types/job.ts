@@ -96,9 +96,9 @@ export const workModeLabels: Record<WorkMode, string> = {
 };
 
 export const statusLabels: Record<JobStatus, string> = {
-  ACTIVE: 'Active',
-  PENDING: 'Pending',
-  CLOSED: 'Closed',
+  ACTIVE: 'Đang tuyển',
+  PENDING: 'Chờ duyệt',
+  CLOSED: 'Đã đóng',
   DRAFT: 'Bản nháp',
 };
 

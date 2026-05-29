@@ -7,10 +7,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import vn.tailinh.internmatching.config.web.PermissionInterceptor;
 
-
-
-
-
 @Configuration
 public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
 
@@ -20,17 +16,17 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
   }
 
   @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        String[] whiteList = {
-                "/", "/api/v1/auth/**",
-                 "/storage/**",
-                "/api/v1/resumes/**",
-                "/api/v1/subscribers/**",
-                "/api/v1/users/change-password",
-                "/api/v1/companies/**",      
-                "/api/v1/jobs/**",           
-        };
-        registry.addInterceptor(getPermissionInterceptor())
-                .excludePathPatterns(whiteList);
-    }
+  public void addInterceptors(InterceptorRegistry registry) {
+    String[] whiteList = {
+        "/", "/api/v1/auth/**",
+        "/storage/**",
+        "/api/v1/resumes/**",
+        "/api/v1/subscribers/**",
+        "/api/v1/users/change-password",
+        "/api/v1/companies/**",
+        "/api/v1/jobs/**",
+    };
+    registry.addInterceptor(getPermissionInterceptor())
+        .excludePathPatterns(whiteList);
+  }
 }

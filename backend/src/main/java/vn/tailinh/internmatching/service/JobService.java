@@ -6,14 +6,12 @@ import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
 import vn.tailinh.internmatching.dto.response.job.CreateJobDTOResponse;
 import vn.tailinh.internmatching.dto.response.job.UpdatedJobResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
-import vn.tailinh.internmatching.repository.CompanyRepository;
 import vn.tailinh.internmatching.repository.JobRepository;
 import vn.tailinh.internmatching.repository.SkillRepository;
 import vn.tailinh.internmatching.repository.UserRepository;
 import vn.tailinh.internmatching.security.SecurityUtils;
 import vn.tailinh.internmatching.util.mapper.JobMapper;
 import vn.tailinh.internmatching.util.response.FormatResultPagination;
-import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Skill;
 import vn.tailinh.internmatching.entity.User;
 
@@ -32,10 +30,10 @@ import java.util.stream.Collectors;
 public class JobService {
     private final JobRepository jobRepository;
     private final SkillRepository skillRepository;
-    private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
 
     public CreateJobDTOResponse create(Job job) throws Exception {
+      job.setId(null);
         if (job.getSkills() != null) {
             List<Long> reqSkills = job.getSkills()
                     .stream().map(Skill::getId)

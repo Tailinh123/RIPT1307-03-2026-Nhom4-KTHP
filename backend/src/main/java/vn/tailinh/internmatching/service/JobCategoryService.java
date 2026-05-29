@@ -52,15 +52,15 @@ public class JobCategoryService {
 
 
 
+public void delete(Long id) throws Exception {
+    JobCategory jobCategory = this.fetchById(id);
 
-  public void delete(Long id) throws Exception {
-    this.fetchById(id);  // check exisst
-    jobCategoryRepository.deleteById(id);
-  }
+    if (jobCategory.getJobs() != null && !jobCategory.getJobs().isEmpty()) {
+        throw new IdInvalidException("Cannot delete category because it is being used by jobs");
+    }
 
-
-  
-
+    this.jobCategoryRepository.delete(jobCategory);
+}
   
 
 

@@ -65,8 +65,8 @@ public class UserMapper {
       res.setName(user.getName());
       res.setSubscribed(user.isSubscribed());
       res.setAvatarUrl(user.getAvatarUrl());
+      res.setSkills(user.getSkills());
 
-      
       //set Role Convert
       if(user.getRole() != null){
       ResUserDTO.RoleDTO role = new ResUserDTO.RoleDTO();

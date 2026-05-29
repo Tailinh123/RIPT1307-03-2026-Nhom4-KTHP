@@ -69,14 +69,24 @@ public class AuthController {
     roleDTO.setName(currentUserDB.getRole().getName());
 
     LoginResponse.UserLogin userLogin = new LoginResponse.UserLogin();
-   if (currentUserDB != null) {
+    if (currentUserDB != null) {
       userLogin.setId(currentUserDB.getId());
       userLogin.setEmail(currentUserDB.getEmail());
       userLogin.setName(currentUserDB.getName());
       userLogin.setAvatarUrl(currentUserDB.getAvatarUrl());
 
-    loginResponse.setUser(userLogin);
-   }
+      if (currentUserDB.getCompany() != null) {
+        LoginResponse.CompanyDTO company = new LoginResponse.CompanyDTO();
+        company.setId(currentUserDB.getCompany().getId());
+        company.setName(currentUserDB.getCompany().getName());
+        userLogin.setCompany(company);
+      }
+      if (currentUserDB.getRole() != null) {
+        userLogin.setRole(roleDTO);
+      }
+
+      loginResponse.setUser(userLogin);
+    }
     // set access token
     loginResponse.setAccessToken(this.securityService.createAccessToken(authentication.getName(), loginResponse));
     // create refresh token
@@ -147,7 +157,14 @@ public class AuthController {
       userLogin.setId(user.getId());
       userLogin.setName(user.getName());
       userLogin.setEmail(user.getEmail());
-      loginResponse.setUser(userLogin);
+      userLogin.setAvatarUrl(user.getAvatarUrl());
+
+      if (user.getCompany() != null) {
+        LoginResponse.CompanyDTO company = new LoginResponse.CompanyDTO();
+        company.setId(user.getCompany().getId());
+        company.setName(user.getCompany().getName());
+        userLogin.setCompany(company);
+      }
 
       if (user.getRole() != null) {
         LoginResponse.RoleDTO roleDTO = new LoginResponse.RoleDTO();

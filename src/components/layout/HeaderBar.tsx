@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Avatar, Divider, Button } from 'antd';
+import { Typography, Avatar, Divider } from 'antd';
 import {
   AppstoreOutlined,
   OrderedListOutlined,
@@ -9,10 +9,11 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
+import axiosClient from '@/api/axiosClient';
+import { useAuthImage } from '@/hooks/useAuthImage';
 
 const { Text } = Typography;
 
-// DANH SÁCH MENU ĐIỀU HƯỚNG CỦA NHÀ TUYỂN DỤNG (ĐÃ BỔ SUNG HỒ SƠ CÁ NHÂN)
 const NAV_ITEMS = [
   {
     key: '/profile/company-dashboard',
@@ -44,30 +45,51 @@ const HeaderBar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  // Đọc thông tin user đăng nhập từ localStorage khi load trang
+  const [displayName, setDisplayName] = useState('HR Manager');
+  const [displayEmail, setDisplayEmail] = useState('');
+  const [avatarLetter, setAvatarLetter] = useState('HR');
+  const [rawAvatarUrl, setRawAvatarUrl] = useState<string | undefined>(undefined);
+
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
       try {
-        setUserData(JSON.parse(storedUser));
-      } catch (e) {
-        console.error("Lỗi đọc thông tin user", e);
+        const user = JSON.parse(userStr);
+        const name = user.name || user.fullName || 'HR Manager';
+        setDisplayName(name);
+        setDisplayEmail(user.email || '');
+        setAvatarLetter(name.charAt(0).toUpperCase() || 'HR');
+        const av = user.avatarUrl;
+        if (av) {
+          const fileNameOnly = av.replace(/^storage\//, '').replace(/^avatar\//, '');
+          setRawAvatarUrl(`/api/v1/files?fileName=${encodeURIComponent(fileNameOnly)}&folder=avatar`);
+        } else {
+          setRawAvatarUrl(undefined);
+        }
+      } catch {
+        // ignore
       }
     }
-  }, [location.pathname]); // Cập nhật lại nếu có chuyển hướng hành động
+  }, [dropdownOpen]);
 
-  // Xác định nhãn vai trò hiển thị
-  const isCompany = userData?.role === 'COMPANY' || localStorage.getItem('access_token') != null; // Fallback bọc an toàn cho HR
-  const roleLabel = isCompany ? 'Nhà tuyển dụng' : 'Sinh viên';
-  const avatarLabel = isCompany ? 'HR' : 'SV';
-  const fullNameDisplay = userData?.fullName || userData?.name || (isCompany ? 'HR Manager' : 'Sinh viên');
+  const avatarSrc = useAuthImage(rawAvatarUrl);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    message.success("Đăng xuất thành công!");
-    navigate('/api/v1/auth/login'); // Điều hướng về trang login của team
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await axiosClient.post('/api/v1/auth/logout');
+    } catch {
+      // ignore
+    } finally {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('user_cache_phone');
+      setDropdownOpen(false);
+      window.location.reload(); // reload để StudentLayout phát hiện chưa login
+    }
   };
 
   return (
@@ -87,19 +109,17 @@ const HeaderBar: React.FC = () => {
           boxShadow: '0 1px 4px rgba(0,21,41,.06)',
         }}
       >
-        {/* ── Left: Logo + Brand Động ── */}
+        {/* ── Left: Logo ── */}
         <div
           style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
-          onClick={() => navigate(isCompany ? '/profile/company-dashboard' : '/jobs')}
+          onClick={() => navigate('/profile/company-dashboard')}
         >
           <div
             style={{
               width: 34, height: 34,
               borderRadius: 9,
               background: 'linear-gradient(135deg, #1677ff 0%, #69b1ff 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
             <RocketOutlined style={{ color: '#fff', fontSize: 16 }} />
@@ -109,20 +129,17 @@ const HeaderBar: React.FC = () => {
               InternMatch
             </Text>
             <br />
-            {/* CHỮ PHỤ DƯỚI LOGO ĐÃ BIẾN THÀNH ĐỘNG THEO YÊU CẦU CỦA ĐẠI */}
-            <Text style={{ fontSize: 10, color: '#9ca3af', lineHeight: '1', fontWeight: 500 }}>
-              {roleLabel}
-            </Text>
+            <Text style={{ fontSize: 10, color: '#9ca3af', lineHeight: '1' }}>Nhà tuyển dụng</Text>
           </div>
         </div>
 
-        {/* ── Right: User Avatar Động ── */}
+        {/* ── Right: Avatar ── */}
         <Avatar
           size={36}
-          src={userData?.avatar} // Hiển thị ảnh thật nếu có trong máy tính
+          src={avatarSrc}
           onClick={() => setDropdownOpen((v) => !v)}
           style={{
-            background: isCompany ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : 'linear-gradient(135deg, #1677ff 0%, #69b1ff 100%)',
+            background: avatarSrc ? undefined : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
             cursor: 'pointer',
             fontSize: 13,
             fontWeight: 700,
@@ -131,7 +148,7 @@ const HeaderBar: React.FC = () => {
             transition: 'box-shadow 0.2s',
           }}
         >
-          {!userData?.avatar && avatarLabel}
+          {!avatarSrc && avatarLetter}
         </Avatar>
       </div>
 
@@ -140,7 +157,7 @@ const HeaderBar: React.FC = () => {
         <div onClick={() => setDropdownOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
       )}
 
-      {/* User Dropdown Panel */}
+      {/* Dropdown Panel */}
       {dropdownOpen && (
         <div
           style={{
@@ -156,55 +173,60 @@ const HeaderBar: React.FC = () => {
             animation: 'dropdownIn 0.18s ease',
           }}
         >
+          {/* User info */}
           <div
             style={{
               padding: '20px 20px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
+              display: 'flex', alignItems: 'center', gap: 14,
               background: 'linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%)',
             }}
           >
-            <Avatar size={48} src={userData?.avatar} style={{ background: '#1677ff', fontSize: 16, fontWeight: 700, flexShrink: 0 }}>
-              {!userData?.avatar && avatarLabel}
+            <Avatar
+              size={48}
+              src={avatarSrc}
+              style={{
+                background: avatarSrc ? undefined : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                fontSize: 16, fontWeight: 700, flexShrink: 0,
+              }}
+            >
+              {!avatarSrc && avatarLetter}
             </Avatar>
             <div style={{ overflow: 'hidden' }}>
               <Text strong style={{ fontSize: 15, color: '#111827', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {fullNameDisplay}
+                {displayName}
               </Text>
-              <Text style={{ fontSize: 12, color: '#6b7280' }}>{userData?.email || 'hr@gmail.com'}</Text>
+              {displayEmail && (
+                <Text style={{ fontSize: 12, color: '#9ca3af', display: 'block' }}>{displayEmail}</Text>
+              )}
             </div>
           </div>
 
           <Divider style={{ margin: 0 }} />
 
-          {/* Navigation Items */}
+          {/* Navigation */}
           <div style={{ padding: '8px 0' }}>
             {NAV_ITEMS.map((item) => {
               const isActive = location.pathname === item.key;
               return (
                 <div
                   key={item.key}
-                  onClick={() => {
-                    navigate(item.key);
-                    setDropdownOpen(false);
-                  }}
+                  onClick={() => { navigate(item.key); setDropdownOpen(false); }}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 14,
+                    display: 'flex', alignItems: 'center', gap: 14,
                     padding: '10px 20px',
                     cursor: 'pointer',
                     background: isActive ? '#f0f7ff' : 'transparent',
                     transition: 'background 0.15s',
                     borderLeft: isActive ? '3px solid #1677ff' : '3px solid transparent',
                   }}
+                  onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = '#f9fafb'; }}
+                  onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
                 >
                   <div style={{
                     width: 36, height: 36, borderRadius: 9,
                     background: isActive ? '#e6f4ff' : '#f3f4f6',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: isActive ? '#1677ff' : '#6b7280', flexShrink: 0
+                    color: isActive ? '#1677ff' : '#6b7280', flexShrink: 0,
                   }}>
                     {item.icon}
                   </div>
@@ -222,12 +244,25 @@ const HeaderBar: React.FC = () => {
           <Divider style={{ margin: 0 }} />
 
           {/* Logout */}
-          <div style={{ padding: '8px 0 4px' }} onClick={handleLogout}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '10px 20px', cursor: 'pointer' }}>
+          <div style={{ padding: '8px 0 4px' }}>
+            <div
+              onClick={handleLogout}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '10px 20px',
+                cursor: loggingOut ? 'not-allowed' : 'pointer',
+                opacity: loggingOut ? 0.6 : 1,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => { if (!loggingOut) (e.currentTarget as HTMLDivElement).style.background = '#fef2f2'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
+            >
               <div style={{ width: 36, height: 36, borderRadius: 9, background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', flexShrink: 0 }}>
                 <LogoutOutlined style={{ fontSize: 15 }} />
               </div>
-              <Text style={{ fontSize: 14, color: '#ef4444', fontWeight: 500 }}>Đăng xuất</Text>
+              <Text style={{ fontSize: 14, color: '#ef4444', fontWeight: 500 }}>
+                {loggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
+              </Text>
             </div>
           </div>
         </div>
@@ -236,7 +271,7 @@ const HeaderBar: React.FC = () => {
       <style>{`
         @keyframes dropdownIn {
           from { opacity: 0; transform: translateY(-8px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0)   scale(1); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
     </>

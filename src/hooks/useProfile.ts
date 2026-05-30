@@ -55,20 +55,18 @@ export function useProfile(): UseProfileReturn {
     setLoading(true);
     setConnectionError(null);
     try {
-      const userStr = localStorage.getItem('user');
-      const currentUser = userStr ? JSON.parse(userStr) : null;
-
-      if (!currentUser || !currentUser.id) {
-        throw new Error("Không tìm thấy ID người dùng!");
-      }
-
-      const res = await userApi.getProfile(currentUser.id);
+      const res = await userApi.getProfile();
       const rawData = res.data?.data || res.data;
 
-      const cachedStr = localStorage.getItem('user_cache_phone') || '{}';
-      const cached = JSON.parse(cachedStr);
-      if (cached[currentUser.id] && !rawData.phone) {
-        rawData.phone = cached[currentUser.id];
+      // Bổ sung phone từ cache nếu backend không trả về
+      const userStr = localStorage.getItem('user');
+      const currentUser = userStr ? JSON.parse(userStr) : null;
+      if (currentUser?.id) {
+        const cachedStr = localStorage.getItem('user_cache_phone') || '{}';
+        const cached = JSON.parse(cachedStr);
+        if (cached[currentUser.id] && !rawData.phone) {
+          rawData.phone = cached[currentUser.id];
+        }
       }
 
       setProfile(mapBackendToProfile(rawData));
@@ -87,22 +85,21 @@ export function useProfile(): UseProfileReturn {
     if (!profile) return;
     setSaving(true);
     try {
-      const res = await userApi.updateProfile(profile.id, payload);
+      const res = await userApi.updateProfile(payload);
       
-      if (payload.phone) {
-        const cachedStr = localStorage.getItem('user_cache_phone') || '{}';
-        const cached = JSON.parse(cachedStr);
-        cached[profile.id] = payload.phone;
-        localStorage.setItem('user_cache_phone', JSON.stringify(cached));
-      }
+      // Luôn lưu phone vào cache (backend mapper không trả về phone)
+      const cachedStr = localStorage.getItem('user_cache_phone') || '{}';
+      const cached = JSON.parse(cachedStr);
+      cached[profile.id] = payload.phone || '';
+      localStorage.setItem('user_cache_phone', JSON.stringify(cached));
 
       const rawData = res.data?.data || res.data;
-      if (!rawData.phone && payload.phone) {
-        rawData.phone = payload.phone;
-      }
-      
+      // Backend UpdatedUserResponse không có phone → bổ sung từ payload
+      if (!rawData.phone) rawData.phone = payload.phone || cached[profile.id];
+
       setProfile(mapBackendToProfile(rawData));
       setConnectionError(null);
+
     } catch {
       setProfile((prev: any) =>
         prev

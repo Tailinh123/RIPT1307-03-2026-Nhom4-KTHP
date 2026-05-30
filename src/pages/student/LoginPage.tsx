@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Card, Input, Button, Typography, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { Card, Input, Button, Typography, message, Divider } from 'antd';
+import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '@/api/authApi';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -69,6 +69,17 @@ const LoginPage: React.FC = () => {
         >
           Đăng nhập
         </Button>
+
+        <Divider style={{ margin: '16px 0', fontSize: 13, color: '#9ca3af' }}>hoặc</Divider>
+
+        <div style={{ textAlign: 'center' }}>
+          <Text type="secondary" style={{ fontSize: 14 }}>
+            Chưa có tài khoản?{' '}
+            <Link to="/register" style={{ color: '#1677ff', fontWeight: 600 }}>
+              Đăng ký ngay
+            </Link>
+          </Text>
+        </div>
       </Card>
     </div>
   );

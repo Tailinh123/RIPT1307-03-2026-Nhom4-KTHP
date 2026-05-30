@@ -287,7 +287,7 @@ const JobDetailPage: React.FC = () => {
               border: '1px solid #eef0f5',
               boxShadow: '0 2px 16px rgba(0,0,0,0.04)',
             }}
-            styles={{ body: { padding: '28px 32px' } }}
+            bodyStyle={{ padding: '28px 32px' }}
           >
             {/* ── Header: Avatar + Title + Company ── */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 20 }}>
@@ -446,7 +446,7 @@ const JobDetailPage: React.FC = () => {
                 border: '1px solid #eef0f5',
                 boxShadow: '0 2px 16px rgba(0,0,0,0.04)',
               }}
-              styles={{ body: { padding: '20px 24px' } }}
+              bodyStyle={{ padding: '20px 24px' }}
             >
               {/* Deadline */}
               <div style={{ marginBottom: 18 }}>

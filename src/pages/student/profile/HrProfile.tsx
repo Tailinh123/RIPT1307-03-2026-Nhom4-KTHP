@@ -130,13 +130,11 @@ export default function HrProfile() {
         gender: values.gender,
         dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : null,
         avatarUrl: uploadedAvatarName,
-        // Giữ nguyên company của tài khoản
         company: profile?.company ? { id: profile.company.id } : null,
       };
 
       await axiosClient.put(`/api/v1/users/${userObj.id}`, payload);
 
-      // Lưu phone cache
       if (values.phone) {
         const phoneCache = JSON.parse(localStorage.getItem('user_cache_phone') || '{}');
         phoneCache[userObj.id] = values.phone;
@@ -184,7 +182,6 @@ export default function HrProfile() {
         </div>
 
         <Row gutter={24}>
-          {/* Cột trái: Avatar */}
           <Col xs={24} md={8}>
             <Card
               bordered={false}
@@ -232,7 +229,6 @@ export default function HrProfile() {
             </Card>
           </Col>
 
-          {/* Cột phải: Form thông tin */}
           <Col xs={24} md={16}>
             <Card
               bordered={false}
@@ -305,7 +301,6 @@ export default function HrProfile() {
                     </Col>
                   </Row>
 
-                  {/* Hiển thị công ty (read-only) */}
                   <Row gutter={16}>
                     <Col span={24}>
                       <Form.Item label={<span><BankOutlined /> Công ty công tác</span>}>

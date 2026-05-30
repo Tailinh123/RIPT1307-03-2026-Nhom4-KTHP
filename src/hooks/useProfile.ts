@@ -58,7 +58,6 @@ export function useProfile(): UseProfileReturn {
       const res = await userApi.getProfile();
       const rawData = res.data?.data || res.data;
 
-      // Bổ sung phone từ cache nếu backend không trả về
       const userStr = localStorage.getItem('user');
       const currentUser = userStr ? JSON.parse(userStr) : null;
       if (currentUser?.id) {
@@ -87,14 +86,12 @@ export function useProfile(): UseProfileReturn {
     try {
       const res = await userApi.updateProfile(payload);
       
-      // Luôn lưu phone vào cache (backend mapper không trả về phone)
       const cachedStr = localStorage.getItem('user_cache_phone') || '{}';
       const cached = JSON.parse(cachedStr);
       cached[profile.id] = payload.phone || '';
       localStorage.setItem('user_cache_phone', JSON.stringify(cached));
 
       const rawData = res.data?.data || res.data;
-      // Backend UpdatedUserResponse không có phone → bổ sung từ payload
       if (!rawData.phone) rawData.phone = payload.phone || cached[profile.id];
 
       setProfile(mapBackendToProfile(rawData));

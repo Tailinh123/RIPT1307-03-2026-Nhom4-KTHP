@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Typography, message } from 'antd';
+import { Form, Input, Button, Typography, message, Divider } from 'antd';
 import { LockOutlined, MailOutlined, RocketOutlined } from '@ant-design/icons';
 import { authApi } from '@/api/authApi';
 
@@ -7,9 +7,10 @@ const { Title, Text } = Typography;
 
 type LoginPageProps = {
   onSuccess?: () => void;
+  onRegister?: () => void;
 };
 
-const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onRegister }) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
@@ -121,6 +122,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
             Đăng nhập
           </Button>
         </Form>
+
+        <Divider style={{ margin: '20px 0', fontSize: 13, color: '#9ca3af' }}>hoặc</Divider>
+
+        <div style={{ textAlign: 'center' }}>
+          <Text style={{ color: '#6b7280', fontSize: 14 }}>
+            Chưa có tài khoản?{' '}
+            <span
+              style={{ color: '#1677ff', fontWeight: 600, cursor: 'pointer' }}
+              onClick={() => onRegister && onRegister()}
+            >
+              Đăng ký ngay
+            </span>
+          </Text>
+        </div>
       </div>
     </div>
   );

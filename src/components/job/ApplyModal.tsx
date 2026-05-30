@@ -84,10 +84,7 @@ const ApplyModal: React.FC<ApplyModalProps> = ({ job, open, onClose, onSubmit, l
         </Space>
       }
       width={520}
-      styles={{
-        body: { paddingTop: 12 },
-        header: { borderBottom: '1px solid #f0f0f0', paddingBottom: 12 },
-      }}
+      bodyStyle={{ paddingTop: 12 }}
       destroyOnClose
     >
       {/* ── Job summary banner ── */}

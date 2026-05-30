@@ -18,6 +18,13 @@ import {
   SearchOutlined,
   ReloadOutlined,
   FilePdfOutlined,
+  EyeOutlined,
+  DownloadOutlined,
+  UserOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  HomeOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type {
@@ -40,6 +47,8 @@ type ApplicationRow = Application & {
 
 import apiClient from "@/api/api";
 
+import { Avatar, Descriptions } from "antd";
+
 const { Title, Text } = Typography;
 
 // ============================================================================
@@ -57,6 +66,9 @@ const ApplicationsReview: React.FC = () => {
   const [actionType, setActionType] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
   const [noteContent, setNoteContent] = useState('');
   const [cvLoading, setCvLoading] = useState<number | null>(null);
+
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [viewingProfile, setViewingProfile] = useState<any>(null);
 
   const [filters, setFilters] = useState<ApplicationFilter>({
     status: undefined,
@@ -149,48 +161,87 @@ const ApplicationsReview: React.FC = () => {
       await updateApplicationStatus({ id: targetApp.id, status: actionType, note: noteContent || undefined });
       setIsModalOpen(false);
       setNoteContent('');
+      const applicantEmail = (targetApp as any).resume?.user?.email || (targetApp as any).createdBy;
+      if (applicantEmail) {
+        message.info(`Đã gửi email thông báo tới ${applicantEmail}`);
+      }
     } catch { /* đã xử lý trong updateApplicationStatus */ } finally {
       setProcessingLoading(false);
     }
   };
 
-  // ── Xem CV (fetch blob với auth token) ───────────────────────────────────
+  const getRawCv = (record: ApplicationRow): string | undefined =>
+    (record as any).resume?.url ||
+    (record as any).cvUrl ||
+    (record as any).resumeUrl ||
+    (record as any).cv;
+
+  const getFileName = (rawCv: string): string =>
+    rawCv
+      .replace(/^.*[/\\]/, '')
+      .replace(/^storage\//, '')
+      .replace(/^uploads\/resume\//, '')
+      .replace(/^resume\//, '')
+      .replace(/^cv\//, '') || 'CV.pdf';
+
+  const fetchCvBlob = async (rawCv: string): Promise<{ blob: Blob; fileName: string }> => {
+    const fileName = getFileName(rawCv);
+    const apiUrl = `/api/v1/files?fileName=${encodeURIComponent(fileName)}&folder=resume`;
+    const res = await apiClient.get(apiUrl, { responseType: 'blob' });
+    return { blob: res.data as Blob, fileName };
+  };
+
+  const handleCvError = (err: any) => {
+    console.error('[CV Error]', err?.response?.status, err?.response?.data, err?.message);
+    if (err?.response?.status === 404) message.error('Không tìm thấy file CV trên server!');
+    else if (err?.response?.status === 403) message.error('Không có quyền truy cập file CV!');
+    else message.error(`Lỗi CV: ${err?.response?.data?.message || err?.message || 'Không xác định'}`);
+  };
+
+  const markAsReviewing = async (record: ApplicationRow) => {
+    if (record.status !== 'PENDING') return;
+    try {
+      await apiClient.put('/api/v1/applications', {
+        id: record.id,
+        status: 'REVIEWING',
+        note: (record as any).note || null,
+      });
+      const updater = (list: Application[]) =>
+        list.map((app) => app.id === record.id ? { ...app, status: 'REVIEWING' as any } : app);
+      allApplicationsRef.current = updater(allApplicationsRef.current);
+      setApplications(updater(allApplicationsRef.current));
+    } catch { /* ignore */ }
+  };
   const handleViewCV = async (record: ApplicationRow) => {
-    const rawCv = (record as any).cvUrl || (record as any).resumeUrl || (record as any).cv;
-    if (!rawCv) {
-      message.warning('Ứng viên này chưa đính kèm file CV!');
-      return;
-    }
+    const rawCv = getRawCv(record);
+    if (!rawCv) { message.warning('Ứng viên này chưa đính kèm file CV!'); return; }
     setCvLoading(record.id);
     try {
-      let apiUrl: string;
-      if (rawCv.startsWith('http')) {
-        apiUrl = rawCv;
+      await markAsReviewing(record);
+      if (rawCv.startsWith('http://') || rawCv.startsWith('https://')) {
+        window.open(rawCv, '_blank', 'noopener,noreferrer');
       } else {
-        const fileName = rawCv
-          .replace(/^storage\//, '')
-          .replace(/^cv\//, '')
-          .replace(/^resume\//, '');
-        apiUrl = `/api/v1/files?fileName=${encodeURIComponent(fileName)}&folder=resume`;
+        const { blob, fileName } = await fetchCvBlob(rawCv);
+        const ext = fileName.split('.').pop()?.toLowerCase();
+        const mimeType = ext === 'pdf' ? 'application/pdf'
+          : ext === 'doc' ? 'application/msword'
+          : ext === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          : 'application/octet-stream';
+        const viewBlob = new Blob([blob], { type: mimeType });
+        const objectUrl = URL.createObjectURL(viewBlob);
+        const win = window.open(objectUrl, '_blank');
+        if (!win) {
+          const link = document.createElement('a');
+          link.href = objectUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 30000);
       }
-      const res = await apiClient.get(apiUrl, { responseType: 'blob' });
-      const blob = res.data as Blob;
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = '';
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
     } catch (err: any) {
-      if (err?.response?.status === 404) {
-        message.error('Không tìm thấy file CV!');
-      } else {
-        message.error('Không thể mở CV. Vui lòng thử lại!');
-      }
+      handleCvError(err);
     } finally {
       setCvLoading(null);
     }
@@ -202,6 +253,22 @@ const ApplicationsReview: React.FC = () => {
 
   const handleResetFilters = () => {
     setFilters({ status: undefined, jobName: undefined });
+  };
+
+  // ── Xem hồ sơ ứng viên ──────────────────────────────────────────────────────────
+  const handleViewApplicant = (record: ApplicationRow) => {)
+    const applicant = (record as any).resume?.user;
+    if (!applicant && !(record as any).createdBy) {
+      message.warning('Không tìm thấy thông tin ứng viên!');
+      return;
+    }
+    const profile = {
+      ...applicant,
+      email: applicant?.email || (record as any).createdBy,
+      name: applicant?.name || (record as any).createdBy?.split('@')[0],
+    };
+    setViewingProfile(profile);
+    setProfileModalOpen(true);
   };
 
   // ── TABLE COLUMNS ────────────────────────────────────────────────────────
@@ -228,15 +295,25 @@ const ApplicationsReview: React.FC = () => {
     {
       title: 'Ứng viên',
       key: 'applicant',
-      width: 220,
+      width: 240,
       render: (_, record: ApplicationRow) => {
-        const name = record.applicantName || record.user?.name || record.candidate?.name || 'Ẩn danh';
-        const email = record.applicantEmail || record.user?.email || record.candidate?.email || 'Chưa có email';
+        const applicant = (record as any).resume?.user;
+        const name = applicant?.name || record.applicantName || record.user?.name || (record as any).createdBy?.split('@')[0] || 'Không rõ';
+        const email = applicant?.email || record.applicantEmail || record.user?.email || (record as any).createdBy || 'Chưa có email';
         return (
-          <div>
-            <Text strong>{name}</Text>
-            <br />
-            <Text type="secondary" style={{ fontSize: '12px' }}>{email}</Text>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ flex: 1 }}>
+              <Text strong style={{ display: 'block' }}>{name}</Text>
+              <Text type="secondary" style={{ fontSize: '12px' }}>{email}</Text>
+            </div>
+            <Button
+              type="link"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewApplicant(record)}
+              title="Xem hồ sơ ứng viên"
+              style={{ padding: '0 4px', color: '#1677ff' }}
+            />
           </div>
         );
       },
@@ -252,12 +329,13 @@ const ApplicationsReview: React.FC = () => {
     },
     {
       title: 'Ngày nộp',
-      dataIndex: 'appliedAt',
-      key: 'appliedAt',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 110,
-      render: (date: string) => {
-        if (!date) return 'Chưa rõ ngày';
-        const d = new Date(date);
+      render: (date: string, record: any) => {
+        const actualDate = date || record.appliedAt;
+        if (!actualDate) return 'Chưa rõ ngày';
+        const d = new Date(actualDate);
         return (
           <div>
             <Text>{d.toLocaleDateString('vi-VN')}</Text>
@@ -308,34 +386,37 @@ const ApplicationsReview: React.FC = () => {
       title: 'Hành động',
       key: 'action',
       width: 200,
-      render: (_, record: ApplicationRow) => (
-        <Space size="small" wrap>
-          {record.status === 'REVIEWING' ? (
-            <>
-              <Button
-                type="primary"
-                size="small"
-                style={{ backgroundColor: '#166534' }}
-                onClick={() => { setTargetApp(record); setActionType('APPROVED'); setIsModalOpen(true); }}
-              >
-                Chấp nhận
-              </Button>
-              <Button
-                danger
-                type="primary"
-                size="small"
-                onClick={() => { setTargetApp(record); setActionType('REJECTED'); setIsModalOpen(true); }}
-              >
-                Từ chối
-              </Button>
-            </>
-          ) : (
-            <Tag color={record.status === 'APPROVED' ? 'green' : record.status === 'REJECTED' ? 'red' : 'orange'}>
-              {applicationStatusLabels[record.status] || record.status}
-            </Tag>
-          )}
-        </Space>
-      ),
+      render: (_, record: ApplicationRow) => {
+        const canAction = record.status === 'PENDING' || record.status === 'REVIEWING';
+        return (
+          <Space size="small" wrap>
+            {canAction ? (
+              <>
+                <Button
+                  type="primary"
+                  size="small"
+                  style={{ backgroundColor: '#166534' }}
+                  onClick={() => { setTargetApp(record); setActionType('APPROVED'); setIsModalOpen(true); }}
+                >
+                  Chấp nhận
+                </Button>
+                <Button
+                  danger
+                  type="primary"
+                  size="small"
+                  onClick={() => { setTargetApp(record); setActionType('REJECTED'); setIsModalOpen(true); }}
+                >
+                  Từ chối
+                </Button>
+              </>
+            ) : (
+              <Tag color={record.status === 'APPROVED' ? 'green' : 'red'}>
+                {applicationStatusLabels[record.status] || record.status}
+              </Tag>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -427,13 +508,13 @@ const ApplicationsReview: React.FC = () => {
       >
         <div style={{ marginBottom: '16px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
           <p style={{ margin: '0 0 8px 0' }}>
-            <strong>Ứng viên:</strong> {targetApp?.applicantName || targetApp?.user?.name || 'Ẩn danh'}
+            <strong>Ứng viên:</strong> {(targetApp as any)?.createdBy?.split('@')[0] || targetApp?.applicantName || 'Ẩn danh'}
           </p>
           <p style={{ margin: '0 0 8px 0' }}>
-            <strong>Email:</strong> {targetApp?.applicantEmail || targetApp?.user?.email || 'N/A'}
+            <strong>Email:</strong> {(targetApp as any)?.createdBy || targetApp?.applicantEmail || 'N/A'}
           </p>
           <p style={{ margin: 0 }}>
-            <strong>Vị trí:</strong> {targetApp?.jobName || targetApp?.job?.title || 'N/A'}
+            <strong>Vị trí:</strong> {(targetApp as any)?.jobName || (targetApp as any)?.job?.name || 'N/A'}
           </p>
         </div>
         <p style={{ fontWeight: 500 }}>Lời nhắn gửi ứng viên:</p>
@@ -443,6 +524,82 @@ const ApplicationsReview: React.FC = () => {
           value={noteContent}
           onChange={(e) => setNoteContent(e.target.value)}
         />
+      </Modal>
+
+      {/* ── Modal xem hồ sơ ứng viên ── */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <UserOutlined style={{ color: '#1677ff' }} />
+            <span>Hồ sơ ứng viên</span>
+          </div>
+        }
+        open={profileModalOpen}
+        onCancel={() => { setProfileModalOpen(false); setViewingProfile(null); }}
+        footer={<Button onClick={() => setProfileModalOpen(false)}>Đóng</Button>}
+        width={560}
+        destroyOnClose
+      >
+        {viewingProfile ? (
+          <div>
+            {/* Avatar + tên */}
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <Avatar
+                size={80}
+                src={viewingProfile.avatarUrl ? `/api/v1/files?fileName=${encodeURIComponent(viewingProfile.avatarUrl.replace(/^.*[/\\]/, '').replace(/^avatar\//, ''))}&folder=avatar` : undefined}
+                icon={<UserOutlined />}
+                style={{ background: 'linear-gradient(135deg, #1677ff, #69b1ff)', fontSize: 32, marginBottom: 12 }}
+              >
+                {!viewingProfile.avatarUrl && (viewingProfile.name || viewingProfile.email || '?').charAt(0).toUpperCase()}
+              </Avatar>
+              <div>
+                <Text strong style={{ fontSize: 18, display: 'block' }}>
+                  {viewingProfile.name || viewingProfile.email?.split('@')[0] || 'Ứng viên'}
+                </Text>
+                <Text type="secondary">{viewingProfile.role?.name || 'Ứng viên'}</Text>
+              </div>
+            </div>
+
+            <Descriptions
+              column={1}
+              bordered
+              size="small"
+              labelStyle={{ width: 140, fontWeight: 500, color: '#6b7280' }}
+              contentStyle={{ color: '#111827', fontWeight: 500 }}
+            >
+              <Descriptions.Item label={<><MailOutlined /> Email</>}>
+                {viewingProfile.email || '—'}
+              </Descriptions.Item>
+              <Descriptions.Item label={<><PhoneOutlined /> Số điện thoại</>}>
+                {viewingProfile.phone || '—'}
+              </Descriptions.Item>
+              <Descriptions.Item label={<><CalendarOutlined /> Ngày sinh</>}>
+                {viewingProfile.dateOfBirth
+                  ? new Date(viewingProfile.dateOfBirth).toLocaleDateString('vi-VN')
+                  : '—'}
+              </Descriptions.Item>
+              <Descriptions.Item label="Giới tính">
+                {viewingProfile.gender === 'MALE' ? 'Nam'
+                  : viewingProfile.gender === 'FEMALE' ? 'Nữ'
+                  : viewingProfile.gender === 'OTHER' ? 'Khác' : '—'}
+              </Descriptions.Item>
+              <Descriptions.Item label={<><HomeOutlined /> Địa chỉ</>}>
+                {viewingProfile.address || '—'}
+              </Descriptions.Item>
+              {viewingProfile.skills && viewingProfile.skills.length > 0 && (
+                <Descriptions.Item label="Kỹ năng">
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {viewingProfile.skills.map((s: any) => (
+                      <Tag key={s.id} color="blue">{s.name}</Tag>
+                    ))}
+                  </div>
+                </Descriptions.Item>
+              )}
+            </Descriptions>
+          </div>
+        ) : (
+          <Text type="secondary">Không tìm thấy thông tin ứng viên.</Text>
+        )}
       </Modal>
     </div>
   );

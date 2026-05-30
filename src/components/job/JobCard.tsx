@@ -57,7 +57,6 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
         flexDirection: 'column',
       }}
       bodyStyle={{ padding: 20, display: 'flex', flexDirection: 'column', height: '100%' }}
-      styles={{ body: { padding: 20 } }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 30px rgba(22,119,255,0.12)';
         (e.currentTarget as HTMLDivElement).style.borderColor = '#91caff';

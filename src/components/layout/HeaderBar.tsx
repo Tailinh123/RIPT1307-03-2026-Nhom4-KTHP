@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Typography,
   Avatar,
@@ -12,6 +12,8 @@ import {
   RocketOutlined,
 } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
+import axiosClient from '@/api/axiosClient';
+import { useAuthImage } from '@/hooks/useAuthImage';
 
 const { Text } = Typography;
 
@@ -40,8 +42,60 @@ const HeaderBar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const isJobDetail = /^\/jobs\/\d+/.test(location.pathname);
+
+  // Đọc thông tin user từ localStorage để hiển thị tên thật
+  const [displayName, setDisplayName] = useState('Sinh viên');
+  const [displayEmail, setDisplayEmail] = useState('');
+  const [avatarLetter, setAvatarLetter] = useState('SV');
+  const [rawAvatarUrl, setRawAvatarUrl] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const name = user.name || user.fullName || 'Sinh viên';
+        setDisplayName(name);
+        setDisplayEmail(user.email || '');
+        setAvatarLetter(name.charAt(0).toUpperCase() || 'SV');
+        // Đọc avatarUrl để fetch ảnh
+        const av = user.avatarUrl;
+        if (av) {
+          const fileNameOnly = av.replace(/^storage\//, '').replace(/^avatar\//, '');
+          setRawAvatarUrl(`/api/v1/files?fileName=${encodeURIComponent(fileNameOnly)}&folder=avatar`);
+        } else {
+          setRawAvatarUrl(undefined);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [dropdownOpen]); // re-read mỗi khi mở dropdown
+
+  // Fetch avatar với auth token
+  const avatarSrc = useAuthImage(rawAvatarUrl);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      // Gọi API logout để xóa refresh token cookie phía server
+      await axiosClient.post('/api/v1/auth/logout');
+    } catch {
+      // Dù API lỗi vẫn xóa local data và redirect
+    } finally {
+      // Xóa toàn bộ dữ liệu xác thực local
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('user_cache_phone');
+      setDropdownOpen(false);
+      // Redirect về trang login
+      navigate('/login', { replace: true });
+    }
+  };
 
   return (
     <>
@@ -92,9 +146,10 @@ const HeaderBar: React.FC = () => {
         {/* ── Right: user avatar ── */}
         <Avatar
           size={36}
+          src={avatarSrc}
           onClick={() => setDropdownOpen((v) => !v)}
           style={{
-            background: 'linear-gradient(135deg, #1677ff 0%, #69b1ff 100%)',
+            background: avatarSrc ? undefined : 'linear-gradient(135deg, #1677ff 0%, #69b1ff 100%)',
             cursor: 'pointer',
             fontSize: 13,
             fontWeight: 700,
@@ -103,7 +158,7 @@ const HeaderBar: React.FC = () => {
             transition: 'box-shadow 0.2s',
           }}
         >
-          SV
+          {!avatarSrc && avatarLetter}
         </Avatar>
       </div>
 
@@ -144,14 +199,15 @@ const HeaderBar: React.FC = () => {
           >
             <Avatar
               size={48}
+              src={avatarSrc}
               style={{
-                background: 'linear-gradient(135deg, #1677ff 0%, #69b1ff 100%)',
+                background: avatarSrc ? undefined : 'linear-gradient(135deg, #1677ff 0%, #69b1ff 100%)',
                 fontSize: 16,
                 fontWeight: 700,
                 flexShrink: 0,
               }}
             >
-              SV
+              {!avatarSrc && avatarLetter}
             </Avatar>
             <div style={{ overflow: 'hidden' }}>
               <Text
@@ -165,8 +221,13 @@ const HeaderBar: React.FC = () => {
                   textOverflow: 'ellipsis',
                 }}
               >
-                Sinh viên
+                {displayName}
               </Text>
+              {displayEmail && (
+                <Text style={{ fontSize: 12, color: '#9ca3af', display: 'block' }}>
+                  {displayEmail}
+                </Text>
+              )}
             </div>
           </div>
 
@@ -243,16 +304,19 @@ const HeaderBar: React.FC = () => {
           {/* Logout */}
           <div style={{ padding: '8px 0 4px' }}>
             <div
+              onClick={handleLogout}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 14,
                 padding: '10px 20px',
-                cursor: 'pointer',
+                cursor: loggingOut ? 'not-allowed' : 'pointer',
+                opacity: loggingOut ? 0.6 : 1,
                 transition: 'background 0.15s',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background = '#fef2f2';
+                if (!loggingOut)
+                  (e.currentTarget as HTMLDivElement).style.background = '#fef2f2';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLDivElement).style.background = 'transparent';
@@ -274,7 +338,7 @@ const HeaderBar: React.FC = () => {
                 <LogoutOutlined style={{ fontSize: 15 }} />
               </div>
               <Text style={{ fontSize: 14, color: '#ef4444', fontWeight: 500 }}>
-                Đăng xuất
+                {loggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
               </Text>
             </div>
           </div>

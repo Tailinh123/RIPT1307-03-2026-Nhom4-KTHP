@@ -46,7 +46,6 @@ const HeaderBar: React.FC = () => {
 
   const isJobDetail = /^\/jobs\/\d+/.test(location.pathname);
 
-  // Đọc thông tin user từ localStorage để hiển thị tên thật
   const [displayName, setDisplayName] = useState('Sinh viên');
   const [displayEmail, setDisplayEmail] = useState('');
   const [avatarLetter, setAvatarLetter] = useState('SV');
@@ -73,26 +72,22 @@ const HeaderBar: React.FC = () => {
         // ignore
       }
     }
-  }, [dropdownOpen]); // re-read mỗi khi mở dropdown
+  }, [dropdownOpen]); 
 
-  // Fetch avatar với auth token
   const avatarSrc = useAuthImage(rawAvatarUrl);
 
   const handleLogout = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
     try {
-      // Gọi API logout để xóa refresh token cookie phía server
       await axiosClient.post('/api/v1/auth/logout');
     } catch {
       // Dù API lỗi vẫn xóa local data và redirect
     } finally {
-      // Xóa toàn bộ dữ liệu xác thực local
       localStorage.removeItem('access_token');
       localStorage.removeItem('user');
       localStorage.removeItem('user_cache_phone');
       setDropdownOpen(false);
-      // Redirect về trang login
       navigate('/login', { replace: true });
     }
   };

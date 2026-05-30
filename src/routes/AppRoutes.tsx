@@ -8,14 +8,16 @@ import JobDetailPage from '@/pages/student/JobDetailPage';
 import MyApplicationsPage from '@/pages/student/MyApplicationsPage';
 import ProfilePage from '@/pages/student/ProfilePage';
 import LoginPage from '@/pages/student/LoginPage';
+import RegisterPage from '@/pages/student/RegisterPage';
 
 import ProtectedRoute from './ProtectedRoute';
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Login */}
+      {/* Auth */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
       {/* Protected */}
       <Route

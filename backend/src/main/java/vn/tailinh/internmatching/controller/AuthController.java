@@ -7,6 +7,7 @@ import vn.tailinh.internmatching.dto.request.user.LoginDTO;
 import vn.tailinh.internmatching.dto.request.user.RegisterDTO;
 import vn.tailinh.internmatching.dto.response.auth.LoginResponse;
 import vn.tailinh.internmatching.dto.response.user.CreatedUserResponse;
+import vn.tailinh.internmatching.dto.response.user.ResUserDTO;
 import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.security.SecurityUtils;
 import vn.tailinh.internmatching.service.SecurityService;
@@ -219,6 +220,14 @@ public class AuthController {
     return ResponseEntity.ok()
         .header(HttpHeaders.SET_COOKIE, deleteSpringCookie.toString())
         .body(null);
+  }
+
+
+
+  @GetMapping("/profile")
+  @ApiMessage("Get full user profile")
+  public ResponseEntity<ResUserDTO> getProfile() throws Exception {
+    return ResponseEntity.ok().body(this.userService.fetchCurrentUserProfile());
   }
 }
 

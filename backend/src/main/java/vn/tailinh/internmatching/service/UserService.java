@@ -23,6 +23,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.method.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -88,6 +89,22 @@ public class UserService {
         } else {
             throw new IdInvalidException("The specified User ID is invalid");
         }
+    }
+
+
+
+    public ResUserDTO fetchCurrentUserProfile() throws Exception {
+      String email = SecurityUtils.getCurrentUserLogin().orElse("");
+      if(email.isEmpty()) {
+        throw new IdInvalidException("Access token is not valid or expired");
+      }
+
+      User currentUser = this.handleGetUserByUsername(email);
+      if(currentUser == null ) {
+        throw new IdInvalidException("User not found");
+      }
+
+      return UserMapper.convertToUserDTO(currentUser);
     }
 
 

@@ -18,6 +18,7 @@ public class UserMapper {
         res.setCreatedBy(user.getCreatedBy());
         res.setGender(user.getGender());
         res.setName(user.getName());
+        res.setPhone(user.getPhone());
         res.setAvatarUrl(user.getAvatarUrl());
         res.setActive(user.isActive());
 

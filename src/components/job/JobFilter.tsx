@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Input,
   Button,
@@ -8,12 +8,20 @@ import {
   Badge,
 } from 'antd';
 import {
+  JOB_CATEGORY_OPTIONS,
+  JOB_LEVEL_OPTIONS,
+  WORK_MODE_OPTIONS,
+  JOB_LOCATION_OPTIONS,
+  CATEGORY_NAME_MAP
+} from '@/utils/constants';
+import {
   SearchOutlined,
   FilterOutlined,
   DownOutlined,
   CloseCircleFilled,
 } from '@ant-design/icons';
 import type { JobFilterParams, JobLevel, WorkMode } from '@/types/job';
+import axiosClient from '@/api/axiosClient';
 
 interface JobFilterProps {
   filters: JobFilterParams;
@@ -21,13 +29,7 @@ interface JobFilterProps {
   loading?: boolean;
 }
 
-// Location options
-const LOCATION_OPTIONS = [
-  { label: 'Hà Nội', value: 'HANOI' },
-  { label: 'TP Hồ Chí Minh', value: 'HCMC' },
-  { label: 'Đà Nẵng', value: 'DANANG' },
-  { label: 'Khác', value: 'OTHER' },
-];
+// Location and Company options will be loaded dynamically
 
 // Level options (matches backend enum)
 const LEVEL_OPTIONS: { label: string; value: JobLevel }[] = [
@@ -57,10 +59,54 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
   const [location, setLocation] = useState<string | undefined>(filters.location);
   const [level, setLevel] = useState<JobLevel | undefined>(filters.level);
   const [workMode, setWorkMode] = useState<WorkMode | undefined>(filters.workMode);
+  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [categoryOptions, setCategoryOptions] = useState<{ label: string; value: number }[]>([]);
+  const [locationOptions, setLocationOptions] = useState<{ label: string; value: string }[]>([]);
+  const [companyOptions, setCompanyOptions] = useState<{ label: string; value: number }[]>([]);
+  const [companyId, setCompanyId] = useState<number | undefined>(filters.companyId);
+
+  // Load categories từ API
+  useEffect(() => {
+    axiosClient
+      .get('/api/v1/job-categories', { params: { page: 0, size: 100 } })
+      .then((res) => {
+        const data = res.data?.data?.result || res.data?.data || res.data || [];
+        const list = Array.isArray(data) ? data : [];
+        setCategoryOptions(list.map((c: any) => ({
+          label: CATEGORY_NAME_MAP[c.name] || c.name,
+          value: c.id
+        })));
+      })
+      .catch(() => setCategoryOptions([]));
+
+    // Load jobs to extract locations
+    axiosClient
+      .get('/api/v1/jobs', { params: { page: 0, size: 500 } })
+      .then((res) => {
+        const data = res.data?.data?.result || [];
+        const locSet = new Set<string>();
+        data.forEach((job: any) => {
+          if (job.location) locSet.add(job.location);
+        });
+        const opts = Array.from(locSet).map((loc) => ({ label: loc, value: loc }));
+        setLocationOptions(opts);
+      })
+      .catch(() => {});
+
+    // Load companies
+    axiosClient
+      .get('/api/v1/companies', { params: { page: 0, size: 500 } })
+      .then((res) => {
+        const data = res.data?.data?.result || [];
+        const opts = data.map((c: any) => ({ label: c.name, value: c.id }));
+        setCompanyOptions(opts);
+      })
+      .catch(() => {});
+  }, []);
 
   // Count active advanced filters (not counting keyword)
-  const activeCount = [location, level, workMode].filter(Boolean).length;
+  const activeCount = [location, level, workMode, categoryId, companyId].filter(Boolean).length;
 
   const handleSearch = () => {
     onChange({
@@ -68,7 +114,9 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
       location,
       level,
       workMode,
-    });
+      categoryId: categoryId,
+      companyId: companyId,
+    } as any);
     setPopoverOpen(false);
   };
 
@@ -77,6 +125,8 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
     setLocation(undefined);
     setLevel(undefined);
     setWorkMode(undefined);
+    setCategoryId(undefined);
+    setCompanyId(undefined);
     onChange({});
     setPopoverOpen(false);
   };
@@ -96,16 +146,54 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
   const popoverContent = (
     <div style={{ width: 300, padding: '2px 0 0' }}>
 
+      {/* Phân loại ngành */}
+      <div style={{ marginBottom: 14 }}>
+        <span style={labelStyle}>Phân loại ngành</span>
+        <Select
+          placeholder="Tất cả ngành"
+          allowClear
+          showSearch
+          style={{ width: '100%' }}
+          options={categoryOptions}
+          value={categoryId}
+          onChange={(v) => setCategoryId(v)}
+          filterOption={(input, opt) => String(opt?.label ?? '').toLowerCase().includes(input.toLowerCase())}
+          getPopupContainer={popupToBody}
+          dropdownStyle={SELECT_DROPDOWN_STYLE}
+          listHeight={200}
+        />
+      </div>
+
+      {/* Công ty */}
+      <div style={{ marginBottom: 14 }}>
+        <span style={labelStyle}>Công ty</span>
+        <Select
+          placeholder="Tất cả công ty"
+          allowClear
+          showSearch
+          style={{ width: '100%' }}
+          options={companyOptions}
+          value={companyId}
+          onChange={(v) => setCompanyId(v)}
+          filterOption={(input, opt) => String(opt?.label ?? '').toLowerCase().includes(input.toLowerCase())}
+          getPopupContainer={popupToBody}
+          dropdownStyle={SELECT_DROPDOWN_STYLE}
+          listHeight={200}
+        />
+      </div>
+
       {/* Địa chỉ */}
       <div style={{ marginBottom: 14 }}>
         <span style={labelStyle}>Địa chỉ</span>
         <Select
           placeholder="Tất cả địa chỉ"
           allowClear
+          showSearch
           style={{ width: '100%' }}
-          options={LOCATION_OPTIONS}
+          options={locationOptions}
           value={location}
           onChange={(v) => setLocation(v)}
+          filterOption={(input, opt) => String(opt?.label ?? '').toLowerCase().includes(input.toLowerCase())}
           getPopupContainer={popupToBody}
           dropdownStyle={SELECT_DROPDOWN_STYLE}
           listHeight={200}
@@ -119,7 +207,7 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
           placeholder="Tất cả cấp độ"
           allowClear
           style={{ width: '100%' }}
-          options={LEVEL_OPTIONS}
+          options={JOB_LEVEL_OPTIONS}
           value={level}
           onChange={(v) => setLevel(v)}
           getPopupContainer={popupToBody}

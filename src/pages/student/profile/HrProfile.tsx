@@ -29,7 +29,6 @@ export default function HrProfile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [messageApi, contextHolder] = message.useMessage();
 
-  // Fetch avatar với auth
   const rawAvatarName = profile?.avatarUrl;
   const apiAvatarUrl = rawAvatarName
     ? `/api/v1/files?fileName=${encodeURIComponent(rawAvatarName.replace(/^storage\//, '').replace(/^avatar\//, ''))}&folder=avatar`
@@ -37,7 +36,6 @@ export default function HrProfile() {
   const fetchedAvatarUrl = useAuthImage(apiAvatarUrl);
   const finalAvatar = avatarPreview ?? fetchedAvatarUrl;
 
-  // Load profile từ API
   useEffect(() => {
     const loadProfile = async () => {
       setLoading(true);
@@ -45,16 +43,21 @@ export default function HrProfile() {
         const userStr = localStorage.getItem('user');
         const userObj = userStr ? JSON.parse(userStr) : null;
         if (!userObj?.id) throw new Error('Chưa đăng nhập');
-        const res = await axiosClient.get(`/api/v1/users/${userObj.id}`);
+        const res = await axiosClient.get(`/api/v1/auth/profile`);
         const data = res.data?.data || res.data;
-        // Bổ sung phone từ cache nếu backend chưa trả về
-        const phoneCache = JSON.parse(localStorage.getItem('user_cache_phone') || '{}');
-        if (!data.phone && phoneCache[userObj.id]) data.phone = phoneCache[userObj.id];
+        if (!data.phone) {
+          const phoneCache = JSON.parse(localStorage.getItem('user_cache_phone') || '{}');
+          if (phoneCache[userObj.id]) data.phone = phoneCache[userObj.id];
+        }
         setProfile(data);
       } catch {
-        // Fallback localStorage
         const userStr = localStorage.getItem('user');
-        if (userStr) setProfile(JSON.parse(userStr));
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          const phoneCache = JSON.parse(localStorage.getItem('user_cache_phone') || '{}');
+          if (!u.phone && phoneCache[u.id]) u.phone = phoneCache[u.id];
+          setProfile(u);
+        }
       } finally {
         setLoading(false);
       }
@@ -103,7 +106,6 @@ export default function HrProfile() {
 
       let uploadedAvatarName = profile?.avatarUrl;
 
-      // Upload ảnh nếu có
       if (avatarFile) {
         try {
           messageApi.open({ type: 'loading', content: 'Đang tải ảnh lên...', key: 'upload' });
@@ -123,7 +125,6 @@ export default function HrProfile() {
       }
 
       const payload = {
-        id: userObj.id,
         name: values.name,
         phone: values.phone,
         address: values.address,
@@ -133,22 +134,27 @@ export default function HrProfile() {
         company: profile?.company ? { id: profile.company.id } : null,
       };
 
-      await axiosClient.put(`/api/v1/users/${userObj.id}`, payload);
+      await axiosClient.put(`/api/v1/auth/profile`, payload);
 
-      if (values.phone) {
-        const phoneCache = JSON.parse(localStorage.getItem('user_cache_phone') || '{}');
-        phoneCache[userObj.id] = values.phone;
-        localStorage.setItem('user_cache_phone', JSON.stringify(phoneCache));
-      }
+      const phoneCache = JSON.parse(localStorage.getItem('user_cache_phone') || '{}');
+      phoneCache[userObj.id] = values.phone;
+      localStorage.setItem('user_cache_phone', JSON.stringify(phoneCache));
 
-      // Cập nhật localStorage header
       localStorage.setItem('user', JSON.stringify({
         ...userObj,
         name: values.name,
         avatarUrl: uploadedAvatarName,
       }));
 
-      setProfile({ ...profile, ...payload });
+      try {
+        const refreshRes = await axiosClient.get(`/api/v1/auth/profile`);
+        const freshData = refreshRes.data?.data || refreshRes.data;
+        if (!freshData.phone) freshData.phone = values.phone;
+        setProfile(freshData);
+      } catch {
+        setProfile({ ...profile, ...payload, phone: values.phone });
+      }
+
       setEditing(false);
       setAvatarFile(null);
       setAvatarPreview(null);
@@ -303,8 +309,17 @@ export default function HrProfile() {
 
                   <Row gutter={16}>
                     <Col span={24}>
-                      <Form.Item label={<span><BankOutlined /> Công ty công tác</span>}>
-                        <Input value={companyName} disabled size="large" style={{ background: '#f9fafb' }} />
+                      <Form.Item
+                        label={<span><BankOutlined /> Công ty công tác</span>}
+                      >
+                        <Input
+                          value={companyName === '—' ? '' : companyName}
+                          disabled
+                          size="large"
+                          placeholder="Chưa có công ty"
+                          style={{ background: '#f9fafb', cursor: 'not-allowed' }}
+                          prefix={<BankOutlined style={{ color: '#bfbfbf' }} />}
+                        />
                       </Form.Item>
                     </Col>
                   </Row>

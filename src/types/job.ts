@@ -23,6 +23,7 @@ export interface Job {
   salaryMin: number;
   salaryMax: number;
   level: JobLevel;
+  jobType?: string;
   workMode: WorkMode;
   category: JobCategory;
   skills: Skill[];
@@ -33,10 +34,10 @@ export interface Job {
 
 export interface JobFilterParams {
   keyword?: string;
-  location?: string;
-  category?: JobCategory;
-  categoryName?: string;   // free-text filter matched against jobCategory.name via Spring Filter
+  categoryId?: number;
+  companyId?: number;
   skills?: number[];
+  location?: string;
   level?: JobLevel;
   workMode?: WorkMode;
   page?: number;

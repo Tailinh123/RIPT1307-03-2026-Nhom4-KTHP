@@ -28,10 +28,6 @@ interface JobFilterProps {
   onChange: (filters: JobFilterParams) => void;
   loading?: boolean;
 }
-
-// Location and Company options will be loaded dynamically
-
-// Level options (matches backend enum)
 const LEVEL_OPTIONS: { label: string; value: JobLevel }[] = [
   { label: 'Thực tập sinh', value: 'INTERN' },
   { label: 'Fresher', value: 'FRESHER' },
@@ -40,21 +36,16 @@ const LEVEL_OPTIONS: { label: string; value: JobLevel }[] = [
   { label: 'Senior', value: 'SENIOR' },
 ];
 
-// WorkMode options (matches backend enum)
 const WORKMODE_OPTIONS: { label: string; value: WorkMode }[] = [
   { label: 'Tại văn phòng', value: 'ONSITE' },
   { label: 'Từ xa', value: 'REMOTE' },
   { label: 'Kết hợp', value: 'HYBRID' },
 ];
 
-
-
-// Ensure all Select dropdowns inside Popover escape overflow:hidden by mounting on body
 const popupToBody = () => document.body;
 const SELECT_DROPDOWN_STYLE: React.CSSProperties = { zIndex: 2000, borderRadius: 10 };
 
 const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => {
-  // Local controlled state – mirrors filters prop
   const [keyword, setKeyword] = useState(filters.keyword ?? '');
   const [location, setLocation] = useState<string | undefined>(filters.location);
   const [level, setLevel] = useState<JobLevel | undefined>(filters.level);
@@ -66,7 +57,6 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
   const [companyOptions, setCompanyOptions] = useState<{ label: string; value: number }[]>([]);
   const [companyId, setCompanyId] = useState<number | undefined>(filters.companyId);
 
-  // Load categories từ API
   useEffect(() => {
     axiosClient
       .get('/api/v1/job-categories', { params: { page: 0, size: 100 } })
@@ -80,7 +70,6 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
       })
       .catch(() => setCategoryOptions([]));
 
-    // Load jobs to extract locations
     axiosClient
       .get('/api/v1/jobs', { params: { page: 0, size: 500 } })
       .then((res) => {
@@ -94,7 +83,6 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
       })
       .catch(() => {});
 
-    // Load companies
     axiosClient
       .get('/api/v1/companies', { params: { page: 0, size: 500 } })
       .then((res) => {
@@ -105,7 +93,6 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
       .catch(() => {});
   }, []);
 
-  // Count active advanced filters (not counting keyword)
   const activeCount = [location, level, workMode, categoryId, companyId].filter(Boolean).length;
 
   const handleSearch = () => {
@@ -131,7 +118,6 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
     setPopoverOpen(false);
   };
 
-  // ── Shared label style ──
   const labelStyle: React.CSSProperties = {
     fontSize: 11,
     fontWeight: 700,
@@ -142,7 +128,6 @@ const JobFilter: React.FC<JobFilterProps> = ({ filters, onChange, loading }) => 
     display: 'block',
   };
 
-  // ── Popover content ──
   const popoverContent = (
     <div style={{ width: 300, padding: '2px 0 0' }}>
 

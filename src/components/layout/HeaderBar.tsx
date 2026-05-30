@@ -88,7 +88,7 @@ const HeaderBar: React.FC = () => {
       localStorage.removeItem('user');
       localStorage.removeItem('user_cache_phone');
       setDropdownOpen(false);
-      window.location.reload(); // reload để StudentLayout phát hiện chưa login
+      window.location.reload(); 
     }
   };
 

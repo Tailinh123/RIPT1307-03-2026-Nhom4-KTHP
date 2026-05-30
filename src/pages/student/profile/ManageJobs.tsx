@@ -52,6 +52,18 @@ const { TextArea } = Input;
 type ManageJobFilter = {
   name?: string;
   status?: JobStatus;
+  categoryId?: number;
+};
+
+const categoryNameMap: Record<string, string> = {
+  "Cong nghe thong tin": "Công nghệ thông tin",
+  "Marketing": "Marketing",
+  "Ke toan - Kiem toan": "Kế toán - Kiểm toán",
+  "Kinh doanh": "Kinh doanh",
+  "Nhan su": "Nhân sự",
+  "Thiet ke": "Thiết kế",
+  "Logistics": "Logistics",
+  "Ngon ngu": "Ngôn ngữ",
 };
 
 export default function ManageJobs() {
@@ -61,6 +73,7 @@ const [jobs, setJobs] = useState<Job[]>([]);
 const [loading, setLoading] = useState<boolean>(true);
 const [myCompanyId, setMyCompanyId] = useState<number | undefined>(undefined);
 const [myCompanyName, setMyCompanyName] = useState<string>('');
+const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
 
 useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -93,6 +106,18 @@ useEffect(() => {
     };
     fetchJobs();
   }, []);;
+
+  // Load categories
+  useEffect(() => {
+    apiClient
+      .get('/api/v1/job-categories', { params: { page: 0, size: 100 } })
+      .then((res) => {
+        const data = res.data?.data?.result || res.data?.data || [];
+        setCategories(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setCategories([]));
+  }, []);
+
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
@@ -102,6 +127,7 @@ useEffect(() => {
   const [filters, setFilters] = useState<ManageJobFilter>({
     name: undefined,
     status: undefined,
+    categoryId: undefined,
   });
 
   // Form instance
@@ -116,7 +142,9 @@ useEffect(() => {
         ((job as any).active === true || (job as any).active === 1 ? 'ACTIVE' :
          (job as any).active === false || (job as any).active === 0 ? 'PENDING' : '');
       const statusMatch = !filters.status || jobStatus === filters.status;
-      return nameMatch && statusMatch;
+      const catId = (job as any).jobCategory?.id || (job as any).category?.id || undefined;
+      const categoryMatch = !filters.categoryId || catId === filters.categoryId;
+      return nameMatch && statusMatch && categoryMatch;
     });
   }, [jobs, filters]);
 
@@ -147,7 +175,7 @@ const companyOptions = useMemo(() => {
       skills: Array.isArray(record.skills)
         ? record.skills.map((skill) => (typeof skill === 'object' ? skill.id : skill))
         : [],
-      jobCategory: record.jobCategory || record.category,
+      jobCategory: (record as any).jobCategory?.id || record.jobCategory || record.category || undefined,
       location: record.location,
       quantity: record.quantity,
       startDate: record.startDate ? dayjs(record.startDate) : undefined,
@@ -246,7 +274,7 @@ const companyOptions = useMemo(() => {
 
   // Reset filters
   const handleResetFilters = () => {
-    setFilters({ name: undefined, status: undefined });
+    setFilters({ name: undefined, status: undefined, categoryId: undefined });
   };
 
   // ==================== TABLE COLUMNS ====================
@@ -296,6 +324,16 @@ const companyOptions = useMemo(() => {
           {salary?.toLocaleString('vi-VN')} VNĐ
         </span>
       ),
+    },
+    {
+      title: 'Phân loại',
+      key: 'category',
+      width: 140,
+      render: (_: any, record: Job) => {
+        const catName = (record as any).jobCategory?.name || (record as any).category || '';
+        const displayCatName = categoryNameMap[catName] || catName;
+        return displayCatName ? <Tag color="purple">{displayCatName}</Tag> : <span style={{ color: '#d1d5db' }}>—</span>;
+      },
     },
     {
       title: 'Trạng thái',
@@ -360,7 +398,7 @@ return (
         {/* Filter Section */}
         <Card className="mb-6" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <Row gutter={[16, 16]} align="bottom">
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <div className="mb-1 text-sm font-medium text-gray-700">Tên công việc</div>
               <Input
                 placeholder="Tìm theo tên công việc..."
@@ -370,7 +408,7 @@ return (
                 allowClear
               />
             </Col>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <div className="mb-1 text-sm font-medium text-gray-700">Trạng thái</div>
               <Select
                 placeholder="Chọn trạng thái"
@@ -382,7 +420,23 @@ return (
                 options={Object.keys(statusLabels).map((status) => ({ value: status as JobStatus, label: statusLabels[status as JobStatus] }))}
               />
             </Col>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
+              <div className="mb-1 text-sm font-medium text-gray-700">Ngành nghề</div>
+              <Select
+                placeholder="Chọn ngành nghề"
+                className="w-full"
+                style={{ width: '100%' }}
+                value={filters.categoryId}
+                onChange={(value) => setFilters((prev) => ({ ...prev, categoryId: value || undefined }))}
+                allowClear
+                showSearch
+                filterOption={(input, option) =>
+                  String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                options={categories.map((c) => ({ value: c.id, label: categoryNameMap[c.name] || c.name }))}
+              />
+            </Col>
+            <Col xs={24} sm={12} md={6}>
               <Space>
                 <Button icon={<ReloadOutlined />} onClick={handleResetFilters}>Đặt lại</Button>
                 <Button type="primary" icon={<PlusOutlined />} onClick={handleAddNew}>Thêm mới</Button>
@@ -429,9 +483,7 @@ return (
             onFinish={handleSubmit}
             className="mt-4"
           >
-            <Form.Item name="jobType" hidden initialValue="INTERN"><Input /></Form.Item>
             <Form.Item name="workMode" hidden initialValue="REMOTE"><Input /></Form.Item>
-            <Form.Item name="jobCategory" hidden initialValue={1}><Input /></Form.Item>
 
             <Row gutter={16}>
               <Col span={8}>
@@ -448,6 +500,23 @@ return (
               </Col>
               <Col span={8}>
                 <Form.Item
+                  name="jobCategory"
+                  label={<span style={{ fontWeight: 500 }}>Phân loại ngành</span>}
+                  rules={[{ required: true, message: "Vui lòng chọn phân loại" }]}
+                >
+                  <Select
+                    placeholder="Chọn phân loại"
+                    showSearch
+                    allowClear
+                    filterOption={(input, opt) =>
+                      String(opt?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={categories.map((c) => ({ value: c.id, label: categoryNameMap[c.name] || c.name }))}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
                   name="skills"
                   label={<span style={{ fontWeight: 500 }}>Kỹ năng yêu cầu</span>}
                   rules={[{ required: true, message: "Vui lòng chọn ít nhất 1 kỹ năng" }]}
@@ -460,6 +529,9 @@ return (
                   />
                 </Form.Item>
               </Col>
+            </Row>
+
+            <Row gutter={16}>
               <Col span={8}>
                 <Form.Item
                   name="location"
@@ -469,9 +541,6 @@ return (
                   <Input placeholder="Ha Noi" />
                 </Form.Item>
               </Col>
-            </Row>
-
-            <Row gutter={16}>
               <Col span={8}>
                 <Form.Item
                   name="salary"
@@ -502,6 +571,9 @@ return (
                   />
                 </Form.Item>
               </Col>
+            </Row>
+
+            <Row gutter={16}>
               <Col span={8}>
                 <Form.Item
                   name="level"
@@ -512,14 +584,26 @@ return (
                     placeholder="Junior"
                     options={Object.keys(levelLabels).map((level) => ({
                       value: level,
-                      label: levelLabels[level],
+                      label: levelLabels[level as JobLevel],
                     }))}
                   />
                 </Form.Item>
               </Col>
-            </Row>
-
-            <Row gutter={16}>
+              <Col span={8}>
+                <Form.Item
+                  name="jobType"
+                  label={<span style={{ fontWeight: 500 }}>Loại hình</span>}
+                  rules={[{ required: true, message: "Vui lòng chọn loại hình công việc" }]}
+                >
+                  <Select
+                    placeholder="Internship"
+                    options={['INTERNSHIP', 'FULL_TIME', 'PART_TIME'].map((type) => ({
+                      value: type,
+                      label: jobTypeLabels[type],
+                    }))}
+                  />
+                </Form.Item>
+              </Col>
               <Col span={8}>
                 <Form.Item
                   label={<span style={{ fontWeight: 500 }}>Công ty</span>}
@@ -531,7 +615,10 @@ return (
                   />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
                 <Form.Item
                   name="startDate"
                   label={<span style={{ fontWeight: 500 }}>Ngày bắt đầu</span>}
@@ -540,7 +627,7 @@ return (
                   <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   name="endDate"
                   label={<span style={{ fontWeight: 500 }}>Ngày kết thúc</span>}

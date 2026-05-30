@@ -19,11 +19,11 @@ import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Role;
 import vn.tailinh.internmatching.entity.Skill;
 
+import org.eclipse.angus.mail.imap.protocol.ID;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.access.method.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -105,6 +105,52 @@ public class UserService {
       }
 
       return UserMapper.convertToUserDTO(currentUser);
+    }
+
+
+    public UpdatedUserResponse updateCurrentUserProfile( UpdateUserDTO requestUser) throws Exception {
+      // get emal from currentuserLogin 
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        if(email.isEmpty()) {
+          throw new IdInvalidException("Access token is not valid or expried");
+        }
+
+        User currentUser = this.handleGetUserByUsername(email);
+        if(currentUser == null ) {
+          throw new IdInvalidException("User not found");
+        }
+
+        currentUser.setName(requestUser.getName());
+        currentUser.setGender(requestUser.getGender());
+        currentUser.setAddress(requestUser.getAddress());
+        currentUser.setDateOfBirth(requestUser.getDateOfBirth());
+        currentUser.setPhone(requestUser.getPhone());
+        currentUser.setAvatarUrl(requestUser.getAvatarUrl());
+
+
+         String roleName = currentUser.getRole().getName();
+        if (roleName.equals("HR_MANAGER")) {
+            // hr save company 
+            if (requestUser.getCompany() != null) {
+                Company company = this.companyService.findCompanyById(requestUser.getCompany().getId());
+                if (company == null) {
+                    throw new IdInvalidException("Company Id is invalid");
+                }
+                currentUser.setCompany(company);
+            }
+            currentUser.setSkills(null); // clkear data Candidate when up Company 
+        } else if (roleName.equals("CANDIDATE")) {
+            // candidate save skill 
+            if (requestUser.getSkills() != null) {
+                List<Long> reqSkills = requestUser.getSkills()
+                        .stream().map(skill -> skill.getId())
+                        .collect(Collectors.toList());
+                List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
+                currentUser.setSkills(dbSkills);
+            }
+            currentUser.setCompany(null); // clkear data Candidate when up Company 
+        }
+        return UserMapper.convertToResUpdatedUserRes(this.userRepository.save(currentUser));
     }
 
 

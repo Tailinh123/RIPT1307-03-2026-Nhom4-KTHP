@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.entity.User;
 import vn.tailinh.internmatching.dto.request.user.LoginDTO;
 import vn.tailinh.internmatching.dto.request.user.RegisterDTO;
+import vn.tailinh.internmatching.dto.request.user.UpdateUserDTO;
 import vn.tailinh.internmatching.dto.response.auth.LoginResponse;
 import vn.tailinh.internmatching.dto.response.user.CreatedUserResponse;
 import vn.tailinh.internmatching.dto.response.user.ResUserDTO;
+import vn.tailinh.internmatching.dto.response.user.UpdatedUserResponse;
 import vn.tailinh.internmatching.exception.IdInvalidException;
 import vn.tailinh.internmatching.security.SecurityUtils;
 import vn.tailinh.internmatching.service.SecurityService;
@@ -29,9 +31,12 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @RequestMapping(path = "${apiPrefix}/auth")
 @RestController
@@ -229,5 +234,12 @@ public class AuthController {
   public ResponseEntity<ResUserDTO> getProfile() throws Exception {
     return ResponseEntity.ok().body(this.userService.fetchCurrentUserProfile());
   }
+
+  @PutMapping("/profile")
+  @ApiMessage("")
+  public ResponseEntity<UpdatedUserResponse> updateProfile(@Valid @RequestBody UpdateUserDTO dto) throws Exception {
+    return ResponseEntity.ok().body(this.userService.updateCurrentUserProfile(dto));
+  }
+
 }
 

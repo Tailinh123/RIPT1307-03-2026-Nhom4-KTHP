@@ -83,8 +83,9 @@ export const levelLabels: Record<JobLevel, string> = {
   SENIOR: 'Senior',
 };
 
-export const jobTypeLabels: Record<JobType, string> = {
+export const jobTypeLabels: Record<string, string> = {
   INTERNSHIP: 'Internship',
+  INTERN: 'Internship',
   FULL_TIME: 'Full-time',
   PART_TIME: 'Part-time',
 };

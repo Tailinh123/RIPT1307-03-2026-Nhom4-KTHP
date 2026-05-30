@@ -71,12 +71,27 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setActive(true);
 
-        // role default User
-        Role userRole = this.roleService.fetchRoleByName("CANDIDATE");
-        if (userRole == null) {
-            throw new IdInvalidException("Default role CANDIDATE not found in system");
+        if (dto.getCompanyId() != null) {
+            //registration: assign company + role
+            Company company = this.companyService.findCompanyById(dto.getCompanyId());
+            if (company == null) {
+                throw new IdInvalidException("Company Id is invalid");
+            }
+            user.setCompany(company);
+
+            Role hrRole = this.roleService.fetchRoleByName("HR_MANAGER");
+            if (hrRole == null) {
+                throw new IdInvalidException("Role HR_MANAGER not found in system");
+            }
+            user.setRole(hrRole);
+        } else {
+            // default registration candidate role
+            Role userRole = this.roleService.fetchRoleByName("CANDIDATE");
+            if (userRole == null) {
+                throw new IdInvalidException("Default role CANDIDATE not found in system");
+            }
+            user.setRole(userRole);
         }
-        user.setRole(userRole);
 
         return UserMapper.convertToResCreatedUserRes(this.userRepository.save(user));
     }

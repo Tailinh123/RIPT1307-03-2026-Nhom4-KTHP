@@ -17,19 +17,13 @@ const StudentLayout: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-      {/* Giữ lại duy nhất Header trên cùng */}
       <HeaderBar />
       
       <Layout style={{ marginTop: 64 }}> 
-        {/* ĐÃ XÓA <Sidebar /> tại đây */}
-        
-        {/* NỘI DUNG CHÍNH: Xóa bỏ hoàn toàn marginLeft: 220 hoặc paddingLeft: 220 */}
         <Content style={{ padding: '0px', width: '100%' }}>
           <Outlet />
         </Content>
       </Layout>
-
-      {/* Nếu chưa đăng nhập: hiển thị overlay login trên cùng giao diện */}
       {!isAuthenticated && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(0,0,0,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <LoginPage onSuccess={() => setIsAuthenticated(true)} />

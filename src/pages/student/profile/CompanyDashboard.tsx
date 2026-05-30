@@ -45,90 +45,85 @@ const CompanyDashboard: React.FC = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
+
+        // Lấy companyId của tài khoản HR đang đăng nhập
+        const userStr = localStorage.getItem('user');
+        const userObj = userStr ? JSON.parse(userStr) : null;
+        const myCompanyId = userObj?.company?.id || userObj?.companyId;
+
         let jobsList: any[] = [];
         let appsList: any[] = [];
 
-        // 1. Gọi API Jobs độc lập
         try {
-          const jobsResponse = await apiClient.get("/api/v1/jobs");
-          jobsList = (Array.isArray(jobsResponse.data.data?.result)
+          const jobsResponse = await apiClient.get('/api/v1/jobs');
+          const allJobs = (Array.isArray(jobsResponse.data.data?.result)
             ? jobsResponse.data.data.result
             : Array.isArray(jobsResponse.data.data)
             ? jobsResponse.data.data
             : Array.isArray(jobsResponse.data)
             ? jobsResponse.data
             : []);
+          // Lọc chỉ job của công ty mình
+          jobsList = myCompanyId
+            ? allJobs.filter((job: any) => String(job.company?.id) === String(myCompanyId))
+            : allJobs;
         } catch (jobError) {
-          console.warn("API Jobs lỗi tại Dashboard:", jobError);
+          console.warn('API Jobs lỗi:', jobError);
         }
 
-        // 2. Gọi API Applications độc lập
         try {
-          const applicationsResponse = await apiClient.get("/api/v1/applications");
-          appsList = (Array.isArray(applicationsResponse.data.data?.result)
+          const applicationsResponse = await apiClient.get('/api/v1/applications');
+          const allApps = (Array.isArray(applicationsResponse.data.data?.result)
             ? applicationsResponse.data.data.result
             : Array.isArray(applicationsResponse.data.data)
             ? applicationsResponse.data.data
             : Array.isArray(applicationsResponse.data)
             ? applicationsResponse.data
             : []);
+          // Lọc đơn ứng tuyển vào job của công ty mình
+          const myJobIds = new Set(jobsList.map((j: any) => String(j.id)));
+          appsList = myCompanyId
+            ? allApps.filter((app: any) => {
+                const jobId = String(app.jobId || app.job?.id || app.job_id || '');
+                return myJobIds.has(jobId);
+              })
+            : allApps;
         } catch (appError) {
-          console.warn("API Applications lỗi tại Dashboard:", appError);
+          console.warn('API Applications lỗi:', appError);
         }
 
-        // 3. Đếm số lượng thực tế từ Database
         setStats({
           totalJobs: jobsList.length,
-          activeJobs: jobsList.filter((job: any) => job?.active === true || job?.active === 1 || job?.active === null || job?.active === undefined).length,
+          activeJobs: jobsList.filter((job: any) => job?.active === true || job?.active === 1 || job?.active == null).length,
           totalApplications: appsList.length,
-          pendingApplications: appsList.filter((app: any) => app?.status === "PENDING").length,
+          pendingApplications: appsList.filter((app: any) => app?.status === 'PENDING').length,
         });
 
-        // 4. Tính toán dữ liệu biểu đồ theo TÊN DANH MỤC (Đã gộp và tối ưu hóa vòng lặp)
         const categoryMap = new Map<string, { jobs: number; applications: number }>();
-
         jobsList.forEach((job: any) => {
-          let categoryName = "Khác";
-          if (job.jobCategory && typeof job.jobCategory === 'object') {
-            categoryName = job.jobCategory.name || "Khác";
-          } else if (typeof job.jobCategory === 'string') {
-            categoryName = job.jobCategory;
-          }
+          let categoryName = 'Khác';
+          if (job.jobCategory && typeof job.jobCategory === 'object') categoryName = job.jobCategory.name || 'Khác';
+          else if (typeof job.jobCategory === 'string') categoryName = job.jobCategory;
           const entry = categoryMap.get(categoryName) || { jobs: 0, applications: 0 };
           entry.jobs += 1;
           categoryMap.set(categoryName, entry);
         });
-
         appsList.forEach((app: any) => {
           const targetJobId = app.jobId || app.job?.id || app.job_id;
-          const relatedJob = jobsList.find(
-            (job: any) => String(job.id) === String(targetJobId)
-          );
-          
-          let categoryName = "Khác";
+          const relatedJob = jobsList.find((job: any) => String(job.id) === String(targetJobId));
+          let categoryName = 'Khác';
           if (relatedJob) {
-            if (relatedJob.jobCategory && typeof relatedJob.jobCategory === 'object') {
-              categoryName = relatedJob.jobCategory.name || "Khác";
-            } else if (typeof relatedJob.jobCategory === 'string') {
-              categoryName = relatedJob.jobCategory;
-            }
+            if (relatedJob.jobCategory && typeof relatedJob.jobCategory === 'object') categoryName = relatedJob.jobCategory.name || 'Khác';
+            else if (typeof relatedJob.jobCategory === 'string') categoryName = relatedJob.jobCategory;
           }
-          
           const entry = categoryMap.get(categoryName) || { jobs: 0, applications: 0 };
           entry.applications += 1;
           categoryMap.set(categoryName, entry);
         });
-
-        setChartData(
-          Array.from(categoryMap.entries()).map(([name, counts]) => ({
-            name,
-            jobs: counts.jobs,
-            applications: counts.applications,
-          }))
-        );
+        setChartData(Array.from(categoryMap.entries()).map(([name, counts]) => ({ name, jobs: counts.jobs, applications: counts.applications })));
 
       } catch (error) {
-        console.error("Lỗi xử lý số liệu tổng tại Dashboard:", error);
+        console.error('Lỗi xử lý số liệu Dashboard:', error);
       } finally {
         setLoading(false);
       }

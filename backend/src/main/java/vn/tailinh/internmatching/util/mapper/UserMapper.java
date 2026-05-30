@@ -66,6 +66,7 @@ public class UserMapper {
       res.setName(user.getName());
       res.setSubscribed(user.isSubscribed());
       res.setAvatarUrl(user.getAvatarUrl());
+      res.setPhone(user.getPhone());
       res.setSkills(user.getSkills());
 
       //set Role Convert

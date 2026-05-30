@@ -18,10 +18,6 @@ const MOCK_PROFILE: UserProfile = {
   role: 'STUDENT',
 };
 
-/**
- * Map backend ResUserDTO → frontend UserProfile
- * Backend fields: id, name, email, dateOfBirth, gender, address, phone, avatarUrl, isSubscribed, company, role, skills
- */
 function mapBackendToProfile(data: any): UserProfile {
   return {
     id: data.id,
@@ -36,7 +32,6 @@ function mapBackendToProfile(data: any): UserProfile {
     address: data.address || undefined,
     skills: data.skills || [],
     role: data.role?.name || 'STUDENT',
-    // Keep raw backend fields accessible
     avatarUrl: data.avatarUrl,
   } as UserProfile;
 }
@@ -60,7 +55,6 @@ export function useProfile(): UseProfileReturn {
     setLoading(true);
     setConnectionError(null);
     try {
-      // 1. Lấy thông tin user đăng nhập từ bộ nhớ trình duyệt
       const userStr = localStorage.getItem('user');
       const currentUser = userStr ? JSON.parse(userStr) : null;
 
@@ -68,12 +62,9 @@ export function useProfile(): UseProfileReturn {
         throw new Error("Không tìm thấy ID người dùng!");
       }
 
-      // 2. Gọi API kèm ID để lấy full thông tin
       const res = await userApi.getProfile(currentUser.id);
       const rawData = res.data?.data || res.data;
-      
-      // Workaround: Backend không trả về phone khi GET profile
-      // Nên ta dùng lại phone đã lưu cục bộ nếu có
+
       const cachedStr = localStorage.getItem('user_cache_phone') || '{}';
       const cached = JSON.parse(cachedStr);
       if (cached[currentUser.id] && !rawData.phone) {
@@ -98,7 +89,6 @@ export function useProfile(): UseProfileReturn {
     try {
       const res = await userApi.updateProfile(profile.id, payload);
       
-      // Workaround: Lưu phone vào cache cục bộ vì backend không trả về
       if (payload.phone) {
         const cachedStr = localStorage.getItem('user_cache_phone') || '{}';
         const cached = JSON.parse(cachedStr);
@@ -107,7 +97,6 @@ export function useProfile(): UseProfileReturn {
       }
 
       const rawData = res.data?.data || res.data;
-      // Trả lại phone từ payload để set state hiện tại
       if (!rawData.phone && payload.phone) {
         rawData.phone = payload.phone;
       }
@@ -115,7 +104,6 @@ export function useProfile(): UseProfileReturn {
       setProfile(mapBackendToProfile(rawData));
       setConnectionError(null);
     } catch {
-      // Giữ nguyên giao diện mượt mà (Optimistic update) nếu API sập
       setProfile((prev: any) =>
         prev
           ? {

@@ -38,7 +38,7 @@ import ApplyModal from '@/components/job/ApplyModal';
 import JobSkillTag from '@/components/job/JobSkillTag';
 import { formatSalary } from '@/utils/formatSalary';
 import { formatDate, daysUntil } from '@/utils/formatDate';
-import { JOB_LEVEL_LABEL, WORK_MODE_LABEL, CATEGORY_LABEL } from '@/utils/constants';
+import { JOB_LEVEL_LABEL, WORK_MODE_LABEL, CATEGORY_NAME_MAP, JOB_TYPE_LABEL } from '@/utils/constants';
 import type { ApplyFormData } from '@/components/job/ApplyModal';
 import { applicationApi } from '@/api/applicationApi';
 
@@ -331,18 +331,35 @@ const JobDetailPage: React.FC = () => {
                   >
                     {JOB_LEVEL_LABEL[job.level]}
                   </Tag>
-                  <Tag
-                    style={{
-                      background: '#f0f5ff',
-                      color: '#2f54eb',
-                      border: 'none',
-                      borderRadius: 6,
-                      fontSize: 11,
-                      padding: '1px 8px',
-                    }}
-                  >
-                    {CATEGORY_LABEL[job.category]}
-                  </Tag>
+                  {job.jobType && (
+                    <Tag
+                      style={{
+                        background: '#fff7e6',
+                        color: '#d46b08',
+                        border: 'none',
+                        borderRadius: 6,
+                        fontWeight: 700,
+                        fontSize: 11,
+                        padding: '1px 8px',
+                      }}
+                    >
+                      {JOB_TYPE_LABEL[job.jobType] || job.jobType}
+                    </Tag>
+                  )}
+                  {job.category && job.category !== 'OTHER' && (
+                    <Tag
+                      style={{
+                        background: '#f9f0ff',
+                        color: '#722ed1',
+                        border: 'none',
+                        borderRadius: 6,
+                        fontSize: 11,
+                        padding: '1px 8px',
+                      }}
+                    >
+                      {CATEGORY_NAME_MAP[job.category] || job.category}
+                    </Tag>
+                  )}
                 </Space>
               </div>
             </div>

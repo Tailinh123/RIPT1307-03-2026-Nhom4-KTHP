@@ -1,12 +1,17 @@
-import axiosClient from './axiosClient';
-import type { UserProfile, UpdateProfilePayload } from '@/types/user';
+import axiosClient from "./axiosClient";
+import type { UpdateProfilePayload } from "@/types/user";
+
+interface BackendWrapper<T> {
+  statusCode: number;
+  error: string | null;
+  message: string;
+  data: T;
+}
 
 export const userApi = {
-  /** GET /api/v1/users/me */
-  getProfile: () =>
-    axiosClient.get<{ data: UserProfile }>('/users/me'),
+  getProfile: (id: string | number) =>
+    axiosClient.get<BackendWrapper<any>>(`/api/v1/users/${id}`),
 
-  /** PUT /api/v1/users/{id} */
-  updateProfile: (id: number, payload: UpdateProfilePayload) =>
-    axiosClient.put<{ data: UserProfile }>(`/users/${id}`, payload),
+  updateProfile: (id: string | number, payload: UpdateProfilePayload) =>
+    axiosClient.put<BackendWrapper<any>>(`/api/v1/users/${id}`, payload),
 };

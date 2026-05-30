@@ -9,9 +9,9 @@ interface BackendWrapper<T> {
 }
 
 export const userApi = {
-  getProfile: (id: string | number) =>
-    axiosClient.get<BackendWrapper<any>>(`/api/v1/users/${id}`),
+  getProfile: () =>
+    axiosClient.get<BackendWrapper<any>>(`/api/v1/auth/profile`),
 
-  updateProfile: (id: string | number, payload: UpdateProfilePayload) =>
-    axiosClient.put<BackendWrapper<any>>(`/api/v1/users/${id}`, payload),
+  updateProfile: (payload: UpdateProfilePayload) =>
+    axiosClient.put<BackendWrapper<any>>(`/api/v1/auth/profile`, payload),
 };

@@ -59,6 +59,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET, "/api/v1/companies/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/skills/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/job-categories/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(

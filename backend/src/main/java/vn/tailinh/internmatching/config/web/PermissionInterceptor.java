@@ -30,24 +30,38 @@ public class PermissionInterceptor implements HandlerInterceptor {
         String requestURI = request.getRequestURI();
         String httpMethod = request.getMethod();
 
+        // skip permission check
+        if (httpMethod.equals("GET")) {
+            String[] publicPaths = {
+                    "/api/v1/companies", "/api/v1/companies/{id}",
+                    "/api/v1/jobs", "/api/v1/jobs/{id}",
+                    "/api/v1/skills", "/api/v1/skills/{id}",
+                    "/api/v1/job-categories", "/api/v1/job-categories/{id}"
+            };
+            for (String p : publicPaths) {
+                if (path.equals(p)) {
+                    return true;
+                }
+            }
+        }
+
         String email = SecurityUtils.getCurrentUserLogin().isPresent()
                 ? SecurityUtils.getCurrentUserLogin().get()
                 : "";
-        if(!email.isEmpty()){
+        if (!email.isEmpty()) {
             User user = this.userService.handleGetUserByUsername(email);
-            if(user != null){
+            if (user != null) {
                 Role role = user.getRole();
-                if(role != null){
+                if (role != null) {
                     List<Permission> permissions = role.getPermissions();
                     boolean isAllow = permissions.stream().anyMatch(
                             permission -> permission.getApiPath().equals(path)
-                                            &&
-                                            permission.getMethod().equals(httpMethod)
-                    );
-                    if(!isAllow){
+                                    &&
+                                    permission.getMethod().equals(httpMethod));
+                    if (!isAllow) {
                         throw new PermissionException("You do not have permission to access this endpoint!!!");
                     }
-                }else{
+                } else {
                     throw new PermissionException("You do not have permission to access this endpoint!!!");
                 }
             }

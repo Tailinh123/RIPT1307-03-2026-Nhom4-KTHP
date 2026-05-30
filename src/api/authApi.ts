@@ -26,6 +26,11 @@ export const authApi = {
     return res.data.data;
   },
 
+  register: async (name: string, email: string, password: string, companyId?: number) => {
+    const res = await axiosClient.post('/api/v1/auth/register', { name, email, password, companyId });
+    return res.data.data;
+  },
+
   getAccount: async () => {
     const res = await axiosClient.get('/api/v1/auth/account');
     return res.data.data;

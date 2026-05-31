@@ -112,20 +112,25 @@ const HeaderBar: React.FC = () => {
       >
         {/* ── Left: Logo ── */}
         <div
-          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+          style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', justifyContent: 'center' }}
           onClick={() => navigate('/jobs')}
         >
-          <img
-            src="/images/logo2.png"
-            alt="InternMatch"
-            style={{
-              height: 65,
-              maxHeight: 65,
-              width: 'auto',
-              objectFit: 'contain',
-              display: 'block',
-            }}
-          />
+          <div style={{ fontSize: 23, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.5px', fontFamily: '"Inter", sans-serif' }}>
+            <span style={{ color: '#111827' }}>Intern</span>
+            <span style={{ color: '#1677ff' }}>Match</span>
+          </div>
+          <div style={{ 
+            fontSize: 8.5, 
+            color: '#6b7280', 
+            marginTop: 4, 
+            fontWeight: 500,
+            textAlign: 'justify',
+            textAlignLast: 'justify',
+            whiteSpace: 'nowrap',
+            width: '100%'
+          }}>
+            Kết nối thực tập, mở lối tương lai
+          </div>
         </div>
 
         {/* ── Right: user avatar ── */}

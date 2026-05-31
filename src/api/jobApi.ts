@@ -36,16 +36,7 @@ interface BackendJob {
   active: boolean;
 }
 
-// Map location from Frontend code to Backend string value
-function mapLocationToBackend(location?: string): string | undefined {
-  if (!location) return undefined;
-  const locationMap: Record<string, string> = {
-    'HANOI': 'Ha Noi',
-    'HCMC': 'Ho Chi Minh',
-    'DANANG': 'Da Nang',
-  };
-  return locationMap[location];
-}
+// mapLocationToBackend removed as frontend uses exact string matching now
 
 /**
  * Build Spring Filter (turkraft) RSQL query string.
@@ -70,10 +61,8 @@ function buildFilterString(params: JobFilterParams): string | undefined {
   }
 
   if (params.location && params.location !== 'OTHER') {
-    const loc = mapLocationToBackend(params.location);
-    if (loc) {
-      parts.push(`location : '${loc}'`);
-    }
+    const loc = params.location.replace(/'/g, "\\'");
+    parts.push(`location : '${loc}'`);
   }
 
   if (params.level) {
@@ -82,6 +71,14 @@ function buildFilterString(params: JobFilterParams): string | undefined {
 
   if (params.workMode) {
     parts.push(`workMode : '${params.workMode}'`);
+  }
+
+  if (params.categoryId) {
+    parts.push(`jobCategory.id : ${params.categoryId}`);
+  }
+
+  if (params.companyId) {
+    parts.push(`company.id : ${params.companyId}`);
   }
 
   return parts.length > 0 ? parts.join(' and ') : undefined;
@@ -120,6 +117,7 @@ function mapBackendJobToJobDetail(backendJob: BackendJob): JobDetail {
     salaryMin: backendJob.salary,
     salaryMax: backendJob.salary,
     level: (backendJob.level || 'INTERN') as Job['level'],
+    jobType: backendJob.jobType,
     workMode: (backendJob.workMode || 'ONSITE') as Job['workMode'],
     category: (backendJob.jobCategory?.name || 'OTHER') as Job['category'],
     skills: backendJob.skills || [],
@@ -147,6 +145,7 @@ function mapBackendJobToFrontend(backendJob: BackendJob): Job {
     salaryMin: backendJob.salary,
     salaryMax: backendJob.salary,
     level: (backendJob.level || 'INTERN') as Job['level'],
+    jobType: backendJob.jobType,
     workMode: (backendJob.workMode || 'ONSITE') as Job['workMode'],
     category: (backendJob.jobCategory?.name || 'OTHER') as Job['category'],
     skills: backendJob.skills || [],

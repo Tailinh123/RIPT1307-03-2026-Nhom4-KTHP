@@ -18,11 +18,28 @@ const MOCK_PROFILE: UserProfile = {
   role: 'STUDENT',
 };
 
+function mapBackendToProfile(data: any): UserProfile {
+  return {
+    id: data.id,
+    fullName: data.name || data.fullName || '',
+    name: data.name,
+    email: data.email || '',
+    phone: data.phone || undefined,
+    gender: data.gender || undefined,
+    dob: data.dateOfBirth || data.dob || undefined,
+    dateOfBirth: data.dateOfBirth || data.dob || undefined,
+    avatar: data.avatarUrl || data.avatar || undefined,
+    address: data.address || undefined,
+    skills: data.skills || [],
+    role: data.role?.name || 'STUDENT',
+    avatarUrl: data.avatarUrl,
+  } as UserProfile;
+}
+
 interface UseProfileReturn {
   profile: UserProfile | null;
   loading: boolean;
   saving: boolean;
-  /** null = not yet fetched, string = error, false = ok */
   connectionError: string | null;
   fetchProfile: () => Promise<void>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<void>;
@@ -39,10 +56,23 @@ export function useProfile(): UseProfileReturn {
     setConnectionError(null);
     try {
       const res = await userApi.getProfile();
-      setProfile(res.data.data);
-    } catch {
+      const rawData = res.data?.data || res.data;
+
+      const userStr = localStorage.getItem('user');
+      const currentUser = userStr ? JSON.parse(userStr) : null;
+      if (currentUser?.id) {
+        const cachedStr = localStorage.getItem('user_cache_phone') || '{}';
+        const cached = JSON.parse(cachedStr);
+        if (cached[currentUser.id] && !rawData.phone) {
+          rawData.phone = cached[currentUser.id];
+        }
+      }
+
+      setProfile(mapBackendToProfile(rawData));
+    } catch (error) {
+      console.error(error);
       setConnectionError(
-        'Không kết nối được Backend. Đang hiển thị dữ liệu mẫu.'
+        'Không lấy được dữ liệu từ DB. Đang hiển thị dữ liệu mẫu.'
       );
       setProfile(MOCK_PROFILE);
     } finally {
@@ -54,24 +84,37 @@ export function useProfile(): UseProfileReturn {
     if (!profile) return;
     setSaving(true);
     try {
-      const res = await userApi.updateProfile(profile.id, payload);
-      setProfile(res.data.data);
+      const res = await userApi.updateProfile(payload);
+      
+      const cachedStr = localStorage.getItem('user_cache_phone') || '{}';
+      const cached = JSON.parse(cachedStr);
+      cached[profile.id] = payload.phone || '';
+      localStorage.setItem('user_cache_phone', JSON.stringify(cached));
+
+      const rawData = res.data?.data || res.data;
+      if (!rawData.phone) rawData.phone = payload.phone || cached[profile.id];
+
+      setProfile(mapBackendToProfile(rawData));
       setConnectionError(null);
+
     } catch {
-      // Optimistic update with mock
-      setProfile((prev) =>
+      setProfile((prev: any) =>
         prev
           ? {
               ...prev,
               fullName: payload.name,
+              name: payload.name,
               phone: payload.phone,
-              dob: payload.dob,
+              dob: payload.dob || payload.dateOfBirth,
+              dateOfBirth: payload.dateOfBirth || payload.dob,
               address: payload.address,
               gender: payload.gender,
-              skills: payload.skills.map((id) => ({
-                id,
-                name: prev.skills.find((s) => s.id === id)?.name ?? `Skill #${id}`,
-              })),
+              skills: payload.skills
+                ? payload.skills.map((id) => ({
+                    id,
+                    name: prev.skills?.find((s: any) => s.id === id)?.name ?? `Skill #${id}`,
+                  }))
+                : prev.skills,
             }
           : prev
       );

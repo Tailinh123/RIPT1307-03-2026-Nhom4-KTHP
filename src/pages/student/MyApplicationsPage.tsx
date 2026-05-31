@@ -15,7 +15,6 @@ import type { ApplicationStatus } from '@/types/application';
 
 const { Title, Text } = Typography;
 
-// ── Status filter badge config ──
 const STATUS_BADGES: {
   key: ApplicationStatus | 'ALL';
   label: string;
@@ -77,7 +76,6 @@ const MyApplicationsPage: React.FC = () => {
 
   return (
     <div>
-      {/* ── Page Header — Clean SaaS style ── */}
       <div
         style={{
           background: '#ffffff',
@@ -87,7 +85,6 @@ const MyApplicationsPage: React.FC = () => {
           marginBottom: 24,
         }}
       >
-        {/* Title row */}
         <div
           style={{
             display: 'flex',
@@ -118,12 +115,9 @@ const MyApplicationsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Divider */}
         <div style={{ height: 1, background: '#f0f0f0', marginBottom: 18 }} />
 
-        {/* Status filter badges */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* "All" badge */}
           <div
             onClick={() => setStatusFilter('ALL')}
             style={{
@@ -158,7 +152,6 @@ const MyApplicationsPage: React.FC = () => {
             </span>
           </div>
 
-          {/* Status badges */}
           {STATUS_BADGES.map((badge) => {
             const isActive = statusFilter === badge.key;
             const count = statusCounts[badge.key as ApplicationStatus] ?? 0;
@@ -203,7 +196,6 @@ const MyApplicationsPage: React.FC = () => {
       </div>
 
 
-      {/* ── Error alert ── */}
       {error && (
         <Alert
           type="warning"
@@ -216,16 +208,14 @@ const MyApplicationsPage: React.FC = () => {
         />
       )}
 
-      {/* ── Main Table Card ── */}
       <Card
         style={{
           borderRadius: 14,
           border: '1px solid #eef0f5',
           boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
         }}
-        styles={{ body: { padding: '24px 28px' } }}
+        bodyStyle={{ padding: '24px 28px' }}
       >
-        {/* Card header */}
         <div
           style={{
             display: 'flex',
@@ -270,7 +260,6 @@ const MyApplicationsPage: React.FC = () => {
           />
         </div>
 
-        {/* Table */}
         <ApplicationTable
           applications={applications}
           total={total}

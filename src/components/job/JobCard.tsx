@@ -12,7 +12,7 @@ import {
 import type { Job } from '@/types/job';
 import { formatSalary } from '@/utils/formatSalary';
 import { formatDate, daysUntil } from '@/utils/formatDate';
-import { JOB_LEVEL_LABEL, WORK_MODE_LABEL } from '@/utils/constants';
+import { JOB_LEVEL_LABEL, WORK_MODE_LABEL, CATEGORY_NAME_MAP, CATEGORY_LABEL, JOB_TYPE_LABEL } from '@/utils/constants';
 import JobSkillTag from './JobSkillTag';
 import { useNavigate } from 'react-router-dom';
 
@@ -57,7 +57,6 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
         flexDirection: 'column',
       }}
       bodyStyle={{ padding: 20, display: 'flex', flexDirection: 'column', height: '100%' }}
-      styles={{ body: { padding: 20 } }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 30px rgba(22,119,255,0.12)';
         (e.currentTarget as HTMLDivElement).style.borderColor = '#91caff';
@@ -98,20 +97,54 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
           </Text>
         </div>
 
-        <Tag
-          style={{
-            background: `${LEVEL_COLOR[job.level]}15`,
-            color: LEVEL_COLOR[job.level],
-            border: 'none',
-            borderRadius: 6,
-            fontWeight: 600,
-            fontSize: 11,
-            padding: '2px 8px',
-            flexShrink: 0,
-          }}
-        >
-          {JOB_LEVEL_LABEL[job.level]}
-        </Tag>
+        <Space direction="vertical" size={4} style={{ flexShrink: 0, alignItems: 'flex-end' }}>
+          {job.category && job.category !== 'OTHER' && (
+            <Tag
+              style={{
+                background: '#f9f0ff',
+                color: '#722ed1',
+                border: 'none',
+                borderRadius: 6,
+                fontWeight: 600,
+                fontSize: 11,
+                padding: '2px 8px',
+                margin: 0,
+              }}
+            >
+              {CATEGORY_NAME_MAP[job.category] || job.category}
+            </Tag>
+          )}
+          <Tag
+            style={{
+              background: `${LEVEL_COLOR[job.level]}15`,
+              color: LEVEL_COLOR[job.level],
+              border: 'none',
+              borderRadius: 6,
+              fontWeight: 600,
+              fontSize: 11,
+              padding: '2px 8px',
+              margin: 0,
+            }}
+          >
+            {JOB_LEVEL_LABEL[job.level]}
+          </Tag>
+          {job.jobType && (
+            <Tag
+              style={{
+                background: '#fff7e6',
+                color: '#d46b08',
+                border: 'none',
+                borderRadius: 6,
+                fontWeight: 600,
+                fontSize: 11,
+                padding: '2px 8px',
+                margin: 0,
+              }}
+            >
+              {JOB_TYPE_LABEL[job.jobType] || job.jobType}
+            </Tag>
+          )}
+        </Space>
       </div>
 
       {/* ── Meta info ── */}

@@ -52,7 +52,7 @@ const ApplicationFilters: React.FC<ApplicationFiltersProps> = ({
         options={STATUS_OPTIONS}
         suffixIcon={<FilterOutlined style={{ color: '#8c8c8c' }} />}
         style={{ width: 220 }}
-        popupMatchSelectWidth={false}
+        dropdownMatchSelectWidth={false}
       />
     </div>
   );

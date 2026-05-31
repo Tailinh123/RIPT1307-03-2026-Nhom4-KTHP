@@ -41,7 +41,7 @@ const theme = {
 
 const App: React.FC = () => {
   return (
-    <ConfigProvider locale={viVN} theme={theme}>
+    <ConfigProvider locale={viVN}>
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>

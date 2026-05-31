@@ -13,10 +13,10 @@ export const JOB_CATEGORY_OPTIONS: SelectOption[] = [
 ];
 
 export const JOB_LEVEL_OPTIONS: SelectOption[] = [
-  { label: 'Thực tập sinh', value: 'INTERN' },
+  { label: 'Intern', value: 'INTERN' },
   { label: 'Fresher', value: 'FRESHER' },
   { label: 'Junior', value: 'JUNIOR' },
-  { label: 'Middle', value: 'MIDDLE' },
+  { label: 'Mid-level', value: 'MIDDLE' },
   { label: 'Senior', value: 'SENIOR' },
 ];
 
@@ -32,10 +32,10 @@ export const JOB_LOCATION_OPTIONS: SelectOption[] = [
 ];
 
 export const JOB_LEVEL_LABEL: Record<JobLevel, string> = {
-  INTERN: 'Thực tập sinh',
+  INTERN: 'Intern',
   FRESHER: 'Fresher',
   JUNIOR: 'Junior',
-  MIDDLE: 'Middle',
+  MIDDLE: 'Mid-level',
   SENIOR: 'Senior',
 };
 
@@ -43,6 +43,13 @@ export const WORK_MODE_LABEL: Record<WorkMode, string> = {
   ONSITE: 'Tại văn phòng',
   REMOTE: 'Làm từ xa',
   HYBRID: 'Kết hợp',
+};
+
+export const JOB_TYPE_LABEL: Record<string, string> = {
+  INTERNSHIP: 'Internship',
+  INTERN: 'Internship',
+  FULL_TIME: 'Full-time',
+  PART_TIME: 'Part-time',
 };
 
 export const CATEGORY_LABEL: Record<JobCategory, string> = {
@@ -54,6 +61,17 @@ export const CATEGORY_LABEL: Record<JobCategory, string> = {
   HUMAN_RESOURCES: 'Nhân sự',
   EDUCATION: 'Giáo dục',
   OTHER: 'Khác',
+};
+
+export const CATEGORY_NAME_MAP: Record<string, string> = {
+  "Cong nghe thong tin": "Công nghệ thông tin",
+  "Marketing": "Marketing",
+  "Ke toan - Kiem toan": "Kế toán - Kiểm toán",
+  "Kinh doanh": "Kinh doanh",
+  "Nhan su": "Nhân sự",
+  "Thiet ke": "Thiết kế",
+  "Logistics": "Logistics",
+  "Ngon ngu": "Ngôn ngữ",
 };
 
 export const PAGE_SIZE = 12;

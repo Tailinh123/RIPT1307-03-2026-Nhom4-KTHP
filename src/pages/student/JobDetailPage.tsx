@@ -38,7 +38,7 @@ import ApplyModal from '@/components/job/ApplyModal';
 import JobSkillTag from '@/components/job/JobSkillTag';
 import { formatSalary } from '@/utils/formatSalary';
 import { formatDate, daysUntil } from '@/utils/formatDate';
-import { JOB_LEVEL_LABEL, WORK_MODE_LABEL, CATEGORY_LABEL } from '@/utils/constants';
+import { JOB_LEVEL_LABEL, WORK_MODE_LABEL, CATEGORY_NAME_MAP, JOB_TYPE_LABEL } from '@/utils/constants';
 import type { ApplyFormData } from '@/components/job/ApplyModal';
 import { applicationApi } from '@/api/applicationApi';
 
@@ -59,7 +59,6 @@ const WORK_MODE_ICON: Record<string, React.ReactNode> = {
   HYBRID: <ApartmentOutlined />,
 };
 
-// ── Renders a multi-line bullet text ──────────────────────────────────────
 const BulletList: React.FC<{ text: string }> = ({ text }) => {
   const lines = text.split('\n').filter((l) => l.trim().length > 0);
   return (
@@ -96,7 +95,6 @@ const BulletList: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
-// ── Section block ─────────────────────────────────────────────────────────
 const SectionBlock: React.FC<{
   title: string;
   icon: React.ReactNode;
@@ -123,7 +121,6 @@ const SectionBlock: React.FC<{
   </div>
 );
 
-// ── Meta chip ─────────────────────────────────────────────────────────────
 const MetaChip: React.FC<{
   icon: React.ReactNode;
   label: string;
@@ -156,7 +153,6 @@ const MetaChip: React.FC<{
   </div>
 );
 
-// ── Main page component ────────────────────────────────────────────────────
 const JobDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -186,7 +182,6 @@ const JobDetailPage: React.FC = () => {
     }
   };
 
-  // ── Skeleton loading state ──
   if (loading) {
     return (
       <div>
@@ -260,7 +255,6 @@ const JobDetailPage: React.FC = () => {
 
   return (
     <div>
-      {/* ── Back button ── */}
       <Button
         icon={<ArrowLeftOutlined />}
         type="text"
@@ -287,9 +281,8 @@ const JobDetailPage: React.FC = () => {
               border: '1px solid #eef0f5',
               boxShadow: '0 2px 16px rgba(0,0,0,0.04)',
             }}
-            styles={{ body: { padding: '28px 32px' } }}
+            bodyStyle={{ padding: '28px 32px' }}
           >
-            {/* ── Header: Avatar + Title + Company ── */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 20 }}>
               <Avatar
                 size={64}
@@ -338,30 +331,45 @@ const JobDetailPage: React.FC = () => {
                   >
                     {JOB_LEVEL_LABEL[job.level]}
                   </Tag>
-                  <Tag
-                    style={{
-                      background: '#f0f5ff',
-                      color: '#2f54eb',
-                      border: 'none',
-                      borderRadius: 6,
-                      fontSize: 11,
-                      padding: '1px 8px',
-                    }}
-                  >
-                    {CATEGORY_LABEL[job.category]}
-                  </Tag>
+                  {job.jobType && (
+                    <Tag
+                      style={{
+                        background: '#fff7e6',
+                        color: '#d46b08',
+                        border: 'none',
+                        borderRadius: 6,
+                        fontWeight: 700,
+                        fontSize: 11,
+                        padding: '1px 8px',
+                      }}
+                    >
+                      {JOB_TYPE_LABEL[job.jobType] || job.jobType}
+                    </Tag>
+                  )}
+                  {job.category && job.category !== 'OTHER' && (
+                    <Tag
+                      style={{
+                        background: '#f9f0ff',
+                        color: '#722ed1',
+                        border: 'none',
+                        borderRadius: 6,
+                        fontSize: 11,
+                        padding: '1px 8px',
+                      }}
+                    >
+                      {CATEGORY_NAME_MAP[job.category] || job.category}
+                    </Tag>
+                  )}
                 </Space>
               </div>
             </div>
 
-            {/* ── Skills ── */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
               {job.skills.map((skill, idx) => (
                 <JobSkillTag key={skill.id} skill={skill} index={idx} />
               ))}
             </div>
 
-            {/* ── Meta chips ── */}
             <div
               style={{
                 display: 'flex',
@@ -402,7 +410,6 @@ const JobDetailPage: React.FC = () => {
 
             <Divider style={{ margin: '0 0 28px' }} />
 
-            {/* ── Chi tiết công việc ── */}
             <SectionBlock
               title="Chi tiết công việc"
               icon={<FileTextOutlined />}
@@ -411,7 +418,6 @@ const JobDetailPage: React.FC = () => {
               <BulletList text={job.description} />
             </SectionBlock>
 
-            {/* ── Yêu cầu ứng viên ── */}
             <SectionBlock
               title="Yêu cầu ứng viên"
               icon={<UserOutlined />}
@@ -420,7 +426,6 @@ const JobDetailPage: React.FC = () => {
               <BulletList text={job.requirements} />
             </SectionBlock>
 
-            {/* ── Quyền lợi ── */}
             {job.benefits && (
               <SectionBlock
                 title="Quyền lợi"
@@ -433,22 +438,17 @@ const JobDetailPage: React.FC = () => {
           </Card>
         </Col>
 
-        {/* ════════════════════════════════════════════════
-            RIGHT COLUMN — Apply sidebar
-         */}
         <Col xs={24} lg={8}>
           <div style={{ position: 'sticky', top: 88, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-            {/* ── Apply card ── */}
             <Card
               style={{
                 borderRadius: 14,
                 border: '1px solid #eef0f5',
                 boxShadow: '0 2px 16px rgba(0,0,0,0.04)',
               }}
-              styles={{ body: { padding: '20px 24px' } }}
+              bodyStyle={{ padding: '20px 24px' }}
             >
-              {/* Deadline */}
               <div style={{ marginBottom: 18 }}>
                 <div
                   style={{
@@ -518,7 +518,6 @@ const JobDetailPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Apply button */}
               <Tooltip title={expired ? 'Công việc này đã hết hạn ứng tuyển' : ''}>
                 <Button
                   type="primary"
@@ -546,7 +545,6 @@ const JobDetailPage: React.FC = () => {
 
               <Divider style={{ margin: '16px 0' }} />
 
-              {/* Quick stats */}
               <Space direction="vertical" size={10} style={{ width: '100%' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text style={{ fontSize: 12, color: '#8c8c8c' }}>Hình thức làm việc</Text>
@@ -604,7 +602,6 @@ const JobDetailPage: React.FC = () => {
         </Col>
       </Row>
 
-      {/* ── Apply modal ── */}
       <ApplyModal
         job={job}
         open={applyOpen}
@@ -613,7 +610,6 @@ const JobDetailPage: React.FC = () => {
         loading={applyLoading}
       />
 
-      {/* ── Success modal ── */}
       <Modal
         open={successOpen}
         onCancel={() => setSuccessOpen(false)}

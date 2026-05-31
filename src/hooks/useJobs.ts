@@ -26,7 +26,11 @@ export function useJobs(initialFilters: JobFilterParams = {}): UseJobsReturn {
     setLoading(true);
     setError(null);
     try {
-      const res = await jobApi.getJobs({ ...filters, page: page - 1, size: 12 });
+      const res = await jobApi.getJobs({
+        ...filters,
+        page: page - 1,
+        size: 12,
+      });
       if (res?.data?.content) {
         setJobs(res.data.content);
         setTotal(res.data.totalElements);

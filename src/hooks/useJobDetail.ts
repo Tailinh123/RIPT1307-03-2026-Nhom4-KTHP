@@ -228,17 +228,15 @@ export function useJobDetail(id: string | undefined): UseJobDetailReturn {
       setLoading(false);
       return;
     }
-
-    // Try to fetch from API
     jobApi
       .getJobById(numId)
       .then((res) => {
-        setJob(res.data);
+        const mappedJob = res.data as any;
+        setJob(mappedJob);
         setLoading(false);
       })
       .catch((err) => {
         console.error('Error fetching job detail:', err);
-        // Fallback to mock data on error
         const found = MOCK_JOB_DETAILS.find((j) => j.id === numId);
         if (found) {
           setJob(found);

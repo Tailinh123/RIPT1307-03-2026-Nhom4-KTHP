@@ -236,7 +236,7 @@ public class AuthController {
   }
 
   @PutMapping("/profile")
-  @ApiMessage("")
+  @ApiMessage("Update current user profile")
   public ResponseEntity<UpdatedUserResponse> updateProfile(@Valid @RequestBody UpdateUserDTO dto) throws Exception {
     return ResponseEntity.ok().body(this.userService.updateCurrentUserProfile(dto));
   }

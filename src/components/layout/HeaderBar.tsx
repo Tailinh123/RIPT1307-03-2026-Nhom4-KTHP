@@ -9,7 +9,6 @@ import {
   OrderedListOutlined,
   ProfileOutlined,
   LogoutOutlined,
-  RocketOutlined,
 } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -62,31 +61,22 @@ const HeaderBar: React.FC = () => {
           boxShadow: '0 1px 4px rgba(0,21,41,.06)',
         }}
       >
-        {/* ── Left: Logo + Brand ── */}
+        {/* ── Left: Logo ── */}
         <div
-          style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
           onClick={() => navigate('/jobs')}
         >
-          <div
+          <img
+            src="/images/logo2.png"
+            alt="InternMatch"
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 9,
-              background: 'linear-gradient(135deg, #1677ff 0%, #69b1ff 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              height: 65,
+              maxHeight: 65,
+              width: 'auto',
+              objectFit: 'contain',
+              display: 'block',
             }}
-          >
-            <RocketOutlined style={{ color: '#fff', fontSize: 16 }} />
-          </div>
-          <div>
-            <Text strong style={{ fontSize: 16, color: '#1677ff', letterSpacing: '-0.3px', lineHeight: '1.2' }}>
-              InternMatch
-            </Text>
-            <br />
-            <Text style={{ fontSize: 10, color: '#9ca3af', lineHeight: '1' }}>Sinh viên</Text>
-          </div>
+          />
         </div>
 
         {/* ── Right: user avatar ── */}

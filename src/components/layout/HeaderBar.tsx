@@ -111,25 +111,24 @@ const HeaderBar: React.FC = () => {
       >
         {/* ── Left: Logo ── */}
         <div
-          style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+          style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', justifyContent: 'center' }}
           onClick={() => navigate('/profile/company-dashboard')}
         >
-          <div
-            style={{
-              width: 34, height: 34,
-              borderRadius: 9,
-              background: 'linear-gradient(135deg, #1677ff 0%, #69b1ff 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <RocketOutlined style={{ color: '#fff', fontSize: 16 }} />
+          <div style={{ fontSize: 23, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.5px', fontFamily: '"Inter", sans-serif' }}>
+            <span style={{ color: '#111827' }}>Intern</span>
+            <span style={{ color: '#1677ff' }}>Match</span>
           </div>
-          <div>
-            <Text strong style={{ fontSize: 16, color: '#1677ff', letterSpacing: '-0.3px', lineHeight: '1.2' }}>
-              InternMatch
-            </Text>
-            <br />
-            <Text style={{ fontSize: 10, color: '#9ca3af', lineHeight: '1' }}>Nhà tuyển dụng</Text>
+          <div style={{ 
+            fontSize: 8.5, 
+            color: '#6b7280', 
+            marginTop: 4, 
+            fontWeight: 500,
+            textAlign: 'justify',
+            textAlignLast: 'justify',
+            whiteSpace: 'nowrap',
+            width: '100%'
+          }}>
+            Kết nối thực tập, mở lối tương lai
           </div>
         </div>
 

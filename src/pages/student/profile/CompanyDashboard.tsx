@@ -99,11 +99,27 @@ const CompanyDashboard: React.FC = () => {
           pendingApplications: appsList.filter((app: any) => app?.status === 'PENDING').length,
         });
 
+        const CATEGORY_MAP_VI: Record<string, string> = {
+          "Ngon ngu": "Ngôn ngữ",
+          "Thiet ke": "Thiết kế",
+          "Ke toan - Kiem toan": "Kế toán - Kiểm toán",
+          "Kinh doanh": "Kinh doanh",
+          "IT - Phan mem": "IT - Phần mềm",
+          "Nhan su": "Nhân sự",
+          "Marketing - PR": "Marketing - PR",
+          "Cong nghe thong tin": "Công nghệ thông tin",
+        };
+
+        const formatCategoryName = (name: string) => CATEGORY_MAP_VI[name] || name;
+
         const categoryMap = new Map<string, { jobs: number; applications: number }>();
         jobsList.forEach((job: any) => {
           let categoryName = 'Khác';
           if (job.jobCategory && typeof job.jobCategory === 'object') categoryName = job.jobCategory.name || 'Khác';
           else if (typeof job.jobCategory === 'string') categoryName = job.jobCategory;
+          
+          categoryName = formatCategoryName(categoryName);
+          
           const entry = categoryMap.get(categoryName) || { jobs: 0, applications: 0 };
           entry.jobs += 1;
           categoryMap.set(categoryName, entry);
@@ -116,6 +132,9 @@ const CompanyDashboard: React.FC = () => {
             if (relatedJob.jobCategory && typeof relatedJob.jobCategory === 'object') categoryName = relatedJob.jobCategory.name || 'Khác';
             else if (typeof relatedJob.jobCategory === 'string') categoryName = relatedJob.jobCategory;
           }
+          
+          categoryName = formatCategoryName(categoryName);
+          
           const entry = categoryMap.get(categoryName) || { jobs: 0, applications: 0 };
           entry.applications += 1;
           categoryMap.set(categoryName, entry);

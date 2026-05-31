@@ -102,9 +102,9 @@ const ApplicationsReview: React.FC = () => {
 
         const companyFiltered = myCompanyId
           ? allApps.filter((app: any) => {
-              const jobId = String(app.jobId || app.job?.id || app.job_id || '');
-              return myJobIds.has(jobId);
-            })
+            const jobId = String(app.jobId || app.job?.id || app.job_id || '');
+            return myJobIds.has(jobId);
+          })
           : allApps;
 
         allApplicationsRef.current = companyFiltered;
@@ -118,7 +118,7 @@ const ApplicationsReview: React.FC = () => {
     };
 
     loadApplications();
-  }, []); 
+  }, []);
 
   // ── Client-side filter ────────────────────────────────────────────────────
   const filteredApplications = useMemo(() => {
@@ -131,7 +131,7 @@ const ApplicationsReview: React.FC = () => {
       const statusMatch = !filters.status || app.status === filters.status;
       return nameMatch && statusMatch;
     });
-  }, [filters, applications]); 
+  }, [filters, applications]);
 
   // ── Update status ────────────────────────────────────────────────────────
   const updateApplicationStatus = async (request: UpdateApplicationStatusRequest) => {
@@ -225,8 +225,8 @@ const ApplicationsReview: React.FC = () => {
         const ext = fileName.split('.').pop()?.toLowerCase();
         const mimeType = ext === 'pdf' ? 'application/pdf'
           : ext === 'doc' ? 'application/msword'
-          : ext === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-          : 'application/octet-stream';
+            : ext === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+              : 'application/octet-stream';
         const viewBlob = new Blob([blob], { type: mimeType });
         const objectUrl = URL.createObjectURL(viewBlob);
         const win = window.open(objectUrl, '_blank');
@@ -256,7 +256,7 @@ const ApplicationsReview: React.FC = () => {
   };
 
   // ── Xem hồ sơ ứng viên ──────────────────────────────────────────────────────────
-  const handleViewApplicant = (record: ApplicationRow) => {)
+  const handleViewApplicant = (record: ApplicationRow) => {
     const applicant = (record as any).resume?.user;
     if (!applicant && !(record as any).createdBy) {
       message.warning('Không tìm thấy thông tin ứng viên!');
@@ -581,7 +581,7 @@ const ApplicationsReview: React.FC = () => {
               <Descriptions.Item label="Giới tính">
                 {viewingProfile.gender === 'MALE' ? 'Nam'
                   : viewingProfile.gender === 'FEMALE' ? 'Nữ'
-                  : viewingProfile.gender === 'OTHER' ? 'Khác' : '—'}
+                    : viewingProfile.gender === 'OTHER' ? 'Khác' : '—'}
               </Descriptions.Item>
               <Descriptions.Item label={<><HomeOutlined /> Địa chỉ</>}>
                 {viewingProfile.address || '—'}

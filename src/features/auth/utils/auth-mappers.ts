@@ -75,7 +75,7 @@ export function extractRoleName(profile: UnknownRecord) {
     }
   }
 
-  return 'STUDENT';
+  return 'CANDIDATE';
 }
 
 export function mapProfileToAuthUser(profile: UnknownRecord): AuthUser {

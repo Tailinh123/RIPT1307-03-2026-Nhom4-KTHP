@@ -118,7 +118,7 @@ export function RegisterForm() {
                     name="email"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="student@ptit.edu.vn"
+                    placeholder="candidate@ptit.edu.vn"
                   />
                 </Stack>
                 {touched.email && errors.email ? <FormHelperText error>{errors.email}</FormHelperText> : null}

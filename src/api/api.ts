@@ -1,13 +1,12 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
+  baseURL: '', 
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Tự động gắn Token vào mọi request gửi đi
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');

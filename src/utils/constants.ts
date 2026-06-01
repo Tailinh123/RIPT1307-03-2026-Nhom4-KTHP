@@ -75,4 +75,4 @@ export const CATEGORY_NAME_MAP: Record<string, string> = {
 };
 
 export const PAGE_SIZE = 12;
-export const BASE_URL = import.meta.env.VITE_API_URL ?? '';
+export const BASE_URL = '';

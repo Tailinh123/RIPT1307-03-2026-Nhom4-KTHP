@@ -1,8 +1,9 @@
 import React from 'react';
-import { Row, Col, Pagination, Empty, Alert, Typography, Space, Tag, Skeleton } from 'antd';
-import { AppstoreOutlined } from '@ant-design/icons';
+import { Alert, Col, Pagination, Row, Skeleton, Space, Tag, Typography, Button } from 'antd';
+import { AppstoreOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import type { Job } from '@/types/job';
 import JobCard from './JobCard';
+import EmptyState from '@/components/common/EmptyState';
 
 const { Text } = Typography;
 
@@ -15,6 +16,7 @@ interface JobListProps {
   pageSize?: number;
   onPageChange: (page: number) => void;
   onApply?: (job: Job) => void;
+  onClearFilters?: () => void;
 }
 
 const JobList: React.FC<JobListProps> = ({
@@ -25,48 +27,71 @@ const JobList: React.FC<JobListProps> = ({
   page,
   pageSize = 12,
   onPageChange,
-  onApply,
+  onClearFilters,
 }) => {
-  if (error) {
-    return (
-      <Alert
-        type="warning"
-        showIcon
-        message="Không kết nối được Backend"
-        description={`${error} — Đang hiển thị dữ liệu mẫu.`}
-        style={{ marginBottom: 20, borderRadius: 10 }}
-      />
-    );
-  }
-
   return (
     <div>
-      {/* ── Result summary ── */}
-      <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {error && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Không kết nối được backend"
+          description={error}
+          style={{ marginBottom: 18, borderRadius: 8 }}
+        />
+      )}
+
+      <div
+        style={{
+          marginBottom: 18,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
         <Space>
-          <AppstoreOutlined style={{ color: '#1677ff' }} />
-          <Text style={{ color: '#595959' }}>
-            Tìm thấy{' '}
-            <Text strong style={{ color: '#1d1d1f' }}>
-              {total}
-            </Text>{' '}
-            vị trí tuyển dụng
+          {onClearFilters && (
+            <Button 
+              type="dashed" 
+              icon={<ArrowLeftOutlined />} 
+              onClick={onClearFilters}
+              style={{ marginRight: 8, borderRadius: 8, color: '#64748b' }}
+            >
+              Quay lại
+            </Button>
+          )}
+          <div
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 8,
+              background: '#e6f4ff',
+              color: '#1677ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <AppstoreOutlined />
+          </div>
+          <Text style={{ color: '#475569', fontSize: 14 }}>
+            Tìm thấy <Text strong>{total}</Text> vị trí tuyển dụng
           </Text>
         </Space>
-        <Space>
-          <Tag color="blue" style={{ borderRadius: 6 }}>Trang {page}</Tag>
-        </Space>
+        <Tag color="blue" style={{ borderRadius: 8, padding: '3px 10px', margin: 0 }}>
+          Trang {page}
+        </Tag>
       </div>
-
-      {/* ── Grid ── */}
       {loading ? (
-        <Row gutter={[20, 20]}>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Col key={i} xs={24} sm={12} md={12} lg={8} xl={8}>
+        <Row gutter={[24, 24]}>
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Col key={index} xs={24} md={12} xl={8}>
               <div
                 style={{
                   background: '#fff',
-                  borderRadius: 14,
+                  borderRadius: 8,
                   padding: 20,
                   border: '1px solid #eef0f5',
                   boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
@@ -78,28 +103,24 @@ const JobList: React.FC<JobListProps> = ({
           ))}
         </Row>
       ) : jobs.length === 0 ? (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={
-            <span style={{ color: '#8c8c8c' }}>
-              Không tìm thấy việc làm phù hợp. Hãy thử điều chỉnh bộ lọc.
-            </span>
-          }
-          style={{ margin: '60px 0' }}
+        <EmptyState
+          illustration="no-jobs"
+          title="Không tìm thấy việc làm phù hợp"
+          description="Hãy thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm để khám phá thêm cơ hội."
+          actionText={onClearFilters ? "Quay lại" : undefined}
+          onAction={onClearFilters}
         />
       ) : (
-        <Row gutter={[20, 20]}>
+        <Row gutter={[24, 24]}>
           {jobs.map((job) => (
-            <Col key={job.id} xs={24} sm={12} md={12} lg={8} xl={8}>
-              <JobCard job={job} onApply={onApply} />
+            <Col key={job.id} xs={24} md={12} xl={8}>
+              <JobCard job={job} />
             </Col>
           ))}
         </Row>
       )}
-
-      {/* ── Pagination ── */}
       {!loading && total > pageSize && (
-        <div style={{ marginTop: 32, textAlign: 'center' }}>
+        <div style={{ marginTop: 34, textAlign: 'center' }}>
           <Pagination
             current={page}
             total={total}
@@ -107,12 +128,11 @@ const JobList: React.FC<JobListProps> = ({
             onChange={onPageChange}
             showSizeChanger={false}
             showQuickJumper
-            showTotal={(tot) => `Tổng ${tot} việc làm`}
+            showTotal={(count) => `Tổng ${count} việc làm`}
           />
         </div>
       )}
     </div>
   );
 };
-
-export default JobList;
+export default React.memo(JobList);

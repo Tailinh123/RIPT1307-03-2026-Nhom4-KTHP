@@ -1,5 +1,4 @@
 import type { Skill } from './skill';
-
 export type JobLevel = 'INTERN' | 'FRESHER' | 'JUNIOR' | 'MIDDLE' | 'SENIOR';
 export type WorkMode = 'ONSITE' | 'REMOTE' | 'HYBRID';
 export type JobCategory =
@@ -11,16 +10,17 @@ export type JobCategory =
   | 'HUMAN_RESOURCES'
   | 'EDUCATION'
   | 'OTHER';
-export type JobType = 'INTERNSHIP' | 'FULL_TIME' | 'PART_TIME';
+export type JobType = 'INTERNSHIP' | 'INTERN' | 'FULL_TIME' | 'PART_TIME';
 export type JobStatus = 'ACTIVE' | 'PENDING' | 'CLOSED' | 'DRAFT';
-
 export interface Job {
   id: number | string;
   title: string;
   name?: string;
   companyName: string;
   company?: {
+    id?: number;
     name?: string;
+    logoUrl?: string;
   };
   companyLogo?: string;
   description: string;
@@ -32,8 +32,8 @@ export interface Job {
   level: JobLevel;
   jobType?: JobType;
   workMode: WorkMode;
-  category?: JobCategory;
-  jobCategory?: JobCategory;
+  category?: JobCategory | string;
+  jobCategory?: JobCategory | string | { id?: number; name?: string };
   skills?: Skill[];
   deadline?: string;
   startDate?: string;
@@ -46,17 +46,26 @@ export interface Job {
   status?: JobStatus;
   serviceFee?: number;
 }
-
+export interface JobDetail extends Job {
+  benefits: string;
+  headcount: number;
+  companyDescription: string;
+  companyWebsite?: string;
+  companySize?: string;
+  companyIndustry?: string;
+}
 export interface JobFilterParams {
   keyword?: string;
   category?: JobCategory;
+  categoryId?: number;
   skills?: number[];
   level?: JobLevel;
   workMode?: WorkMode;
+  location?: string;
+  companyId?: number;
   page?: number;
   size?: number;
 }
-
 export interface JobFormData {
   name: string;
   description: string;
@@ -65,7 +74,7 @@ export interface JobFormData {
   jobType: JobType;
   workMode: WorkMode;
   skills: number[];
-  jobCategory: JobCategory;
+  jobCategory: JobCategory | number;
   location?: string;
   quantity?: number;
   companyName?: string;
@@ -73,8 +82,8 @@ export interface JobFormData {
   endDate?: any;
   isActive?: boolean;
   isHot?: boolean;
+  companyId?: number;
 }
-
 export const levelLabels: Record<JobLevel, string> = {
   INTERN: 'Intern',
   FRESHER: 'Fresher',
@@ -82,49 +91,26 @@ export const levelLabels: Record<JobLevel, string> = {
   MIDDLE: 'Mid-level',
   SENIOR: 'Senior',
 };
-
 export const jobTypeLabels: Record<string, string> = {
   INTERNSHIP: 'Internship',
   INTERN: 'Internship',
   FULL_TIME: 'Full-time',
   PART_TIME: 'Part-time',
 };
-
 export const workModeLabels: Record<WorkMode, string> = {
   ONSITE: 'On-site',
   REMOTE: 'Remote',
   HYBRID: 'Hybrid',
 };
-
 export const statusLabels: Record<JobStatus, string> = {
   ACTIVE: 'Đang tuyển',
   PENDING: 'Chờ duyệt',
   CLOSED: 'Đã đóng',
   DRAFT: 'Bản nháp',
 };
-
 export const statusColors: Record<JobStatus, string> = {
   ACTIVE: 'green',
   PENDING: 'orange',
   CLOSED: 'red',
   DRAFT: 'default',
 };
-
-export const skillOptions = [
-  { value: 1, label: 'React' },
-  { value: 2, label: 'Node.js' },
-  { value: 3, label: 'TypeScript' },
-  { value: 4, label: 'Design' },
-  { value: 5, label: 'Marketing' },
-];
-
-export const jobCategoryOptions = [
-  { value: 'IT_SOFTWARE', label: 'CNTT - Phần mềm' },
-  { value: 'MARKETING', label: 'Marketing' },
-  { value: 'FINANCE', label: 'Tài chính' },
-  { value: 'DESIGN', label: 'Thiết kế' },
-  { value: 'SALES', label: 'Bán hàng' },
-  { value: 'HUMAN_RESOURCES', label: 'Nhân sự' },
-  { value: 'EDUCATION', label: 'Giáo dục' },
-  { value: 'OTHER', label: 'Khác' },
-];

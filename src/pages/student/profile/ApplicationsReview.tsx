@@ -13,6 +13,8 @@ import {
   message,
   Tooltip,
   Typography,
+  Avatar,
+  Descriptions,
 } from "antd";
 import {
   SearchOutlined,
@@ -21,6 +23,8 @@ import {
   EyeOutlined,
   DownloadOutlined,
   UserOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
   PhoneOutlined,
   MailOutlined,
   HomeOutlined,
@@ -38,27 +42,25 @@ import {
   applicationStatusColors,
   applicationStatusOptions,
 } from "@/types/application";
-
 type ApplicationRow = Application & {
   user?: { name?: string; email?: string };
   candidate?: { name?: string; email?: string };
-  job?: { title?: string; name?: string; company?: { name?: string } };
+  job?: {
+    id: number;
+    title?: string;
+    name?: string;
+    location?: string;
+    level?: string;
+    workMode?: string;
+    company?: { id?: number; name?: string } | null;
+  } | null;
 };
-
 import apiClient from "@/api/api";
-
-import { Avatar, Descriptions } from "antd";
-
+import { getBackendErrorMessage, getBackendMessage } from "@/utils/backendMessage";
 const { Title, Text } = Typography;
-
-// ============================================================================
-// COMPONENT CHÍNH: ApplicationsReview
-// ============================================================================
-
 const ApplicationsReview: React.FC = () => {
-  const allApplicationsRef = useRef<Application[]>([]);
-
-  const [applications, setApplications] = useState<Application[]>([]);
+  const allApplicationsRef = useRef<ApplicationRow[]>([]);
+  const [applications, setApplications] = useState<ApplicationRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [processingLoading, setProcessingLoading] = useState(false);
@@ -66,61 +68,30 @@ const ApplicationsReview: React.FC = () => {
   const [actionType, setActionType] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
   const [noteContent, setNoteContent] = useState('');
   const [cvLoading, setCvLoading] = useState<number | null>(null);
-
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [viewingProfile, setViewingProfile] = useState<any>(null);
-
   const [filters, setFilters] = useState<ApplicationFilter>({
     status: undefined,
     jobName: undefined,
   });
-
   useEffect(() => {
     const loadApplications = async () => {
       setLoading(true);
       try {
-        const userStr = localStorage.getItem('user');
-        const userObj = userStr ? JSON.parse(userStr) : null;
-        const myCompanyId = userObj?.company?.id || userObj?.companyId;
-
-        let myJobIds: Set<string> = new Set();
-        if (myCompanyId) {
-          try {
-            const jobsRes = await apiClient.get('/api/v1/jobs');
-            const allJobs = jobsRes.data.data?.result || jobsRes.data.data || jobsRes.data || [];
-            (Array.isArray(allJobs) ? allJobs : []).forEach((job: any) => {
-              if (String(job.company?.id) === String(myCompanyId)) {
-                myJobIds.add(String(job.id));
-              }
-            });
-          } catch { /* ignore */ }
-        }
-
-        const response = await apiClient.get('/api/v1/applications');
+        const response = await apiClient.get('/api/v1/applications', { params: { page: 1, size: 500, sort: 'id,desc' } });
         const data = response.data.data?.result || response.data.data || response.data;
-        const allApps: Application[] = Array.isArray(data) ? data : [];
-
-        const companyFiltered = myCompanyId
-          ? allApps.filter((app: any) => {
-            const jobId = String(app.jobId || app.job?.id || app.job_id || '');
-            return myJobIds.has(jobId);
-          })
-          : allApps;
-
-        allApplicationsRef.current = companyFiltered;
-        setApplications(companyFiltered);
+        const allApps: ApplicationRow[] = Array.isArray(data) ? data : [];
+        allApplicationsRef.current = allApps;
+        setApplications(allApps);
       } catch (error) {
         console.error('Error fetching applications:', error);
-        message.error('Không thể tải danh sách đơn ứng tuyển.');
+        message.error(getBackendErrorMessage(error, 'Không thể tải danh sách đơn ứng tuyển.'));
       } finally {
         setLoading(false);
       }
     };
-
     loadApplications();
   }, []);
-
-  // ── Client-side filter ────────────────────────────────────────────────────
   const filteredApplications = useMemo(() => {
     const all = allApplicationsRef.current;
     return all.filter((app: any) => {
@@ -132,12 +103,10 @@ const ApplicationsReview: React.FC = () => {
       return nameMatch && statusMatch;
     });
   }, [filters, applications]);
-
-  // ── Update status ────────────────────────────────────────────────────────
   const updateApplicationStatus = async (request: UpdateApplicationStatusRequest) => {
     try {
-      await apiClient.put('/api/v1/applications', request);
-      const updater = (list: Application[]) =>
+      const res = await apiClient.put('/api/v1/applications', request);
+      const updater = (list: ApplicationRow[]) =>
         list.map((app) =>
           app.id === request.id
             ? { ...app, status: request.status, note: request.note || app.note, reviewedAt: new Date().toISOString() }
@@ -145,15 +114,13 @@ const ApplicationsReview: React.FC = () => {
         );
       allApplicationsRef.current = updater(allApplicationsRef.current);
       setApplications(updater(allApplicationsRef.current));
-      const statusText = request.status === ApplicationStatus.APPROVED ? 'duyệt' : 'từ chối';
-      message.success(`Đã ${statusText} đơn ứng tuyển thành công`);
+      message.success(getBackendMessage(res.data, 'Cập nhật trạng thái đơn ứng tuyển thành công.'));
     } catch (error: any) {
       console.error('Error updating application status:', error);
-      message.error(error?.response?.data?.message || 'Không thể cập nhật trạng thái đơn ứng tuyển');
+      message.error(getBackendErrorMessage(error, 'Không thể cập nhật trạng thái đơn ứng tuyển.'));
       throw error;
     }
   };
-
   const handleConfirmAction = async () => {
     if (!targetApp) return;
     setProcessingLoading(true);
@@ -163,41 +130,49 @@ const ApplicationsReview: React.FC = () => {
       setNoteContent('');
       const applicantEmail = (targetApp as any).resume?.user?.email || (targetApp as any).createdBy;
       if (applicantEmail) {
-        message.info(`Đã gửi email thông báo tới ${applicantEmail}`);
+        Modal.success({
+          title: 'Thành công!',
+          content: `Đã cập nhật trạng thái và gửi email thông báo tới ${applicantEmail}`
+        });
+      } else {
+        Modal.success({
+          title: 'Thành công!',
+          content: 'Đã cập nhật trạng thái (nhưng không tìm thấy email ứng viên để gửi)'
+        });
       }
-    } catch { /* đã xử lý trong updateApplicationStatus */ } finally {
+    } catch (error: any) {
+        Modal.error({
+          title: 'Lỗi',
+          content: 'Không thể cập nhật trạng thái: ' + (error?.response?.data?.message || error?.message || 'Lỗi không xác định')
+        });
+    } finally {
       setProcessingLoading(false);
     }
   };
-
   const getRawCv = (record: ApplicationRow): string | undefined =>
     (record as any).resume?.url ||
     (record as any).cvUrl ||
     (record as any).resumeUrl ||
     (record as any).cv;
-
   const getFileName = (rawCv: string): string =>
     rawCv
       .replace(/^.*[/\\]/, '')
-      .replace(/^storage\//, '')
-      .replace(/^uploads\/resume\//, '')
-      .replace(/^resume\//, '')
-      .replace(/^cv\//, '') || 'CV.pdf';
-
+      .replace(/^storage\//, "")
+      .replace(/^uploads\/resume\//, "")
+      .replace(/^resume\//, "")
+      .replace(/^cv\//, "")
   const fetchCvBlob = async (rawCv: string): Promise<{ blob: Blob; fileName: string }> => {
     const fileName = getFileName(rawCv);
     const apiUrl = `/api/v1/files?fileName=${encodeURIComponent(fileName)}&folder=resume`;
     const res = await apiClient.get(apiUrl, { responseType: 'blob' });
     return { blob: res.data as Blob, fileName };
   };
-
   const handleCvError = (err: any) => {
     console.error('[CV Error]', err?.response?.status, err?.response?.data, err?.message);
     if (err?.response?.status === 404) message.error('Không tìm thấy file CV trên server!');
     else if (err?.response?.status === 403) message.error('Không có quyền truy cập file CV!');
-    else message.error(`Lỗi CV: ${err?.response?.data?.message || err?.message || 'Không xác định'}`);
+    else message.error(`Lỗi CV: ${getBackendErrorMessage(err, 'Không xác định')}`);
   };
-
   const markAsReviewing = async (record: ApplicationRow) => {
     if (record.status !== 'PENDING') return;
     try {
@@ -206,11 +181,11 @@ const ApplicationsReview: React.FC = () => {
         status: 'REVIEWING',
         note: (record as any).note || null,
       });
-      const updater = (list: Application[]) =>
+      const updater = (list: ApplicationRow[]) =>
         list.map((app) => app.id === record.id ? { ...app, status: 'REVIEWING' as any } : app);
       allApplicationsRef.current = updater(allApplicationsRef.current);
       setApplications(updater(allApplicationsRef.current));
-    } catch { /* ignore */ }
+    } catch {  }
   };
   const handleViewCV = async (record: ApplicationRow) => {
     const rawCv = getRawCv(record);
@@ -246,16 +221,12 @@ const ApplicationsReview: React.FC = () => {
       setCvLoading(null);
     }
   };
-
   const handleFilterChange = (key: keyof ApplicationFilter, value: string | undefined) => {
     setFilters((prev) => ({ ...prev, [key]: value || undefined }));
   };
-
   const handleResetFilters = () => {
     setFilters({ status: undefined, jobName: undefined });
   };
-
-  // ── Xem hồ sơ ứng viên ──────────────────────────────────────────────────────────
   const handleViewApplicant = (record: ApplicationRow) => {
     const applicant = (record as any).resume?.user;
     if (!applicant && !(record as any).createdBy) {
@@ -270,13 +241,11 @@ const ApplicationsReview: React.FC = () => {
     setViewingProfile(profile);
     setProfileModalOpen(true);
   };
-
-  // ── TABLE COLUMNS ────────────────────────────────────────────────────────
-  const columns: ColumnsType<Application> = [
+  const columns: ColumnsType<ApplicationRow> = [
     {
       title: 'STT',
       key: 'index',
-      width: 60,
+      width: 52,
       align: 'center',
       render: (_, __, index) => index + 1,
     },
@@ -284,10 +253,10 @@ const ApplicationsReview: React.FC = () => {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: 130,
+      width: 112,
       align: 'center',
       render: (status: ApplicationStatus) => (
-        <Tag color={applicationStatusColors[status] || 'blue'}>
+        <Tag color={applicationStatusColors[status] || 'blue'} style={{ marginInlineEnd: 0, whiteSpace: 'nowrap' }}>
           {applicationStatusLabels[status] || status || 'Chờ xử lý'}
         </Tag>
       ),
@@ -295,16 +264,16 @@ const ApplicationsReview: React.FC = () => {
     {
       title: 'Ứng viên',
       key: 'applicant',
-      width: 240,
+      width: 210,
       render: (_, record: ApplicationRow) => {
         const applicant = (record as any).resume?.user;
         const name = applicant?.name || record.applicantName || record.user?.name || (record as any).createdBy?.split('@')[0] || 'Không rõ';
         const email = applicant?.email || record.applicantEmail || record.user?.email || (record as any).createdBy || 'Chưa có email';
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ flex: 1 }}>
-              <Text strong style={{ display: 'block' }}>{name}</Text>
-              <Text type="secondary" style={{ fontSize: '12px' }}>{email}</Text>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Text strong style={{ display: 'block' }} ellipsis={{ tooltip: name }}>{name}</Text>
+              <Text type="secondary" style={{ display: 'block', fontSize: '12px' }} ellipsis={{ tooltip: email }}>{email}</Text>
             </div>
             <Button
               type="link"
@@ -324,14 +293,14 @@ const ApplicationsReview: React.FC = () => {
       width: 220,
       render: (_, record: ApplicationRow) => {
         const jobTitle = record.jobName || (record as any).jobTitle || record.job?.title || record.job?.name || 'Vị trí không rõ';
-        return <Text strong>{jobTitle}</Text>;
+        return <Text strong ellipsis={{ tooltip: jobTitle }} style={{ maxWidth: 200 }}>{jobTitle}</Text>;
       },
     },
     {
       title: 'Ngày nộp',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 110,
+      width: 108,
       render: (date: string, record: any) => {
         const actualDate = date || record.appliedAt;
         if (!actualDate) return 'Chưa rõ ngày';
@@ -351,7 +320,7 @@ const ApplicationsReview: React.FC = () => {
       title: 'Ghi chú',
       dataIndex: 'note',
       key: 'note',
-      width: 180,
+      width: 132,
       ellipsis: true,
       render: (note: string | undefined) =>
         note ? (
@@ -363,19 +332,22 @@ const ApplicationsReview: React.FC = () => {
     {
       title: 'CV',
       key: 'cv',
-      width: 80,
+      width: 70,
       align: 'center',
       render: (_, record: ApplicationRow) => (
         <Button
-          type="primary"
+          type="default"
           icon={<FilePdfOutlined />}
           loading={cvLoading === record.id}
           onClick={() => handleViewCV(record)}
           style={{
-            fontWeight: 700,
-            fontSize: 12,
-            padding: '0 10px',
-            letterSpacing: 0.5,
+            fontWeight: 600,
+            fontSize: 13,
+            padding: '0 12px',
+            background: '#e6f4ff',
+            color: '#1677ff',
+            borderColor: '#91caff',
+            borderRadius: 6,
           }}
         >
           CV
@@ -386,31 +358,49 @@ const ApplicationsReview: React.FC = () => {
       title: 'Hành động',
       key: 'action',
       width: 200,
+      fixed: 'right',
+      align: 'center',
       render: (_, record: ApplicationRow) => {
         const canAction = record.status === 'PENDING' || record.status === 'REVIEWING';
         return (
-          <Space size="small" wrap>
+          <Space size={8} wrap={false} style={{ whiteSpace: 'nowrap' }}>
             {canAction ? (
               <>
                 <Button
-                  type="primary"
                   size="small"
-                  style={{ backgroundColor: '#166534' }}
+                  icon={<CheckCircleOutlined />}
+                  style={{ 
+                    background: '#f6ffed', 
+                    color: '#389e0d', 
+                    borderColor: '#b7eb8f',
+                    borderRadius: 6,
+                    fontWeight: 500,
+                    padding: '0 10px',
+                    height: 28
+                  }}
                   onClick={() => { setTargetApp(record); setActionType('APPROVED'); setIsModalOpen(true); }}
                 >
                   Chấp nhận
                 </Button>
                 <Button
-                  danger
-                  type="primary"
                   size="small"
+                  icon={<CloseCircleOutlined />}
+                  style={{ 
+                    background: '#fff2f0', 
+                    color: '#cf1322', 
+                    borderColor: '#ffa39e',
+                    borderRadius: 6,
+                    fontWeight: 500,
+                    padding: '0 10px',
+                    height: 28
+                  }}
                   onClick={() => { setTargetApp(record); setActionType('REJECTED'); setIsModalOpen(true); }}
                 >
                   Từ chối
                 </Button>
               </>
             ) : (
-              <Tag color={record.status === 'APPROVED' ? 'green' : 'red'}>
+              <Tag color={record.status === 'APPROVED' ? 'success' : 'error'} style={{ padding: '2px 10px', borderRadius: 4 }}>
                 {applicationStatusLabels[record.status] || record.status}
               </Tag>
             )}
@@ -419,27 +409,22 @@ const ApplicationsReview: React.FC = () => {
       },
     },
   ];
-
-  // ── RENDER ─────────────────────────────────────────────────────────────
   return (
-    <div style={{ padding: '24px 40px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
+    <div className="page-enter">
+      <div style={{ width: '100%', maxWidth: '100%', margin: 0 }}>
         <Card
           bordered={false}
-          style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03)' }}
-          bodyStyle={{ padding: '24px' }}
+          style={{ borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03)' }}
+          bodyStyle={{ padding: '24px', overflow: 'hidden' }}
         >
-          {/* Header */}
           <div style={{ marginBottom: '24px' }}>
             <Title level={3} style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>
               Xét duyệt đơn ứng tuyển
             </Title>
             <Text style={{ color: '#64748b', fontSize: '14px' }}>
-              Quản lý và xét duyệt các đơn ứng tuyển từ ứng viên
+              Quản lý và duyệt đơn ứng tuyển từ các ứng viên
             </Text>
           </div>
-
-          {/* Filter Section */}
           <Card
             size="small"
             bordered
@@ -477,24 +462,23 @@ const ApplicationsReview: React.FC = () => {
               </Col>
             </Row>
           </Card>
-
-          {/* Table */}
-          <Table<Application>
+          <Table<ApplicationRow>
             columns={columns}
             dataSource={filteredApplications}
             rowKey="id"
             loading={loading}
+            tableLayout="fixed"
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
               showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} đơn ứng tuyển`,
             }}
-            scroll={{ x: 1200 }}
+            locale={{ emptyText: 'Chưa có đơn ứng tuyển thuộc công ty của bạn' }}
+            scroll={{ x: 1068 }}
             size="middle"
           />
         </Card>
       </div>
-
       <Modal
         title={actionType === 'APPROVED' ? '✅ Xác nhận Duyệt Hồ Sơ' : '❌ Xác nhận Từ Chối Hồ Sơ'}
         open={isModalOpen}
@@ -525,8 +509,6 @@ const ApplicationsReview: React.FC = () => {
           onChange={(e) => setNoteContent(e.target.value)}
         />
       </Modal>
-
-      {/* ── Modal xem hồ sơ ứng viên ── */}
       <Modal
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -542,11 +524,10 @@ const ApplicationsReview: React.FC = () => {
       >
         {viewingProfile ? (
           <div>
-            {/* Avatar + tên */}
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
               <Avatar
                 size={80}
-                src={viewingProfile.avatarUrl ? `/api/v1/files?fileName=${encodeURIComponent(viewingProfile.avatarUrl.replace(/^.*[/\\]/, '').replace(/^avatar\//, ''))}&folder=avatar` : undefined}
+                src={viewingProfile.avatarUrl ? ("/api/v1/files?fileName=" + encodeURIComponent(viewingProfile.avatarUrl.replace(/^.*[/\\]/, '').replace(/^avatar\//, '')) + "&folder=avatar") : undefined}
                 icon={<UserOutlined />}
                 style={{ background: 'linear-gradient(135deg, #1677ff, #69b1ff)', fontSize: 32, marginBottom: 12 }}
               >
@@ -559,7 +540,6 @@ const ApplicationsReview: React.FC = () => {
                 <Text type="secondary">{viewingProfile.role?.name || 'Ứng viên'}</Text>
               </div>
             </div>
-
             <Descriptions
               column={1}
               bordered
@@ -604,5 +584,4 @@ const ApplicationsReview: React.FC = () => {
     </div>
   );
 };
-
 export default ApplicationsReview;

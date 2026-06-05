@@ -1,5 +1,8 @@
 import apiClient from '@/api/api';
+import { getBackendErrorMessage, getBackendMessage } from '@/utils/backendMessage';
 import React, { useState, useEffect, useMemo } from "react";
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import {
   Table,
   Button,
@@ -17,6 +20,7 @@ import {
   message,
   Typography,
   DatePicker,
+  Switch,
 } from "antd";
 import {
   PlusOutlined,
@@ -26,7 +30,6 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-
 import type {
   Job,
   JobFormData,
@@ -36,8 +39,6 @@ import type {
   JobStatus,
 } from "@/types/job";
 import {
-  skillOptions,
-  jobCategoryOptions,
   levelLabels,
   jobTypeLabels,
   workModeLabels,
@@ -45,16 +46,24 @@ import {
   statusColors,
 } from "@/types/job";
 import dayjs from "dayjs";
-
+import moment from "moment";
 const { Title } = Typography;
 const { TextArea } = Input;
+
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    ['link', 'clean']
+  ],
+};
 
 type ManageJobFilter = {
   name?: string;
   status?: JobStatus;
   categoryId?: number;
 };
-
 const categoryNameMap: Record<string, string> = {
   "Cong nghe thong tin": "Công nghệ thông tin",
   "Marketing": "Marketing",
@@ -65,16 +74,14 @@ const categoryNameMap: Record<string, string> = {
   "Logistics": "Logistics",
   "Ngon ngu": "Ngôn ngữ",
 };
-
 export default function ManageJobs() {
-  // ==================== STATE MANAGEMENT ====================
 const [companies, setCompanies] = useState<any[]>([]);
 const [jobs, setJobs] = useState<Job[]>([]);
 const [loading, setLoading] = useState<boolean>(true);
 const [myCompanyId, setMyCompanyId] = useState<number | undefined>(undefined);
 const [myCompanyName, setMyCompanyName] = useState<string>('');
 const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
-
+const [skills, setSkills] = useState<{ id: number; name: string }[]>([]);
 useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
@@ -84,56 +91,60 @@ useEffect(() => {
         const cName = userObj?.company?.name || userObj?.companyName || '';
         setMyCompanyId(cId ? Number(cId) : undefined);
         setMyCompanyName(cName);
-      } catch { /* ignore */ }
+      } catch {  }
     }
-
     const fetchJobs = async () => {
       try {
         const userStr2 = localStorage.getItem('user');
         const userObj2 = userStr2 ? JSON.parse(userStr2) : null;
         const cId = userObj2?.company?.id || userObj2?.companyId;
-        const response = await apiClient.get('/api/v1/jobs');
+        const response = await apiClient.get('/api/v1/jobs', { params: { page: 1, size: 500, sort: 'id,desc' } });
         const data = response.data.data?.result || response.data.data || response.data;
         const allJobs = Array.isArray(data) ? data : [];
         const filtered = cId ? allJobs.filter((j: any) => String(j.company?.id) === String(cId)) : allJobs;
         setJobs(filtered);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Jobs API failed', error);
-        message.error('Không thể tải danh sách viế trí tuyển dụng.');
+        message.error(getBackendErrorMessage(error, 'Không thể tải danh sách vị trí tuyển dụng.'));
       } finally {
         setLoading(false);
       }
     };
     fetchJobs();
   }, []);;
-
-  // Load categories
   useEffect(() => {
     apiClient
-      .get('/api/v1/job-categories', { params: { page: 0, size: 100 } })
+      .get('/api/v1/job-categories', { params: { page: 1, size: 100 } })
       .then((res) => {
         const data = res.data?.data?.result || res.data?.data || [];
         setCategories(Array.isArray(data) ? data : []);
       })
       .catch(() => setCategories([]));
   }, []);
-
-  // Modal state
+  useEffect(() => {
+    apiClient
+      .get('/api/v1/skills', { params: { page: 1, size: 200 } })
+      .then((res) => {
+        const data = res.data?.data?.result || res.data?.data || [];
+        const skillsArray = Array.isArray(data) ? data : [];
+        const mappedSkills = skillsArray.map((s: any) => ({
+          ...s,
+          name: s.name === 'Săn đầu người (Headhunter)' ? 'Tuyển dụng (Recruitment)' : 
+                s.name === 'Săn đầu người' ? 'Tuyển dụng' : s.name
+        }));
+        setSkills(mappedSkills);
+      })
+      .catch(() => setSkills([]));
+  }, []);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
-
-  // Filter state
   const [filters, setFilters] = useState<ManageJobFilter>({
     name: undefined,
     status: undefined,
     categoryId: undefined,
   });
-
-  // Form instance
   const [form] = Form.useForm<JobFormData>();
-
-  // ==================== FILTERED DATA ====================
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
       const jobTitle = (job.title || (job as any).name || '').toLowerCase();
@@ -147,22 +158,22 @@ useEffect(() => {
       return nameMatch && statusMatch && categoryMatch;
     });
   }, [jobs, filters]);
-
 const companyOptions = useMemo(() => {
     return companies.map((c: any) => ({
       value: c.id,  
       label: c.name, 
     }));
   }, [companies]);
-
-  // ==================== HANDLERS ====================
+const skillSelectOptions = useMemo(
+    () => skills.map((skill) => ({ value: skill.id, label: skill.name })),
+    [skills]
+  );
   const handleAddNew = () => {
     setEditingJob(null);
     form.resetFields();
-    if (myCompanyId) form.setFieldValue('companyId', myCompanyId);
+    if (myCompanyId) form.setFieldsValue({ companyId: myCompanyId });
     setIsModalOpen(true);
   };
-
   const handleEdit = (record: Job) => {
     setEditingJob(record);
     form.setFieldsValue({
@@ -178,106 +189,123 @@ const companyOptions = useMemo(() => {
       jobCategory: (record as any).jobCategory?.id || record.jobCategory || record.category || undefined,
       location: record.location,
       quantity: record.quantity,
-      startDate: record.startDate ? dayjs(record.startDate) : undefined,
-      endDate: record.endDate ? dayjs(record.endDate) : undefined,
+      startDate: record.startDate ? moment(record.startDate) : undefined,
+      endDate: record.endDate ? moment(record.endDate) : undefined,
+      isActive: (record as any).active !== false,
     });
     setIsModalOpen(true);
   };
-
   const handleDelete = async (id: string | number) => {
     setLoading(true);
     try {
-      await apiClient.delete(`/api/v1/jobs/${id}`);
+      const deleteRes = await apiClient.delete(`/api/v1/jobs/${id}`);
       setJobs((prev) => prev.filter((job) => job.id !== id));
-      message.success('Xóa vị trí thực tập thành công!');
+      message.success(getBackendMessage(deleteRes.data, 'Xóa vị trí thực tập thành công!'));
     } catch (err: any) {
-      if (err?.response?.status === 400) {
-        try {
-          const job = jobs.find((j) => j.id === id);
-          await apiClient.put('/api/v1/jobs', {
-            id,
-            name: (job as any)?.title || (job as any)?.name || 'job',
-            active: false,
-            isActive: false,
-          });
-          await apiClient.delete(`/api/v1/jobs/${id}`);
-          setJobs((prev) => prev.filter((j) => j.id !== id));
-          message.success('Xóa vị trí thực tập thành công!');
-        } catch {
-          message.error('Không thể xóa vị trí này. Vui lòng thử lại!');
-        }
-      } else {
-        message.error('Có lỗi xảy ra khi xóa!');
-      }
+      message.error(getBackendErrorMessage(err, 'Có lỗi xảy ra khi xóa!'));
     } finally {
       setLoading(false);
     }
   };
-
-// Submit form
   const handleSubmit = async (values: JobFormData) => {
     setModalLoading(true);
     try {
-      const safeCategoryId = typeof values.jobCategory === 'number' ? values.jobCategory : 1;
-      
+      const safeCategoryId = Number(values.jobCategory);
+      if (!Number.isFinite(safeCategoryId) || safeCategoryId <= 0) {
+        throw new Error('Vui lòng chọn phân loại ngành hợp lệ.');
+      }
+      const safeSkillIds = (values.skills || []).map((skillValue: number | string) => Number(skillValue));
+      if (!safeSkillIds.length || safeSkillIds.some((skillId) => !Number.isFinite(skillId) || skillId <= 0)) {
+        throw new Error('Vui lòng chọn kỹ năng hợp lệ.');
+      }
+      if (!values.location?.trim()) {
+        throw new Error('Vui lòng nhập địa điểm.');
+      }
       const safeJobType =
         String(values.jobType).toUpperCase() === "INTERNSHIP"
           ? ("INTERN" as unknown as JobType)
           : values.jobType;
-
       const payload = {
         name: values.name,
-        title: values.name,
         description: values.description,
         salary: values.salary,
         level: values.level,
         jobType: safeJobType,
         workMode: values.workMode,
         jobCategory: { id: safeCategoryId },
-        skills: values.skills.map((skillValue: number | string) => ({
-          id: typeof skillValue === 'number' ? skillValue : Number(skillValue) || 1,
-        })),
-        location: values.location || 'Hà Nội',
+        skills: safeSkillIds.map((id) => ({ id })),
+        location: values.location.trim(),
         quantity: values.quantity ?? 1,
-        company: myCompanyId ? { id: Number(myCompanyId) } : undefined,
         startDate: values.startDate
-          ? dayjs(values.startDate).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ')
+          ? (moment(values.startDate).isSame(moment(), 'day')
+              ? moment().add(5, 'minutes').toISOString()
+              : moment(values.startDate).startOf('day').toISOString())
           : undefined,
         endDate: values.endDate
-          ? dayjs(values.endDate).endOf('day').format('YYYY-MM-DDTHH:mm:ssZ')
+          ? moment(values.endDate).endOf('day').toISOString()
           : undefined,
-        isHot: false,
+        active: (values as any).active !== undefined ? (values as any).active : true,
       };
-
       if (editingJob) {
-        await apiClient.put('/api/v1/jobs', { id: editingJob.id, ...payload });
-        message.success('Cập nhật vị trí thực tập thành công!');
+        const saveRes = await apiClient.put('/api/v1/jobs', { id: editingJob.id, ...payload });
+        Modal.success({
+          title: <span style={{ fontSize: '18px', fontWeight: 600 }}>Cập nhật thành công</span>,
+          content: 'Vị trí thực tập đã được cập nhật thành công.',
+          centered: true,
+          okText: 'Đóng',
+          okButtonProps: { style: { borderRadius: '6px' } }
+        });
       } else {
-        await apiClient.post('/api/v1/jobs', payload);
-        message.success('Thêm vị trí thực tập mới thành công!');
+        const saveRes = await apiClient.post('/api/v1/jobs', payload);
+        Modal.success({
+          title: <span style={{ fontSize: '18px', fontWeight: 600 }}>Đăng bài thành công</span>,
+          content: 'Vị trí thực tập mới đã được đăng lên hệ thống.',
+          centered: true,
+          okText: 'Tuyệt vời',
+          okButtonProps: { style: { borderRadius: '6px' } }
+        });
       }
       setIsModalOpen(false);
       form.resetFields();
-      const response = await apiClient.get('/api/v1/jobs');
+      const response = await apiClient.get('/api/v1/jobs', { params: { page: 1, size: 500, sort: 'id,desc' } });
       const data = response.data.data?.result || response.data.data || response.data;
       const allJobs = Array.isArray(data) ? data : [];
       const filtered = myCompanyId ? allJobs.filter((j: any) => String(j.company?.id) === String(myCompanyId)) : allJobs;
       setJobs(filtered);
-      
-    } catch (error) {
+    } catch (error: any) {
       console.error("Lỗi lưu dữ liệu:", error);
-      message.error("Có lỗi xảy ra khi lưu vào Database!");
+      const errMsgs = error?.response?.data?.errors || error?.response?.data?.message;
+      if (Array.isArray(errMsgs) && errMsgs.length > 0 && typeof errMsgs[0] === 'object' && errMsgs[0].field) {
+        const fieldErrors = errMsgs.map((e) => ({
+          name: e.field,
+          errors: [e.defaultMessage || e.message],
+        }));
+        form.setFields(fieldErrors);
+        message.error("Vui lòng kiểm tra lại các trường màu đỏ!");
+      } else {
+        let displayError = "Có lỗi xảy ra khi lưu vào Database!";
+        if (Array.isArray(errMsgs)) {
+          displayError = errMsgs.map((e) => typeof e === 'string' ? e : (e.defaultMessage || e.message || JSON.stringify(e))).join(", ");
+        } else if (typeof errMsgs === 'string') {
+          displayError = errMsgs;
+        } else if (error && error.message) {
+          displayError = error.message;
+        }
+
+        Modal.error({
+          title: 'Không thể lưu bài đăng',
+          content: displayError,
+          centered: true,
+          okText: 'Đóng',
+        });
+      }
     } finally {
       setModalLoading(false);
     }
   };
-
-  // Reset filters
   const handleResetFilters = () => {
     setFilters({ name: undefined, status: undefined, categoryId: undefined });
   };
-
-  // ==================== TABLE COLUMNS ====================
   const columns: ColumnsType<Job> = [
     {
       title: "STT",
@@ -292,10 +320,8 @@ const companyOptions = useMemo(() => {
       key: "title",
       width: 250,
       render: (title: string, record: Job) => {
-
         const levelText = levelLabels[record.level] || record.level || "Chưa xác định";
         const typeText = record.jobType ? (jobTypeLabels[record.jobType] || record.jobType) : "N/A";
-
         return (
           <div>
             <div className="font-medium text-gray-900">{title || record.name || "Không có tên"}</div>
@@ -381,10 +407,8 @@ const companyOptions = useMemo(() => {
       ),
     },
   ];
-
-  // ==================== RENDER ====================
 return (
-    <div style={{ padding: "24px 40px", background: "#f8fafc", minHeight: "100vh" }}>
+    <div className="page-enter">
       <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
         <div className="mb-6">
           <Title level={3} className="!mb-1" style={{ fontWeight: 600, color: "#0f172a" }}>
@@ -394,9 +418,7 @@ return (
             Quản lý các vị trí tuyển dụng của doanh nghiệp
           </p>
         </div>
-
-        {/* Filter Section */}
-        <Card className="mb-6" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+        <Card className="mb-6" style={{ borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <Row gutter={[16, 16]} align="bottom">
             <Col xs={24} sm={12} md={6}>
               <div className="mb-1 text-sm font-medium text-gray-700">Tên công việc</div>
@@ -437,16 +459,45 @@ return (
               />
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <Space>
-                <Button icon={<ReloadOutlined />} onClick={handleResetFilters}>Đặt lại</Button>
-                <Button type="primary" icon={<PlusOutlined />} onClick={handleAddNew}>Thêm mới</Button>
+              <Space size={12} style={{ paddingBottom: '2px' }}>
+                <Button 
+                  icon={<ReloadOutlined />} 
+                  onClick={handleResetFilters}
+                  style={{
+                    borderRadius: '8px',
+                    fontWeight: 500,
+                    color: '#475569',
+                    borderColor: '#cbd5e1',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                    height: '36px',
+                    padding: '0 16px'
+                  }}
+                  className="flex items-center justify-center hover:text-slate-800 hover:border-slate-400 hover:bg-slate-50 transition-all duration-200"
+                >
+                  Đặt lại
+                </Button>
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />} 
+                  onClick={handleAddNew}
+                  style={{
+                    borderRadius: '8px',
+                    fontWeight: 500,
+                    background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(37,99,235,0.2)',
+                    height: '36px',
+                    padding: '0 16px'
+                  }}
+                  className="flex items-center justify-center hover:opacity-90 hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  Thêm mới
+                </Button>
               </Space>
             </Col>
           </Row>
         </Card>
-
-        {/* Table Section */}
-        <Card className="shadow-sm">
+        <Card className="shadow-sm" style={{ borderRadius: 8 }}>
           <Table
             columns={columns}
             dataSource={filteredJobs}
@@ -457,11 +508,10 @@ return (
               showSizeChanger: true,
               showTotal: (total) => `Tổng ${total} vị trí`,
             }}
-            scroll={{ x: 1000 }}
+            size="middle"
+            scroll={{ x: 'max-content' }}
           />
         </Card>
-
-        {/* Add/Edit Modal */}
 <Modal
           title={
             <span style={{ fontSize: "18px", fontWeight: 600, color: "#262626" }}>
@@ -481,10 +531,13 @@ return (
             form={form}
             layout="vertical"
             onFinish={handleSubmit}
+            onFinishFailed={(errorInfo) => {
+              message.error("Vui lòng điền đầy đủ và chính xác các trường bắt buộc!");
+              console.log('Failed:', errorInfo);
+            }}
             className="mt-4"
           >
             <Form.Item name="workMode" hidden initialValue="REMOTE"><Input /></Form.Item>
-
             <Row gutter={16}>
               <Col span={8}>
                 <Form.Item
@@ -495,7 +548,7 @@ return (
                     { min: 5, message: "Tên công việc phải có ít nhất 5 ký tự" },
                   ]}
                 >
-                  <Input placeholder="Backend Developer Intern" />
+                  <Input placeholder="Vd: Thực tập sinh Marketing, Lập trình viên ReactJS..." />
                 </Form.Item>
               </Col>
               <Col span={8}>
@@ -524,13 +577,15 @@ return (
                   <Select
                     mode="multiple"
                     placeholder="Chọn các kỹ năng"
-                    options={skillOptions}
+                    options={skillSelectOptions}
                     maxTagCount="responsive"
+                    filterOption={(input, option) =>
+                      String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
                   />
                 </Form.Item>
               </Col>
             </Row>
-
             <Row gutter={16}>
               <Col span={8}>
                 <Form.Item
@@ -562,26 +617,27 @@ return (
                   name="quantity"
                   label={<span style={{ fontWeight: 500 }}>Số lượng</span>}
                   rules={[{ required: true, message: "Vui lòng nhập số lượng" }]}
+                  initialValue={1}
                 >
                   <InputNumber<number>
                     className="w-full"
                     min={1}
                     max={100}
-                    placeholder="3"
+                    placeholder="1"
                   />
                 </Form.Item>
               </Col>
             </Row>
-
             <Row gutter={16}>
               <Col span={8}>
                 <Form.Item
                   name="level"
                   label={<span style={{ fontWeight: 500 }}>Trình độ</span>}
                   rules={[{ required: true, message: "Vui lòng chọn cấp độ" }]}
+                  initialValue="INTERN"
                 >
                   <Select
-                    placeholder="Junior"
+                    placeholder="Chọn trình độ"
                     options={Object.keys(levelLabels).map((level) => ({
                       value: level,
                       label: levelLabels[level as JobLevel],
@@ -594,9 +650,10 @@ return (
                   name="jobType"
                   label={<span style={{ fontWeight: 500 }}>Loại hình</span>}
                   rules={[{ required: true, message: "Vui lòng chọn loại hình công việc" }]}
+                  initialValue="INTERNSHIP"
                 >
                   <Select
-                    placeholder="Internship"
+                    placeholder="Chọn loại hình"
                     options={['INTERNSHIP', 'FULL_TIME', 'PART_TIME'].map((type) => ({
                       value: type,
                       label: jobTypeLabels[type],
@@ -616,7 +673,6 @@ return (
                 </Form.Item>
               </Col>
             </Row>
-
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
@@ -624,7 +680,16 @@ return (
                   label={<span style={{ fontWeight: 500 }}>Ngày bắt đầu</span>}
                   rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu' }]}
                 >
-                  <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+                  <DatePicker 
+                    style={{ width: '100%' }} 
+                    format="YYYY-MM-DD" 
+                    disabledDate={(current) => {
+                      if (!current) return false;
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      return current.valueOf() < today.getTime();
+                    }}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -633,73 +698,63 @@ return (
                   label={<span style={{ fontWeight: 500 }}>Ngày kết thúc</span>}
                   rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc' }]}
                 >
-                  <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+                  <DatePicker 
+                    style={{ width: '100%' }} 
+                    format="YYYY-MM-DD" 
+                    disabledDate={(current) => {
+                      if (!current) return false;
+                      const startDate = form.getFieldValue('startDate');
+                      if (startDate) {
+                        return current.valueOf() < startDate.valueOf();
+                      }
+                      // Disable các ngày trước hôm nay (tính từ 00:00:00)
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      return current.valueOf() < today.getTime();
+                    }}
+                  />
                 </Form.Item>
               </Col>
             </Row>
-
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="active"
+                  label={<span style={{ fontWeight: 500 }}>Trạng thái hiển thị</span>}
+                  valuePropName="checked"
+                  initialValue={true}
+                >
+                  <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />
+                </Form.Item>
+              </Col>
+            </Row>
             <div className="text-sm font-medium text-gray-700 mb-1" style={{ marginTop: "8px" }}>
               Miêu tả
             </div>
-            <div 
-              style={{ 
-                border: "1px solid #d9d9d9", 
-                borderRadius: "6px", 
-                overflow: "hidden",
-                backgroundColor: "#fff"
-              }}
+            <Form.Item
+              name="description"
+              rules={[
+                { required: true, message: 'Vui lòng nhập mô tả công việc' },
+                { 
+                  validator: async (_, value) => {
+                    const textOnly = value ? value.replace(/<[^>]*>?/gm, '').trim() : '';
+                    if (!textOnly) {
+                      return Promise.reject(new Error('Vui lòng nhập mô tả công việc'));
+                    }
+                    if (textOnly.length < 20) {
+                      return Promise.reject(new Error('Mô tả phải có ít nhất 20 ký tự'));
+                    }
+                    return Promise.resolve();
+                  }
+                }
+              ]}
             >
-              <div 
-                style={{ 
-                  backgroundColor: "#fafafa", 
-                  borderBottom: "1px solid #d9d9d9", 
-                  padding: "6px 12px", 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "16px",
-                  color: "#555",
-                  fontSize: "13px",
-                  userSelect: "none"
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "4px", cursor: "pointer", padding: "2px 6px", background: "#fff", border: "1px solid #d9d9d9", borderRadius: "4px" }}>
-                  <span>Normal</span>
-                  <span style={{ fontSize: "8px", color: "#bfbfbf" }}>▼</span>
-                </div>
-                <div style={{ height: "14px", width: "1px", backgroundColor: "#d9d9d9" }} />
-                <span style={{ fontWeight: "bold", cursor: "pointer", padding: "0 4px" }} title="Bold">B</span>
-                <span style={{ fontStyle: "italic", cursor: "pointer", padding: "0 4px" }} title="Italic">I</span>
-                <span style={{ textDecoration: "underline", cursor: "pointer", padding: "0 4px" }} title="Underline">U</span>
-                <span style={{ cursor: "pointer", padding: "0 4px" }} title="Link">🔗</span>
-                <div style={{ height: "14px", width: "1px", backgroundColor: "#d9d9d9" }} />
-                <span style={{ cursor: "pointer", padding: "0 4px" }} title="Bullet List">⋮≡</span>
-                <span style={{ cursor: "pointer", padding: "0 4px" }} title="Ordered List">📋</span>
-                <span style={{ cursor: "pointer", padding: "0 4px", color: "#8c8c8c" }} title="Clear Formatting"><u><i>T</i></u><sub>x</sub></span>
-              </div>
-
-              <Form.Item
-                name="description"
-                noStyle
-                rules={[
-                  { required: true, message: 'Vui lòng nhập mô tả công việc' },
-                  { min: 20, message: 'Mô tả phải có ít nhất 20 ký tự' },
-                ]}
-              >
-                <Input.TextArea
-                  rows={6}
-                  maxLength={2000}
-                  showCount={{
-                    formatter: ({ count, maxLength }) =>
-                      `${count}/${maxLength} ký tự (tối thiểu 20)`,
-                  }}
-                  bordered={false}
-                  placeholder="Phát triển hệ thống backend bằng Spring Boot..."
-                  style={{ padding: '12px', resize: 'none', fontSize: '14px' }}
-                />
-              </Form.Item>
-            </div>
-
-            {/* FOOTER BUTTONS */}
+              <ReactQuill 
+                theme="snow"
+                style={{ height: 250, marginBottom: 50 }}
+                modules={quillModules}
+              />
+            </Form.Item>
             <div className="flex justify-end gap-2 mt-6 pt-4 border-t" style={{ marginTop: "24px" }}>
               <Button
                 onClick={() => {
@@ -709,8 +764,18 @@ return (
               >
                 Hủy
               </Button>
-              <Button type="primary" htmlType="submit" loading={modalLoading}>
-                OK
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                loading={modalLoading}
+                style={{
+                  borderRadius: '6px',
+                  fontWeight: 500,
+                  background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)',
+                  boxShadow: '0 2px 6px rgba(22,119,255,0.2)'
+                }}
+              >
+                {editingJob ? "Cập nhật" : "Đăng bài"}
               </Button>
             </div>
           </Form>

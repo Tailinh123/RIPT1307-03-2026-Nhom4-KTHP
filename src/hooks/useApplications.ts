@@ -1,0 +1,27 @@
+import { useState, useEffect, useCallback } from 'react';import { applicationApi, type BackendApplication } from '@/api/applicationApi';import type { Application, ApplicationStatus } from '@/types/application';interface StatusCounts {  total: number;  PENDING: number;  REVIEWING: number;  APPROVED: number;  REJECTED: number;}interface UseApplicationsReturn {  applications: Application[];  total: number;  loading: boolean;  error: string | null;  statusFilter: ApplicationStatus | 'ALL';  setStatusFilter: (s: ApplicationStatus | 'ALL') => void;  searchKeyword: string;  setSearchKeyword: (k: string) => void;  page: number;  setPage: (p: number) => void;  pageSize: number;  statusCounts: StatusCounts;  refetch: () => void;}function mapBackendApplication(app: BackendApplication): Application {  return {
+    id: app.id,
+    createdAt: app.createdAt,
+    updatedAt: app.updatedAt,
+    createdBy: app.createdBy,
+    updatedBy: app.updatedBy,
+    job: app.job,
+    resume: app.resume
+      ? {
+          id: app.resume.id,
+          title: app.resume.title ?? undefined,
+          url: app.resume.url ?? undefined,
+        }
+      : null,
+    jobId: app.job?.id ?? 0,
+    jobTitle: app.job?.name ?? '(Không rõ vị trí)',    companyName: app.job?.company?.name ?? '(Không rõ công ty)',    resumeId: app.resume?.id ?? 0,    resumeName: app.resume?.title ?? app.resume?.url ?? 'CV',
+    status: (app.status ?? 'PENDING') as ApplicationStatus,
+    note: app.note ?? undefined,
+    appliedAt: app.createdAt,
+    jobName: app.job?.name ?? '',
+    applicantName: app.resume?.title ?? '',    applicantEmail: '',    cvUrl: app.resume?.url ?? '',  };}export function useApplications(): UseApplicationsReturn {  const [allApplications, setAllApplications] = useState<Application[]>([]);  const [loading, setLoading] = useState(false);  const [error, setError] = useState<string | null>(null);  const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'ALL'>('ALL');  const [searchKeyword, setSearchKeyword] = useState('');  const [page, setPage] = useState(1);  const pageSize = 5;  const fetchApplications = useCallback(async () => {    setLoading(true);    setError(null);    try {      const raw = await applicationApi.getMyApplications();
+      const sortedRaw = [...raw].sort((a, b) => {
+        const timeA = new Date(a.createdAt || 0).getTime();
+        const timeB = new Date(b.createdAt || 0).getTime();
+        return timeB - timeA;
+      });
+      setAllApplications(sortedRaw.map(mapBackendApplication));    } catch (err: any) {      const msg = err?.response?.data?.message ?? err?.message ?? 'Lỗi kết nối';      setError(`Không thể tải danh sách đơn ứng tuyển: ${msg}`);      setAllApplications([]);    } finally {      setLoading(false);    }  }, []);  useEffect(() => {    fetchApplications();  }, [fetchApplications]);  const statusCounts: StatusCounts = {    total: allApplications.length,    PENDING: allApplications.filter((a) => a.status === 'PENDING').length,    REVIEWING: allApplications.filter((a) => a.status === 'REVIEWING').length,    APPROVED: allApplications.filter((a) => a.status === 'APPROVED').length,    REJECTED: allApplications.filter((a) => a.status === 'REJECTED').length,  };  const filtered = allApplications.filter((app) => {    const matchStatus = statusFilter === 'ALL' || app.status === statusFilter;    const kw = searchKeyword.toLowerCase();    const matchKeyword =      !kw ||      (app.jobTitle || '').toLowerCase().includes(kw) ||      (app.companyName || '').toLowerCase().includes(kw);    return matchStatus && matchKeyword;  });  const startIdx = (page - 1) * pageSize;  const paginated = filtered.slice(startIdx, startIdx + pageSize);  return {    applications: paginated,    total: filtered.length,    loading,    error,    statusFilter,    setStatusFilter: (s) => { setStatusFilter(s); setPage(1); },    searchKeyword,    setSearchKeyword: (k) => { setSearchKeyword(k); setPage(1); },    page,    setPage,    pageSize,    statusCounts,    refetch: fetchApplications,  };}

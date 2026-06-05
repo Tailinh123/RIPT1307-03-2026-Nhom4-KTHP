@@ -1,14 +1,184 @@
 /* ── Google Fonts ───────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+:root {
+  --color-primary: #1677ff;
+  --color-primary-hover: #4096ff;
+  --color-primary-light: #e6f4ff;
+  --color-primary-dark: #0958d9;
+  --color-accent: #0f766e;
+  --color-accent-light: #ecfdf5;
+  --color-success: #52c41a;
+  --color-warning: #faad14;
+  --color-error: #ff4d4f;
+  --color-bg: #f5f6fa;
+  --color-bg-card: #ffffff;
+  --color-border: #eef0f5;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 14px 38px rgba(15, 23, 42, 0.12);
+  --shadow-primary: 0 8px 24px rgba(22, 119, 255, 0.25);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInStagger {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.page-enter {
+  animation: none;
+}
+
+.stagger-item {
+  animation: none;
+}
+
+.stagger-item:nth-child(1) {
+  animation-delay: 0.00s;
+}
+
+.stagger-item:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.stagger-item:nth-child(3) {
+  animation-delay: 0.10s;
+}
+
+.stagger-item:nth-child(4) {
+  animation-delay: 0.15s;
+}
+
+.stagger-item:nth-child(5) {
+  animation-delay: 0.20s;
+}
+
+.stagger-item:nth-child(6) {
+  animation-delay: 0.25s;
+}
+
+.stagger-item:nth-child(7) {
+  animation-delay: 0.30s;
+}
+
+.stagger-item:nth-child(8) {
+  animation-delay: 0.35s;
+}
+
+.stagger-item:nth-child(9) {
+  animation-delay: 0.40s;
+}
+
+.stagger-item:nth-child(10) {
+  animation-delay: 0.45s;
+}
+
+.stagger-item:nth-child(11) {
+  animation-delay: 0.50s;
+}
+
+.stagger-item:nth-child(12) {
+  animation-delay: 0.55s;
+}
+
+.job-card:hover {
+  border-color: #bfdbfe !important;
+  box-shadow: 0 16px 40px rgba(22, 119, 255, 0.12), 0 4px 12px rgba(22, 119, 255, 0.06) !important;
+}
+
+.badge-hot,
+.badge-urgent {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  z-index: 2;
+}
+
+.badge-hot {
+  background: linear-gradient(135deg, #ff4d4f, #ff7875);
+  box-shadow: 0 2px 6px rgba(255, 77, 79, 0.4);
+}
+
+.badge-urgent {
+  background: linear-gradient(135deg, #fa8c16, #ffc53d);
+  box-shadow: 0 2px 6px rgba(250, 140, 22, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+  letter-spacing: 0;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: 24px;
+}
+
 /* ── CSS Reset & Base ───────────────────────────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -22,46 +192,92 @@ html, body, #root {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #f5f6fa;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #d0d5dd;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #a8b0be;
 }
 
-/* ── Ant Design Menu override ───────────────────────────────────────── */
+/* ── Ant Design Menu override (light theme only) ──────────────────── */
 .ant-menu-item {
   border-radius: 8px !important;
   margin: 2px 0 !important;
   font-weight: 500 !important;
 }
 
-.ant-menu-item-selected {
+.ant-menu-light .ant-menu-item-selected {
   background: #e6f4ff !important;
   color: #1677ff !important;
 }
 
-.ant-menu-item-selected .anticon {
+.ant-menu-light .ant-menu-item-selected .anticon {
   color: #1677ff !important;
 }
+
+
+.admin-sidebar .ant-menu-item {
+  color: #475569 !important;
+  font-size: 14px !important;
+  height: 42px !important;
+  line-height: 42px !important;
+  margin: 2px 0 !important;
+  border-radius: 8px !important;
+  transition: all 0.18s ease !important;
+}
+
+.admin-sidebar .ant-menu-item .anticon {
+  color: #94a3b8 !important;
+  font-size: 16px !important;
+  transition: color 0.18s ease !important;
+}
+
+.admin-sidebar .ant-menu-item:hover {
+  color: #1677ff !important;
+  background: #f8fafc !important;
+}
+
+.admin-sidebar .ant-menu-item:hover .anticon {
+  color: #1677ff !important;
+}
+
+.admin-sidebar .ant-menu-item-selected {
+  background: #eff6ff !important;
+  color: #1677ff !important;
+  font-weight: 600 !important;
+  border-right: 3px solid #1677ff !important;
+  border-radius: 8px 0 0 8px !important;
+}
+
+.admin-sidebar .ant-menu-item-selected::after {
+  display: none !important;
+}
+
+.admin-sidebar .ant-menu-item-selected .anticon {
+  color: #1677ff !important;
+}
+
 
 /* ── Ant Design Layout override ─────────────────────────────────────── */
 .ant-layout {
   background: #f5f6fa !important;
 }
 
-/* ── Page transitions ───────────────────────────────────────────────── */
-.ant-card {
-  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease !important;
-}
 
-/* ── Typography ─────────────────────────────────────────────────────── */
-h1, h2, h3, h4, h5, h6 {
-  letter-spacing: -0.2px;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: 0;
 }
 
 /* ── Utility: glass card ─────────────────────────────────────────────── */
@@ -70,5 +286,932 @@ h1, h2, h3, h4, h5, h6 {
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  border-radius: 14px;
+  border-radius: 8px;
+}
+
+/* ── Application table rows ──────────────────────────────────────────── */
+.application-table-row {
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.application-table-row:hover td {
+  background: #fafbff !important;
+}
+
+.ant-table-expanded-row>td {
+  background: #fafbff !important;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-table-expand-icon-col {
+  width: 32px;
+}
+
+/* Application table header */
+.ant-table-thead>tr>th {
+  background: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  color: #8494a7 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #eef2f7 !important;
+}
+
+/* Pagination active page */
+.ant-pagination-item-active {
+  border-color: #1677ff !important;
+}
+
+.ant-pagination-item-active a {
+  color: #1677ff !important;
+}
+
+/* ── Hero Section ────────────────────────────────────────────────────── */
+.hero-section {
+  background-attachment: fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+@media (max-width: 768px) {
+  .header-nav {
+    display: none !important;
+  }
+
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+
+  .stats-banner,
+  .category-grid,
+  .top-company-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .hero-section {
+    background-attachment: scroll;
+    min-height: 320px !important;
+  }
+
+  .hero-section h1 {
+    font-size: 28px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .hero-section p {
+    font-size: 14px !important;
+  }
+
+  .job-filter-bar {
+    grid-template-columns: 1fr !important;
+    padding: 8px !important;
+  }
+
+  .job-filter-bar .ant-input-affix-wrapper {
+    border-left: none !important;
+    border-right: none !important;
+    border-top: 1px solid #eef2f7 !important;
+    border-bottom: 1px solid #eef2f7 !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .stats-banner,
+  .category-grid,
+  .top-company-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hero-section {
+    margin-top: -16px !important;
+    padding-bottom: 80px !important;
+    min-height: 280px !important;
+  }
+
+  .hero-section>div:not([style*="position: absolute"]) {
+    padding: 40px 16px 32px !important;
+  }
+}
+
+/* ── Shimmer Skeleton ──────────────────────────────────────────────── */
+@keyframes shimmer {
+  0% {
+    background-position: -800px 0;
+  }
+
+  100% {
+    background-position: 800px 0;
+  }
+}
+
+.shimmer-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* ── Glow Button Pulse ─────────────────────────────────────────────── */
+@keyframes glowPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 4px 16px rgba(22, 119, 255, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 6px 28px rgba(22, 119, 255, 0.5);
+  }
+}
+
+.glow-btn {
+  animation: glowPulse 2.5s ease-in-out infinite;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.glow-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(22, 119, 255, 0.5) !important;
+}
+
+.glow-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ── Input Focus Glow ──────────────────────────────────────────────── */
+.ant-input:focus,
+.ant-input-focused,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper-focused {
+  box-shadow: none !important;
+  border-color: #4096ff !important;
+  transition: all 0.3s ease !important;
+}
+
+/* ── Fix nested input border inside affix-wrapper ── */
+.ant-input-affix-wrapper>.ant-input:focus {
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.ant-input-affix-wrapper-focused .ant-input {
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* ── Floating Blobs ────────────────────────────────────────────────── */
+@keyframes floatBlob {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  25% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+
+  50% {
+    transform: translate(-10px, 20px) scale(0.95);
+  }
+
+  75% {
+    transform: translate(20px, 10px) scale(1.03);
+  }
+}
+
+.floating-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.4;
+  animation: floatBlob 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── Counter Animation ─────────────────────────────────────────────── */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.count-up {
+  animation: countUp 0.6s ease both;
+}
+
+/* ── Typing Cursor ─────────────────────────────────────────────────── */
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+.typing-cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+  color: #ffffff;
+  font-weight: 300;
+  margin-left: 2px;
+}
+
+/* ── Smooth Card Lift ──────────────────────────────────────────────── */
+.card-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.card-lift:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ── Back to Top Button ────────────────────────────────────────────── */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.back-to-top {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 4px 16px rgba(22, 119, 255, 0.35);
+  z-index: 999;
+  animation: fadeInScale 0.3s ease both;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.back-to-top:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(22, 119, 255, 0.45);
+}
+
+/* ── Footer Link Hover ─────────────────────────────────────────────── */
+.footer-link {
+  position: relative;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: #e2e8f0;
+}
+
+.footer-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #4096ff;
+  transition: width 0.3s ease;
+}
+
+.footer-link:hover::after {
+  width: 100%;
+}
+
+/* ── Social Icon Hover ─────────────────────────────────────────────── */
+.social-icon {
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease !important;
+  cursor: pointer;
+}
+
+.social-icon:hover {
+  transform: translateY(-3px) scale(1.1);
+  background: #1677ff !important;
+  color: #ffffff !important;
+}
+
+/* ── Profile Cover ─────────────────────────────────────────────────── */
+.profile-cover {
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 40%, #36cfc9 100%);
+  height: 120px;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-cover::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-cover::after {
+  content: '';
+  position: absolute;
+  bottom: -40%;
+  left: -10%;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Progress Bar ──────────────────────────────────────────────────── */
+@keyframes progressFill {
+  from {
+    width: 0;
+  }
+}
+
+.progress-bar-fill {
+  animation: progressFill 1s ease both;
+  transition: width 0.5s ease;
+}
+
+/* ── Login Animated BG ─────────────────────────────────────────────── */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.login-bg {
+  background: linear-gradient(-45deg, #e6f4ff, #f0fdf4, #fdf4ff, #e6f4ff, #ecfdf5);
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
+}
+
+/* ── Auth Page Layout ──────────────────────────────────────────────── */
+.auth-page {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Auth Hero Panel (left side branding) ──────────────────────────── */
+.auth-hero-panel {
+  padding-right: 48px;
+  animation: authSlideIn 0.5s ease both;
+}
+
+@keyframes authSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Auth Card ─────────────────────────────────────────────────────── */
+.auth-card {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  border-radius: 16px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08), 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+  background: #ffffff !important;
+  animation: authCardIn 0.45s ease 0.1s both;
+}
+
+.auth-card:hover {
+  border-color: #e2e8f0 !important;
+  transform: none !important;
+}
+
+@keyframes authCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Auth Submit Button ────────────────────────────────────────────── */
+.auth-submit-btn {
+  height: 48px !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  margin-top: 4px !important;
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(22, 119, 255, 0.3) !important;
+  transition: all 0.25s ease !important;
+  animation: none !important;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(22, 119, 255, 0.4) !important;
+}
+
+.auth-submit-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+/* ── Auth Floating Shapes (decorative) ─────────────────────────────── */
+.auth-floating-shape {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  animation: authShapeIn 1s ease forwards;
+}
+
+@keyframes authShapeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.auth-shape-1 {
+  width: 320px;
+  height: 320px;
+  top: -80px;
+  right: -60px;
+  background: radial-gradient(circle, rgba(22, 119, 255, 0.06) 0%, transparent 70%);
+  animation-delay: 0.2s;
+}
+
+.auth-shape-2 {
+  width: 240px;
+  height: 240px;
+  bottom: -40px;
+  left: -40px;
+  background: radial-gradient(circle, rgba(54, 207, 201, 0.06) 0%, transparent 70%);
+  animation-delay: 0.4s;
+}
+
+.auth-shape-3 {
+  width: 180px;
+  height: 180px;
+  top: 50%;
+  left: 40%;
+  background: radial-gradient(circle, rgba(114, 46, 209, 0.04) 0%, transparent 70%);
+  animation-delay: 0.6s;
+}
+
+/* ── Auth Card Logo (visible only on mobile) ───────────────────────── */
+.auth-card-logo-mobile {
+  display: none;
+}
+
+@media (max-width: 991px) {
+  .auth-card-logo-mobile {
+    display: block;
+  }
+}
+
+/* ── Auth Form Input Styling ───────────────────────────────────────── */
+.auth-card .ant-input,
+.auth-card .ant-input-password,
+.auth-card .ant-input-affix-wrapper,
+.auth-card .ant-select-selector {
+  border-radius: 8px !important;
+  border-color: #e2e8f0 !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.auth-card .ant-input-affix-wrapper:hover,
+.auth-card .ant-select-selector:hover {
+  border-color: #94a3b8 !important;
+}
+
+.auth-card .ant-input-affix-wrapper-focused,
+.auth-card .ant-select-focused .ant-select-selector {
+  border-color: #4096ff !important;
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.08) !important;
+}
+
+/* ── Auth Radio Button Group Styling ───────────────────────────────── */
+.auth-card .ant-radio-group-solid .ant-radio-button-wrapper-checked {
+  background: #1677ff !important;
+  border-color: #1677ff !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+}
+
+.auth-card .ant-radio-button-wrapper {
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+  transition: all 0.2s ease !important;
+}
+
+.auth-card .ant-radio-button-wrapper:hover {
+  color: #1677ff !important;
+}
+
+
+
+
+/* ── Ripple Click Effect ───────────────────────────────────────────── */
+@keyframes rippleEffect {
+  0% {
+    transform: scale(0);
+    opacity: 0.35;
+  }
+
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.hero-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.job-description-html ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin-bottom: 1em;
+}
+
+.job-description-html ol {
+  list-style-type: decimal;
+  padding-left: 20px;
+  margin-bottom: 1em;
+}
+
+.job-description-html p {
+  margin-bottom: 0.5em;
+}
+
+.job-description-html h1,
+.job-description-html h2,
+.job-description-html h3 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.ant-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.ant-btn::after {
+  content: '';
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  margin-top: -50px;
+  margin-left: -50px;
+}
+
+.ant-btn:active::after {
+  animation: rippleEffect 0.5s ease-out;
+}
+
+/* ── Enhanced Card Hover ───────────────────────────────────────────── */
+.ant-card {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease !important;
+}
+
+.ant-card:hover {
+  border-color: #d6e4ff !important;
+}
+
+/* ── Button Press Feedback ─────────────────────────────────────────── */
+.ant-btn:active {
+  transform: scale(0.97) !important;
+  transition: transform 0.1s ease !important;
+}
+
+/* ── Avatar Dropdown Spring Animation ──────────────────────────────── */
+@keyframes springIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(3px) scale(1.01);
+  }
+
+  80% {
+    transform: translateY(-1px) scale(0.995);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Removed broken dropdown CSS that prevents clicking */
+
+/* ── Company name hover link ───────────────────────────────────────── */
+.company-name-link {
+  transition: color 0.2s ease !important;
+}
+
+.company-name-link:hover {
+  color: #0958d9 !important;
+}
+
+/* ── Company Popover (smooth show/hide) ────────────────────────────── */
+.company-popover.ant-popover {
+  padding-top: 6px !important;
+  /* invisible bridge between trigger and card */
+}
+
+.company-popover .ant-popover-inner {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06) !important;
+  transition: box-shadow 0.15s ease !important;
+}
+
+/* ── Smooth Page Route Transition ──────────────────────────────────── */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.page-slide {
+  animation: slideInRight 0.35s ease both;
+}
+
+/* ── Interactive Tag Hover ─────────────────────────────────────────── */
+.ant-tag {
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.ant-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Form Success Checkmark ────────────────────────────────────────── */
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dashoffset: 24;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.success-check {
+  animation: checkmarkDraw 0.4s ease 0.1s both;
+  stroke-dasharray: 24;
+}
+
+/* ── Table Row Hover Enhancement ───────────────────────────────────── */
+.ant-table-tbody>tr {
+  transition: background 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.ant-table-tbody>tr:hover>td {
+  background: #fafbff !important;
+}
+
+/* ── Menu Item Hover Glow ──────────────────────────────────────────── */
+.ant-menu-item:hover {
+  transition: all 0.2s ease !important;
+}
+
+/* ── Focus Ring for Accessibility ──────────────────────────────────── */
+.ant-btn:focus-visible,
+.ant-input:focus-visible,
+.ant-select-selector:focus-visible {
+  outline: 2px solid #4096ff;
+  outline-offset: 2px;
+}
+
+/* ── Skeleton Shimmer Enhancement ──────────────────────────────────── */
+.ant-skeleton-content .ant-skeleton-title,
+.ant-skeleton-content .ant-skeleton-paragraph>li {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 37%, #f0f0f0 63%) !important;
+  background-size: 800px 100% !important;
+  animation: shimmer 1.6s ease-in-out infinite !important;
+}
+
+/* ── Notification Slide In ─────────────────────────────────────────── */
+@keyframes notifSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.ant-notification-notice {
+  animation: notifSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ── Line Height Enhancement ───────────────────────────────────────── */
+body {
+  line-height: 1.65;
+}
+
+/* ── Hero Ticker (Joboko-style) ────────────────────────────────────── */
+@keyframes tickerFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-ticker {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  background: linear-gradient(90deg, #0a1940 0%, #112654 30%, #132b5e 50%, #112654 70%, #0a1940 100%);
+  overflow: hidden;
+  border-top: 1px solid rgba(100, 160, 255, 0.12);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.15);
+}
+
+.hero-ticker__static {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  animation: tickerFadeIn 0.5s ease both;
+}
+
+.hero-ticker__text {
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.hero-ticker__value {
+  color: #22c55e;
+  font-weight: 900;
+  font-size: 16px;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+}
+
+/* ── Modern Refresh Button (icon-only circle) ──────────────────────── */
+.btn-refresh-modern {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 10px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #64748b !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+  transition: all 0.2s ease !important;
+  font-size: 15px !important;
+}
+
+.btn-refresh-modern:hover {
+  color: #1677ff !important;
+  border-color: #bfdbfe !important;
+  background: #f0f7ff !important;
+  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.1) !important;
+  transform: translateY(-1px);
+}
+
+.btn-refresh-modern:hover .anticon {
+  animation: spinOnce 0.5s ease;
+}
+
+@keyframes spinOnce {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-refresh-modern:active {
+  transform: translateY(0) scale(0.95) !important;
+}
+
+/* ── Modern Create / Add Button ────────────────────────────────────── */
+.btn-create-modern {
+  height: 38px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  padding: 0 20px !important;
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.25) !important;
+  transition: all 0.2s ease !important;
+  letter-spacing: 0.01em;
+}
+
+.btn-create-modern:hover {
+  background: linear-gradient(135deg, #0958d9 0%, #1677ff 100%) !important;
+  box-shadow: 0 4px 16px rgba(22, 119, 255, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+.btn-create-modern:active {
+  transform: translateY(0) scale(0.97) !important;
+}
+
+/* ── Admin Search Input ────────────────────────────────────────────── */
+.page-enter .ant-input-affix-wrapper {
+  border-radius: 8px !important;
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.2s ease !important;
+}
+
+.page-enter .ant-input-affix-wrapper:hover {
+  border-color: #94a3b8 !important;
+}
+
+.page-enter .ant-input-affix-wrapper-focused {
+  border-color: #1677ff !important;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.08) !important;
 }

@@ -14,18 +14,26 @@ services:
       - app-network
 
   backend:
+    image: intern_matching_backend:latest
     build:
       context: ./backend
       dockerfile: ../Dockerfile
     container_name: intern_matching_backend
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
     environment:
-      DB_URL: jdbc:mysql://mysql-db:3306/intern_matching?useSSL=false&serverTimezone=UTC
+      DB_URL: ${DB_URL:-jdbc:mysql://mysql-db:3306/intern_matching?useSSL=false&serverTimezone=UTC}
       DB_USERNAME: ${DB_USERNAME:-root}
       DB_PASSWORD: ${DB_PASSWORD:-your_mysql_password}
+      JWT_SECRET: ${JWT_SECRET:-bXlzZWNyZXRrZXlibXlzZWNyZXRrZXlibXlzZWNyZXRrZXlibXlzZWNyZXRrZXl}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-linhfunny2@gmail.com}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      COOKIE_SAME_SITE: ${COOKIE_SAME_SITE:-Lax}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:4173,http://localhost:5173,http://188.166.219.104}
+    volumes:
+      - ./uploads:/app/uploads
     depends_on:
       - mysql-db
     networks:

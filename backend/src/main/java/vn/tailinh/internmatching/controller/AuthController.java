@@ -36,8 +36,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-
 @RequestMapping(path = "${apiPrefix}/auth")
 @RestController
 @RequiredArgsConstructor
@@ -49,6 +47,12 @@ public class AuthController {
 
   @Value("${tailinh.jwt.refresh-token-validity-in-seconds}")
   private long refreshTokenExpiration;
+
+  @Value("${tailinh.cookie.secure:false}")
+  private boolean cookieSecure;
+
+  @Value("${tailinh.cookie.same-site:Lax}")
+  private String cookieSameSite;
 
   @PostMapping("/register")
   @ApiMessage("Register a new user")
@@ -103,7 +107,8 @@ public class AuthController {
     ResponseCookie responseCookie = ResponseCookie
         .from("refresh_token", refreshToken)
         .httpOnly(true)
-        .secure(true)
+        .secure(cookieSecure)
+        .sameSite(cookieSameSite)
         .path("/")
         .maxAge(this.refreshTokenExpiration)
         .build();
@@ -117,33 +122,33 @@ public class AuthController {
 
   @GetMapping("/account")
   @ApiMessage("Get user information")
-  public ResponseEntity<LoginResponse.UserLogin> getAccount() {
+  public ResponseEntity<LoginResponse.UserLogin> getAccount() throws IdInvalidException {
     Optional<String> optionalEmail = SecurityUtils.getCurrentUserLogin();
     String email = optionalEmail.orElse(" ");
 
     User currentUserDB = this.userService.handleGetUserByUsername(email);
     LoginResponse.UserLogin userLogin = new LoginResponse.UserLogin();
 
-    if (currentUserDB != null) {
-      userLogin.setId(currentUserDB.getId());
-      userLogin.setEmail(currentUserDB.getEmail());
-      userLogin.setName(currentUserDB.getName());
-      userLogin.setAvatarUrl(currentUserDB.getAvatarUrl());
-
-      if (currentUserDB.getCompany() != null) {
-        LoginResponse.CompanyDTO company = new LoginResponse.CompanyDTO();
-        company.setId(currentUserDB.getCompany().getId());
-        company.setName(currentUserDB.getCompany().getName());
-        userLogin.setCompany(company);
-      }
-
-      if (currentUserDB.getRole() != null) {
-        LoginResponse.RoleDTO roleDTO = new LoginResponse.RoleDTO();
-        roleDTO.setId(currentUserDB.getRole().getId());
-        roleDTO.setName(currentUserDB.getRole().getName());
-        userLogin.setRole(roleDTO);
-      }
+    if (currentUserDB == null || !currentUserDB.isActive()
+        || currentUserDB.getRole() == null || !currentUserDB.getRole().isActive()) {
+      throw new IdInvalidException("Account is inactive");
     }
+    userLogin.setId(currentUserDB.getId());
+    userLogin.setEmail(currentUserDB.getEmail());
+    userLogin.setName(currentUserDB.getName());
+    userLogin.setAvatarUrl(currentUserDB.getAvatarUrl());
+
+    if (currentUserDB.getCompany() != null) {
+      LoginResponse.CompanyDTO company = new LoginResponse.CompanyDTO();
+      company.setId(currentUserDB.getCompany().getId());
+      company.setName(currentUserDB.getCompany().getName());
+      userLogin.setCompany(company);
+    }
+
+    LoginResponse.RoleDTO roleDTO = new LoginResponse.RoleDTO();
+    roleDTO.setId(currentUserDB.getRole().getId());
+    roleDTO.setName(currentUserDB.getRole().getName());
+    userLogin.setRole(roleDTO);
     return ResponseEntity.ok().body(userLogin);
   }
 
@@ -157,7 +162,7 @@ public class AuthController {
     String email = decodedToken.getSubject();
     User user = this.userService.getUserByRefreshTokenAndEmail(refreshToken, email);
 
-    if (user != null) {
+    if (user != null && user.isActive() && user.getRole() != null && user.getRole().isActive()) {
       LoginResponse loginResponse = new LoginResponse();
       LoginResponse.UserLogin userLogin = new LoginResponse.UserLogin();
       userLogin.setId(user.getId());
@@ -190,7 +195,8 @@ public class AuthController {
       ResponseCookie responseCookie = ResponseCookie
           .from("refresh_token", newRefreshToken)
           .httpOnly(true)
-          .secure(true)
+          .secure(cookieSecure)
+          .sameSite(cookieSameSite)
           .path("/")
           .maxAge(refreshTokenExpiration)
           .build();
@@ -218,7 +224,8 @@ public class AuthController {
     ResponseCookie deleteSpringCookie = ResponseCookie
         .from("refresh_token")
         .httpOnly(true)
-        .secure(true)
+        .secure(cookieSecure)
+        .sameSite(cookieSameSite)
         .path("/")
         .maxAge(0)
         .build();

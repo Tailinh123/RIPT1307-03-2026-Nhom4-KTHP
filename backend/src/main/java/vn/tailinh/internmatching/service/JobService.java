@@ -45,11 +45,16 @@ public class JobService {
 
         String email = SecurityUtils.getCurrentUserLogin().orElse("");
         User currentUser = this.userRepository.findByEmail(email);
+        boolean isSuperAdmin = currentUser != null && currentUser.getRole() != null && "SUPER_ADMIN".equals(currentUser.getRole().getName());
 
-        if(currentUser != null && currentUser.getCompany() != null ) {
-          job.setCompany(currentUser.getCompany());
+        if (isSuperAdmin) {
+            if (job.getCompany() == null || job.getCompany().getId() == null) {
+                throw new IdInvalidException("Vui lòng chọn công ty cho tin tuyển dụng");
+            }
+        } else if(currentUser != null && currentUser.getCompany() != null ) {
+            job.setCompany(currentUser.getCompany());
         } else {
-          throw new IdInvalidException("User is not associated with any company");
+            throw new IdInvalidException("User is not associated with any company");
         }
 
         Job currentJob = this.jobRepository.save(job);

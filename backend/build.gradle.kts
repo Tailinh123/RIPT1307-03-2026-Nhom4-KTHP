@@ -42,6 +42,7 @@ dependencies {
 
   implementation("org.springframework.boot:spring-boot-starter-mail")
   implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+  implementation("me.paulschwarz:spring-dotenv:4.0.0")
 }
 
 tasks.withType<Test> {

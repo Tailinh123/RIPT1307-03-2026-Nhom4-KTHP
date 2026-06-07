@@ -8,6 +8,8 @@ import vn.tailinh.internmatching.util.constant.Gender;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
+import vn.tailinh.internmatching.entity.Skill;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,4 +33,12 @@ public class UpdatedUserResponse {
     private CompanyUser company;
 
     private Role role;
+
+    private String avatarUrl;
+    
+    private String phone;
+
+    private String email;
+
+    private List<Skill> skills;
 }

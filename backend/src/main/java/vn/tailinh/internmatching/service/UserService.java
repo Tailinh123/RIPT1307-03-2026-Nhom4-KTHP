@@ -19,12 +19,12 @@ import vn.tailinh.internmatching.entity.Company;
 import vn.tailinh.internmatching.entity.Role;
 import vn.tailinh.internmatching.entity.Skill;
 
-import org.eclipse.angus.mail.imap.protocol.ID;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -59,8 +59,6 @@ public class UserService {
         return UserMapper.convertToResCreatedUserRes(this.userRepository.save(user));
     }
 
-
-
     public CreatedUserResponse registerUser(RegisterDTO dto) throws Exception {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new DataIntegrityViolationException("Email already exists");
@@ -72,7 +70,7 @@ public class UserService {
         user.setActive(true);
 
         if (dto.getCompanyId() != null) {
-            //registration: assign company + role
+            // registration: assign company + role
             Company company = this.companyService.findCompanyById(dto.getCompanyId());
             if (company == null) {
                 throw new IdInvalidException("Company Id is invalid");
@@ -96,8 +94,6 @@ public class UserService {
         return UserMapper.convertToResCreatedUserRes(this.userRepository.save(user));
     }
 
-
-
     public ResUserDTO fetchUserById(Long id) throws Exception {
         if (userRepository.existsById(id)) {
             return UserMapper.convertToUserDTO(this.userRepository.findById(id).get());
@@ -106,46 +102,53 @@ public class UserService {
         }
     }
 
-
-
     public ResUserDTO fetchCurrentUserProfile() throws Exception {
-      String email = SecurityUtils.getCurrentUserLogin().orElse("");
-      if(email.isEmpty()) {
-        throw new IdInvalidException("Access token is not valid or expired");
-      }
-
-      User currentUser = this.handleGetUserByUsername(email);
-      if(currentUser == null ) {
-        throw new IdInvalidException("User not found");
-      }
-
-      return UserMapper.convertToUserDTO(currentUser);
-    }
-
-
-    public UpdatedUserResponse updateCurrentUserProfile( UpdateUserDTO requestUser) throws Exception {
-      // get emal from currentuserLogin 
         String email = SecurityUtils.getCurrentUserLogin().orElse("");
-        if(email.isEmpty()) {
-          throw new IdInvalidException("Access token is not valid or expried");
+        if (email.isEmpty()) {
+            throw new IdInvalidException("Access token is not valid or expired");
         }
 
         User currentUser = this.handleGetUserByUsername(email);
-        if(currentUser == null ) {
-          throw new IdInvalidException("User not found");
+        if (currentUser == null) {
+            throw new IdInvalidException("User not found");
+        }
+        if (!currentUser.isActive() || currentUser.getRole() == null || !currentUser.getRole().isActive()) {
+            throw new IdInvalidException("Account is inactive");
+        }
+
+        return UserMapper.convertToUserDTO(currentUser);
+    }
+
+    @Transactional
+    public UpdatedUserResponse updateCurrentUserProfile(UpdateUserDTO requestUser) throws Exception {
+        // get emal from currentuserLogin
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        if (email.isEmpty()) {
+            throw new IdInvalidException("Access token is not valid or expried");
+        }
+
+        User currentUser = this.handleGetUserByUsername(email);
+        if (currentUser == null) {
+            throw new IdInvalidException("User not found");
+        }
+        if (!currentUser.isActive() || currentUser.getRole() == null || !currentUser.getRole().isActive()) {
+            throw new IdInvalidException("Account is inactive");
         }
 
         currentUser.setName(requestUser.getName());
         currentUser.setGender(requestUser.getGender());
         currentUser.setAddress(requestUser.getAddress());
         currentUser.setDateOfBirth(requestUser.getDateOfBirth());
-        currentUser.setPhone(requestUser.getPhone());
-        currentUser.setAvatarUrl(requestUser.getAvatarUrl());
+        if (requestUser.getPhone() != null) {
+            currentUser.setPhone(requestUser.getPhone().isEmpty() ? null : requestUser.getPhone());
+        }
+        if (requestUser.getAvatarUrl() != null) {
+            currentUser.setAvatarUrl(requestUser.getAvatarUrl());
+        }
 
-
-         String roleName = currentUser.getRole().getName();
+        String roleName = currentUser.getRole().getName();
         if (roleName.equals("HR_MANAGER")) {
-            // hr save company 
+            // hr save company
             if (requestUser.getCompany() != null) {
                 Company company = this.companyService.findCompanyById(requestUser.getCompany().getId());
                 if (company == null) {
@@ -153,9 +156,9 @@ public class UserService {
                 }
                 currentUser.setCompany(company);
             }
-            currentUser.setSkills(null); // clkear data Candidate when up Company 
+            currentUser.setSkills(null); // clkear data Candidate when up Company
         } else if (roleName.equals("CANDIDATE")) {
-            // candidate save skill 
+            // candidate save skill
             if (requestUser.getSkills() != null) {
                 List<Long> reqSkills = requestUser.getSkills()
                         .stream().map(skill -> skill.getId())
@@ -163,12 +166,10 @@ public class UserService {
                 List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
                 currentUser.setSkills(dbSkills);
             }
-            currentUser.setCompany(null); // clkear data Candidate when up Company 
+            currentUser.setCompany(null); // clkear data Candidate when up Company
         }
         return UserMapper.convertToResUpdatedUserRes(this.userRepository.save(currentUser));
     }
-
-
 
     public void deleteUser(Long id) throws Exception {
         String email = SecurityUtils.getCurrentUserLogin().orElse("");
@@ -190,13 +191,9 @@ public class UserService {
         }
     }
 
-
-
     public User handleGetUserByUsername(String username) {
         return this.userRepository.findByEmail(username);
     }
-
-
 
     public ResultPaginationResponse getAllUser(Pageable pageable, Specification<User> spec) {
         Page<User> userPage = this.userRepository.findAll(spec, pageable);
@@ -204,8 +201,7 @@ public class UserService {
         return FormatResultPagination.createPaginateUserRes(userPage);
     }
 
-
-
+    @Transactional
     public UpdatedUserResponse updateUser(Long id, UpdateUserDTO requestUser) throws Exception {
         Optional<User> userOptional = this.userRepository.findById(id);
         if (userOptional.isPresent()) {
@@ -225,7 +221,7 @@ public class UserService {
             currentUser.setDateOfBirth(requestUser.getDateOfBirth());
             currentUser.setAvatarUrl(requestUser.getAvatarUrl());
             currentUser.setPhone(requestUser.getPhone());
-            
+
             if (requestUser.getCompany() != null) {
                 Company company = this.companyService.findCompanyById(requestUser.getCompany().getId());
                 if (company == null) {
@@ -233,7 +229,7 @@ public class UserService {
                 }
                 currentUser.setCompany(company);
             }
-             if (requestUser.getSkills() != null) {
+            if (requestUser.getSkills() != null) {
                 List<Long> reqSkills = requestUser.getSkills()
                         .stream().map(
                                 skill -> skill.getId())
@@ -245,13 +241,20 @@ public class UserService {
                 Role role = this.roleService.fetchRoleById(requestUser.getRole().getId());
                 currentUser.setRole(role);
             }
+            if (requestUser.getActive() != null && loggedInUser.getRole().getName().equals("SUPER_ADMIN")) {
+                if (loggedInUser.getId().equals(currentUser.getId()) && !requestUser.getActive()) {
+                    throw new IdInvalidException("You cannot deactivate your own account");
+                }
+                currentUser.setActive(requestUser.getActive());
+                if (!requestUser.getActive()) {
+                    currentUser.setRefreshToken(null);
+                }
+            }
 
             return UserMapper.convertToResUpdatedUserRes(this.userRepository.save(currentUser));
         }
         throw new IdInvalidException("User ID = " + id + " not found");
     }
-
-
 
     public void updateUserToken(String token, String email) {
         User user = this.handleGetUserByUsername(email);
@@ -261,13 +264,9 @@ public class UserService {
         }
     }
 
-
-
     public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
     }
-
-
 
     public void changePassword(ChangePasswordDTO dto) throws Exception {
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
@@ -278,13 +277,14 @@ public class UserService {
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
             throw new IdInvalidException("Current Password is incorrect");
         }
+        if (dto.getNewPassword().equals(dto.getCurrentPassword())) {
+            throw new IdInvalidException("Mật khẩu mới không được trùng với mật khẩu hiện tại");
+        }
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
             throw new IdInvalidException("Passwords do not match");
         }
 
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         this.userRepository.save(user);
-
     }
-
 }

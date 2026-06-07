@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class LoginResponse {
@@ -51,6 +53,6 @@ public class LoginResponse {
     private String name;
 
     // List permissions làm menu ẩn/hiện
-    private java.util.List<String> permissions;
+    private List<String> permissions;
   }
 }

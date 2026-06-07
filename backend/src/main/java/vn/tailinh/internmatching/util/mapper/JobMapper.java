@@ -109,6 +109,7 @@ public class JobMapper {
             job.getCompany().getName(),
             job.getCompany().getLogoUrl()
         ));
+        res.setCompanyName(job.getCompany().getName());
     }
     if (job.getJobCategory() != null) {
         res.setJobCategory(new FetchJobResponse.CategoryInfo(

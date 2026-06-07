@@ -1,5 +1,6 @@
 package vn.tailinh.internmatching.config.web;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -10,13 +11,16 @@ import java.util.Arrays;
 
 @Configuration
 public class CorsConfig {
+    @Value("${tailinh.cors.allowed-origins}")
+    private String allowedOrigins;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000", "http://localhost:4173", "http://localhost:5173",
-                "https://your-frontend-domain.vercel.app",
-                "https://your-frontend-domain.netlify.app"));
+        configuration.setAllowedOriginPatterns(Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList());
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS")); //  methods
         configuration.setAllowedHeaders(Arrays.asList(

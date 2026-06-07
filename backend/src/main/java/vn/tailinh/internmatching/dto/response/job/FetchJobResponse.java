@@ -34,6 +34,7 @@ public class FetchJobResponse {
     private CompanyInfo company; 
     private CategoryInfo jobCategory;
     private List<SkillInfo> skills;
+    private String companyName;
     
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class CompanyInfo {

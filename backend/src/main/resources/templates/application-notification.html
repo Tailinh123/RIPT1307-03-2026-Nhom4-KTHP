@@ -132,7 +132,7 @@
                             </table>
 
                             <!-- ===== Note from HR ===== -->
-                            <div th:if="${note != null and !note.isEmpty()}" style="margin-bottom: 24px;">
+                            <div th:if="${not #strings.isEmpty(note)}" style="margin-bottom: 24px;">
                                 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color: #eff6ff; border-radius: 12px; border: 1px solid #bfdbfe;">
                                     <tr>
                                         <td style="padding: 20px 24px;">

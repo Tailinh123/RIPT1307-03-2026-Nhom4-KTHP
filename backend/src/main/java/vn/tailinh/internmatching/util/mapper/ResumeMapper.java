@@ -40,6 +40,7 @@ public class ResumeMapper {
         FetchResumeResponse.UserResume user = new FetchResumeResponse.UserResume();
         user.setId(resume.getUser().getId());
         user.setName(resume.getUser().getName());
+        user.setAvatarUrl(resume.getUser().getAvatarUrl());
 
         
         // Set User In Response

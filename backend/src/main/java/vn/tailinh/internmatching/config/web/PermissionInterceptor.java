@@ -51,8 +51,17 @@ public class PermissionInterceptor implements HandlerInterceptor {
         if (!email.isEmpty()) {
             User user = this.userService.handleGetUserByUsername(email);
             if (user != null) {
+                if (!user.isActive()) {
+                    throw new PermissionException("Your account is inactive");
+                }
                 Role role = user.getRole();
                 if (role != null) {
+                    if (!role.isActive()) {
+                        throw new PermissionException("Your role is inactive");
+                    }
+                    if ("SUPER_ADMIN".equals(role.getName())) {
+                        return true;
+                    }
                     List<Permission> permissions = role.getPermissions();
                     boolean isAllow = permissions.stream().anyMatch(
                             permission -> permission.getApiPath().equals(path)

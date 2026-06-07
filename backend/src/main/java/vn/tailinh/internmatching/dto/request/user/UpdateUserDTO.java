@@ -6,7 +6,8 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,24 +24,27 @@ import vn.tailinh.internmatching.util.constant.Gender;
 public class UpdateUserDTO {
   private Long id;
 
-  @NotBlank(message = "Name cannot be blank")
+  @NotBlank(message = "Tên không được để trống")
   private String name;
 
-  @Past(message = "Date of birth must be in the past")
+  @PastOrPresent(message = "Ngày sinh phải là ngày trong quá khứ")
   @JsonFormat(pattern = "yyyy-MM-dd")
   private LocalDate dateOfBirth;
 
-  private String address; 
+  private String address;
 
   private Gender gender;
 
   private Company company;
-  
+
   private String avatarUrl;
 
+  @Pattern(regexp = "^$|^(0|\\+84)[0-9]{9}$", message = "Số điện thoại không hợp lệ (VD: 0912345678 hoặc +84912345678)")
   private String phone;
 
   private Role role;
+
+  private Boolean active;
 
   private List<Skill> skills;
 }

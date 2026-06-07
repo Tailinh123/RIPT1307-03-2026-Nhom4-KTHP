@@ -3,13 +3,16 @@ package vn.tailinh.internmatching.util.response;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
+import vn.tailinh.internmatching.entity.Application;
 import vn.tailinh.internmatching.entity.Resume;
 import vn.tailinh.internmatching.entity.User;
 import vn.tailinh.internmatching.dto.response.MetaResponse;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
+import vn.tailinh.internmatching.dto.response.application.FetchApplicationResponse;
 import vn.tailinh.internmatching.dto.response.resume.FetchResumeResponse;
 import vn.tailinh.internmatching.dto.response.user.CreatedUserResponse;
 
+import vn.tailinh.internmatching.util.mapper.ApplicationMapper;
 import vn.tailinh.internmatching.util.mapper.ResumeMapper;
 import vn.tailinh.internmatching.util.mapper.UserMapper;
 
@@ -68,4 +71,23 @@ public class FormatResultPagination {
 
         return rs;
     }
+
+    public static ResultPaginationResponse createPaginateApplicationRes(Page<Application> page) {
+        ResultPaginationResponse rs = new ResultPaginationResponse();
+        MetaResponse mr = new MetaResponse();
+
+        mr.setPage(page.getNumber() + 1);
+        mr.setPageSize(page.getSize());
+        mr.setPages(page.getTotalPages());
+        mr.setTotal(page.getTotalElements());
+        rs.setMeta(mr);
+
+        List<FetchApplicationResponse> list = page.getContent()
+                .stream().map(ApplicationMapper::toFetchApplicationResponse)
+                .collect(Collectors.toList());
+
+        rs.setResult(list);
+        return rs;
+    }
 }
+

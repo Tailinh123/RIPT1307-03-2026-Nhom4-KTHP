@@ -1,19 +1,34 @@
 package vn.tailinh.internmatching.config.database;
 
 import lombok.RequiredArgsConstructor;
+import vn.tailinh.internmatching.entity.Company;
+import vn.tailinh.internmatching.entity.Job;
+import vn.tailinh.internmatching.entity.JobCategory;
 import vn.tailinh.internmatching.entity.Permission;
 import vn.tailinh.internmatching.entity.Role;
+import vn.tailinh.internmatching.entity.Skill;
 import vn.tailinh.internmatching.entity.User;
+import vn.tailinh.internmatching.repository.CompanyRepository;
+import vn.tailinh.internmatching.repository.JobCategoryRepository;
+import vn.tailinh.internmatching.repository.JobRepository;
 import vn.tailinh.internmatching.repository.PermissionRepository;
 import vn.tailinh.internmatching.repository.RoleRepository;
+import vn.tailinh.internmatching.repository.SkillRepository;
 import vn.tailinh.internmatching.repository.UserRepository;
 import vn.tailinh.internmatching.util.constant.Gender;
+import vn.tailinh.internmatching.util.constant.JobType;
+import vn.tailinh.internmatching.util.constant.Level;
+import vn.tailinh.internmatching.util.constant.WorkMode;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -24,6 +39,10 @@ public class DatabaseInitializer implements CommandLineRunner {
   private final RoleRepository roleRepository;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final CompanyRepository companyRepository;
+  private final JobCategoryRepository jobCategoryRepository;
+  private final SkillRepository skillRepository;
+  private final JobRepository jobRepository;
 
   private Permission createPerm(String name, String path, String method, String module) {
     Permission p = new Permission();
@@ -76,30 +95,46 @@ public class DatabaseInitializer implements CommandLineRunner {
       adminRole.setDescription("Admin thì full permissions");
       adminRole.setActive(true);
       adminRole.setPermissions(allPermissions);
-
       this.roleRepository.save(adminRole);
 
-      // create role CANDIDATE
       Role userRole = new Role();
       userRole.setName("CANDIDATE");
       userRole.setDescription("Default user role for candidates");
       userRole.setActive(true);
-      userRole.setPermissions(new ArrayList<>()); 
+      
+      List<Permission> candidatePerms = allPermissions.stream()
+          .filter(p -> {
+              String mod = p.getModule();
+              String method = p.getMethod();
+              if (mod.equals("COMPANIES") && method.equals("GET")) return true;
+              if (mod.equals("JOBS") && method.equals("GET")) return true;
+              if (mod.equals("FILES")) return true;
+              if (mod.equals("RESUMES")) return true;
+              if (mod.equals("APPLICATIONS") && (method.equals("POST") || method.equals("GET"))) return true;
+              if (mod.equals("USERS") && (method.equals("PUT") || method.equals("GET"))) return true;
+              return false;
+          })
+          .toList();
+      userRole.setPermissions(candidatePerms); 
       this.roleRepository.save(userRole);
 
-      // create role HR_MANAGER
       Role hrRole = new Role();
       hrRole.setName("HR_MANAGER");
       hrRole.setDescription("HR role for company recruiters");
       hrRole.setActive(true);
-      //  permission  HR_MANAGER
+      
       List<Permission> hrPermissions = allPermissions.stream()
-          .filter(p -> p.getModule().equals("JOBS") || p.getModule().equals("APPLICATIONS")
-              || p.getModule().equals("COMPANIES"))
+          .filter(p -> {
+              String mod = p.getModule();
+              String method = p.getMethod();
+              if (mod.equals("JOBS") || mod.equals("APPLICATIONS") || mod.equals("COMPANIES") || mod.equals("FILES")) return true;
+              if (mod.equals("RESUMES") && method.equals("GET")) return true;
+              if (mod.equals("USERS") && (method.equals("PUT") || method.equals("GET"))) return true;
+              return false;
+          })
           .toList();
       hrRole.setPermissions(hrPermissions);
       this.roleRepository.save(hrRole);
-
     }
 
     if (countUsers == 0) {
@@ -121,6 +156,43 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     if (countPermissions > 0 && countRoles > 0 && countUsers > 0) {
       System.out.println(">>> SKIP INIT DATABASE ~ ALREADY HAVE DATA...");
+      
+      List<Permission> allPermissions = this.permissionRepository.findAll();
+      
+      Role userRole = this.roleRepository.findByName("CANDIDATE");
+      if (userRole != null) {
+          List<Permission> candidatePerms = allPermissions.stream()
+              .filter(p -> {
+                  String mod = p.getModule();
+                  String method = p.getMethod();
+                  if (mod.equals("COMPANIES") && method.equals("GET")) return true;
+                  if (mod.equals("JOBS") && method.equals("GET")) return true;
+                  if (mod.equals("FILES")) return true;
+                  if (mod.equals("RESUMES")) return true;
+                  if (mod.equals("APPLICATIONS") && (method.equals("POST") || method.equals("GET"))) return true;
+                  if (mod.equals("USERS") && (method.equals("PUT") || method.equals("GET"))) return true;
+                  return false;
+              })
+              .toList();
+          userRole.setPermissions(candidatePerms);
+          this.roleRepository.save(userRole);
+      }
+      
+      Role hrRole = this.roleRepository.findByName("HR_MANAGER");
+      if (hrRole != null) {
+          List<Permission> hrPermissions = allPermissions.stream()
+              .filter(p -> {
+                  String mod = p.getModule();
+                  String method = p.getMethod();
+                  if (mod.equals("JOBS") || mod.equals("APPLICATIONS") || mod.equals("COMPANIES") || mod.equals("FILES")) return true;
+                  if (mod.equals("RESUMES") && method.equals("GET")) return true;
+                  if (mod.equals("USERS") && (method.equals("PUT") || method.equals("GET"))) return true;
+                  return false;
+              })
+              .toList();
+          hrRole.setPermissions(hrPermissions);
+          this.roleRepository.save(hrRole);
+      }
     } else {
       System.out.println(">>> END INIT DATABASE");
     }

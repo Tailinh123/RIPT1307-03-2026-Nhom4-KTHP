@@ -1,5 +1,6 @@
 package vn.tailinh.internmatching.service;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -41,36 +42,36 @@ public class ApplicationService {
     application.setStatus(ApplicationStatus.PENDING);
     String email = SecurityUtils.getCurrentUserLogin().orElse("");
     User currentUser = this.userRepository.findByEmail(email);
-    if(currentUser == null ) {
+    if (currentUser == null) {
       throw new IdInvalidException("User not found or not logged in");
     }
 
-    // check job 
+    // check job
     Optional<Job> jobOptional = this.jobRepository.findById(application.getJob().getId());
     if (jobOptional.isEmpty()) {
       throw new IdInvalidException("Job not found");
     }
 
-    // check job active 
+    // check job active
     Job dbJob = jobOptional.get();
-    if(!dbJob.isActive()) {
+    if (!dbJob.isActive()) {
       throw new IdInvalidException("Job is not longer active");
     }
 
     // check endDate
-    if(dbJob.getEndDate() != null && dbJob.getEndDate().isBefore(java.time.Instant.now())) {
+    if (dbJob.getEndDate() != null && dbJob.getEndDate().isBefore(Instant.now())) {
       throw new IdInvalidException("This job has expired ");
     }
 
-    // check resume 
+    // check resume
     Optional<Resume> resumeOptional = this.resumeRepository.findById(application.getResume().getId());
     if (resumeOptional.isEmpty()) {
       throw new IdInvalidException("Resume not found");
     }
     Resume dbResume = resumeOptional.get();
 
-    if(dbResume.getUser() == null || !dbResume.getUser().getId().equals(currentUser.getId())) {
-      throw new  IdInvalidException("You don't have permission to use this resume");
+    if (dbResume.getUser() == null || !dbResume.getUser().getId().equals(currentUser.getId())) {
+      throw new IdInvalidException("You don't have permission to use this resume");
     }
 
     if (this.applicationRepository.existsByJobIdAndResumeUserId(application.getJob().getId(), currentUser.getId())) {
@@ -81,8 +82,6 @@ public class ApplicationService {
     return ApplicationMapper.toCreateApplicationResponse(application);
   }
 
-
-
   public UpdateApplicationResponse update(UpdateApplicationDTO dto) throws Exception {
     Optional<Application> appOptional = this.applicationRepository.findById(dto.getId());
 
@@ -90,22 +89,22 @@ public class ApplicationService {
       throw new IdInvalidException("Application not found");
     }
     Application currentApp = appOptional.get();
-    
+
     // check ownership hr
     String email = SecurityUtils.getCurrentUserLogin().orElse("");
     User currentUser = this.userRepository.findByEmail(email);
-    if(currentUser == null) {
+    if (currentUser == null) {
       throw new IdInvalidException("User not found or logged in");
     }
+    boolean isSuperAdmin = currentUser.getRole() != null && "SUPER_ADMIN".equals(currentUser.getRole().getName());
 
-    // get job from application -> get company 
-    Job applicationJob= currentApp.getJob();
-    if(applicationJob == null || applicationJob.getCompany() == null ) {
+    Job applicationJob = currentApp.getJob();
+    if (applicationJob == null || applicationJob.getCompany() == null) {
       throw new IdInvalidException("Application has no associated job/company");
     }
 
-    // logic equals
-    if(currentUser.getCompany() == null || !currentUser.getCompany().getId().equals(applicationJob.getCompany().getId())){
+    if (!isSuperAdmin && (currentUser.getCompany() == null
+        || !currentUser.getCompany().getId().equals(applicationJob.getCompany().getId()))) {
       throw new IdInvalidException("You don't have permission to update this application");
     }
 
@@ -113,74 +112,103 @@ public class ApplicationService {
     currentApp.setNote(dto.getNote());
     currentApp = this.applicationRepository.save(currentApp);
 
-      try {
-        // get info student from resume -> user
-        User student = currentApp.getResume().getUser();
+    try {
+      // get info student from resume
+      User student = currentApp.getResume().getUser();
       if (student != null && student.getEmail() != null) {
-            String studentEmail = student.getEmail();
-            String studentName = student.getName();
-           
-           // get job
-           String jobName = applicationJob.getName();
-            String companyName = applicationJob.getCompany().getName();
-          
-           // Create subject ( status)
-          String subject = switch (dto.getStatus()) {
-                case APPROVED -> " Chúc mừng! Đơn ứng tuyển " + jobName + " đã được duyệt";
-              case REJECTED -> " Thông báo kết quả ứng tuyển " + jobName;
-              case REVIEWING -> " Đơn ứng tuyển " + jobName + " đang được xem xét";
-                default -> "Cập nhật trạng thái ứng tuyển " + jobName;
-            };
-            
-           //  email async (not block response)
-           this.emailService.sendApplicationNotification(
-              studentEmail,
-                subject,
-                "application-notification",
-                studentName,
-                jobName,
-               companyName,
-             dto.getStatus().name(),
-                dto.getNote()
-            );
-        }
+        String studentEmail = student.getEmail();
+        String studentName = student.getName();
+
+        // get job
+        String jobName = applicationJob.getName();
+        String companyName = applicationJob.getCompany().getName();
+
+        // Create subject ( status)
+        String subject = switch (dto.getStatus()) {
+          case APPROVED -> " Chúc mừng! Đơn ứng tuyển " + jobName + " đã được duyệt";
+          case REJECTED -> " Thông báo kết quả ứng tuyển " + jobName;
+          case REVIEWING -> " Đơn ứng tuyển " + jobName + " đang được xem xét";
+          default -> "Cập nhật trạng thái ứng tuyển " + jobName;
+        };
+
+        // email async
+        this.emailService.sendApplicationNotification(
+            studentEmail,
+            subject,
+            "application-notification",
+            studentName,
+            jobName,
+            companyName,
+            dto.getStatus().name(),
+            dto.getNote());
+      }
     } catch (Exception e) {
 
-        System.out.println("WARNING: Failed to send email notification: " + e.getMessage());
-   }
+      System.out.println("WARNING: Failed to send email notification: " + e.getMessage());
+    }
 
     return ApplicationMapper.toUpdateApplicationResponse(currentApp);
 
   }
 
-
-
   public ResultPaginationResponse fetchAllApplication(
       Specification<Application> specification, Pageable pageable) {
-      Page<Application> page = this.applicationRepository.findAll(specification, pageable);
-    return FormatResultPagination.createPaginationResponse(page);
+    String email = SecurityUtils.getCurrentUserLogin().orElse("");
+    User currentUser = this.userRepository.findByEmail(email);
+    Specification<Application> scope = this.getApplicationScope(currentUser);
+    Specification<Application> finalSpec = scope;
+    if (specification != null) {
+      finalSpec = finalSpec == null ? specification : specification.and(finalSpec);
+    }
+    Page<Application> page = this.applicationRepository.findAll(finalSpec, pageable);
+    return FormatResultPagination.createPaginateApplicationRes(page);
   }
 
-
+  private Specification<Application> getApplicationScope(User currentUser) {
+    if (currentUser == null || currentUser.getRole() == null) {
+      return (root, query, builder) -> builder.disjunction();
+    }
+    String roleName = currentUser.getRole().getName();
+    if ("SUPER_ADMIN".equals(roleName)) {
+      return null;
+    }
+    if ("HR_MANAGER".equals(roleName)) {
+      if (currentUser.getCompany() == null) {
+        return (root, query, builder) -> builder.disjunction();
+      }
+      Long companyId = currentUser.getCompany().getId();
+      return (root, query, builder) -> builder.equal(root.get("job").get("company").get("id"), companyId);
+    }
+    if ("CANDIDATE".equals(roleName)) {
+      Long userId = currentUser.getId();
+      return (root, query, builder) -> builder.equal(root.get("resume").get("user").get("id"), userId);
+    }
+    return (root, query, builder) -> builder.disjunction();
+  }
 
   public void deleteApplication(Long id) throws Exception {
     Optional<Application> applicationOptional = this.applicationRepository.findById(id);
-    if(applicationOptional.isEmpty()) {
+    if (applicationOptional.isEmpty()) {
       throw new IdInvalidException("Application not found ");
     }
     Application currentApplication = applicationOptional.get();
 
-    // get user login 
+    // get user login
     String email = SecurityUtils.getCurrentUserLogin().orElse("");
     User currentUser = this.userRepository.findByEmail(email);
-    if(currentUser == null ) {
+    if (currentUser == null) {
       throw new IdInvalidException("User not found or logged in");
+    }
+    boolean isSuperAdmin = currentUser.getRole() != null && "SUPER_ADMIN".equals(currentUser.getRole().getName());
+    if (isSuperAdmin) {
+      this.applicationRepository.deleteById(id);
+      return;
     }
 
     // currentUser is candidate
     Resume applicationResume = currentApplication.getResume();
-    if(applicationResume != null && applicationResume.getUser() != null) {
-      if(currentUser.getId().equals(applicationResume.getUser().getId())) {
+    if (applicationResume != null && applicationResume.getUser() != null) {
+      if (currentUser.getId().equals(applicationResume.getUser().getId())) {
         this.applicationRepository.deleteById(id);
         return;
       }
@@ -188,25 +216,24 @@ public class ApplicationService {
 
     // currentUser is HR
     Job applicationJob = currentApplication.getJob();
-    if(applicationJob != null && applicationJob.getCompany() != null ) {
-    if(currentUser.getCompany() != null && currentUser.getCompany().getId().equals(applicationJob.getCompany().getId())) {
-      this.applicationRepository.deleteById(id);
-      return;
-}
+    if (applicationJob != null && applicationJob.getCompany() != null) {
+      if (currentUser.getCompany() != null
+          && currentUser.getCompany().getId().equals(applicationJob.getCompany().getId())) {
+        this.applicationRepository.deleteById(id);
+        return;
+      }
     }
     throw new IdInvalidException("You don't have a permission to delete this application");
   }
 
-  
-  
   public ResultPaginationResponse fetchByUser(Pageable pageable) {
-      String email = SecurityUtils.getCurrentUserLogin().orElse("");
-      User user = this.userRepository.findByEmail(email);
-      if(user == null) {
-        return FormatResultPagination.createPaginationResponse(Page.empty());
-      }
-
-      Page<Application> page = this.applicationRepository.findByResumeUserId(user.getId() , pageable);
-      return FormatResultPagination.createPaginationResponse(page);
+    String email = SecurityUtils.getCurrentUserLogin().orElse("");
+    User user = this.userRepository.findByEmail(email);
+    if (user == null) {
+      return FormatResultPagination.createPaginateApplicationRes(Page.empty());
     }
+
+    Page<Application> page = this.applicationRepository.findByResumeUserId(user.getId(), pageable);
+    return FormatResultPagination.createPaginateApplicationRes(page);
+  }
 }

@@ -44,6 +44,10 @@ public class UserMapper {
         res.setDateOfBirth(user.getDateOfBirth());
         res.setGender(user.getGender());
         res.setName(user.getName());
+        res.setAvatarUrl(user.getAvatarUrl());
+        res.setPhone(user.getPhone());
+        res.setEmail(user.getEmail());
+        res.setSkills(user.getSkills());
         if(user.getCompany() != null){
             companyUser.setId(user.getCompany().getId());
             companyUser.setName(user.getCompany().getName());

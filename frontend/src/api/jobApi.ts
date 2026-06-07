@@ -1,0 +1,157 @@
+import axiosClient from './axiosClient';
+import type { Job, JobFilterParams } from '@/types/job';
+import type { ResultPaginationResponse, PaginatedData } from '@/types/api';
+import type { JobDetail } from '@/types/job';
+interface BackendResponse<T> {
+  statusCode: number;
+  error: string | null;
+  message: string;
+  data: T;
+}
+interface ApiJobResponse<T> {
+  data: T;
+}
+interface BackendJob {
+  id: number;
+  name: string;
+  description: string;
+  requirement?: string;
+  benefits?: string;
+  location: string;
+  salary: number;
+  quantity?: number;
+  jobType: string;
+  workMode: string;
+  level: string;
+  company: { id: number; name: string; logoUrl?: string; description?: string; website?: string; size?: string; industry?: string };
+  jobCategory: { id: number; name: string };
+  skills: Array<{ id: number; name: string }>;
+  startDate: string;
+  endDate: string;
+  active: boolean;
+}
+function buildFilterString(params: JobFilterParams): string | undefined {
+  const parts: string[] = [];
+  parts.push("active : true");
+  if (params.keyword?.trim()) {
+    const kw = params.keyword.trim().replace(/'/g, "\\'");
+    parts.push(`(name ~ '${kw}' or company.name ~ '${kw}')`);
+  }
+  if (params.location && params.location !== 'OTHER') {
+    const loc = params.location.replace(/'/g, "\\'");
+    parts.push(`location : '${loc}'`);
+  }
+  if (params.level) {
+    parts.push(`level : '${params.level}'`);
+  }
+  if (params.workMode) {
+    parts.push(`workMode : '${params.workMode}'`);
+  }
+  if (params.categoryId) {
+    parts.push(`jobCategory.id : ${params.categoryId}`);
+  }
+  if (params.companyId) {
+    parts.push(`company.id : ${params.companyId}`);
+  }
+  return parts.length > 0 ? parts.join(' and ') : undefined;
+}
+// Convert Frontend filter params to Backend API params
+function convertFilterParamsToBackend(params: JobFilterParams): Record<string, unknown> {
+  const backendParams: Record<string, unknown> = {};
+  // Build Spring Filter RSQL string
+  const filterStr = buildFilterString(params);
+  if (filterStr) {
+    backendParams.filter = filterStr;
+  }
+  // Map pagination (backend is 1-based)
+  if (params.page !== undefined) {
+    backendParams.page = params.page + 1;
+  }
+  if (params.size !== undefined) {
+    backendParams.size = params.size;
+  }
+  return backendParams;
+}
+// Map Backend Job to Frontend JobDetail
+function mapBackendJobToJobDetail(backendJob: BackendJob): JobDetail {
+  return {
+    id: backendJob.id,
+    title: backendJob.name,
+    companyName: backendJob.company?.name || '',
+    company: backendJob.company
+      ? {
+          id: backendJob.company.id,
+          name: backendJob.company.name,
+          logoUrl: backendJob.company.logoUrl,
+        }
+      : undefined,
+    companyLogo: backendJob.company?.logoUrl,
+    description: backendJob.description,
+    requirements: backendJob.requirement || '',
+    location: backendJob.location,
+    salaryMin: backendJob.salary,
+    salaryMax: backendJob.salary,
+    level: (backendJob.level || 'INTERN') as Job['level'],
+    jobType: backendJob.jobType as Job['jobType'],
+    workMode: (backendJob.workMode || 'ONSITE') as Job['workMode'],
+    category: (backendJob.jobCategory?.name || 'OTHER') as Job['category'],
+    skills: backendJob.skills || [],
+    deadline: backendJob.endDate,
+    createdAt: backendJob.startDate,
+    isActive: backendJob.active,
+    benefits: backendJob.benefits || '',
+    headcount: backendJob.quantity || 0,
+    companyDescription: backendJob.company?.description || '',
+    companyWebsite: backendJob.company?.website,
+    companySize: backendJob.company?.size,
+    companyIndustry: backendJob.company?.industry,
+  };
+}
+// Map Backend Job to Frontend Job (for list view)
+function mapBackendJobToFrontend(backendJob: BackendJob): Job {
+  return {
+    id: backendJob.id,
+    title: backendJob.name,
+    companyName: backendJob.company?.name || '',
+    company: backendJob.company
+      ? {
+          id: backendJob.company.id,
+          name: backendJob.company.name,
+          logoUrl: backendJob.company.logoUrl,
+        }
+      : undefined,
+    companyLogo: backendJob.company?.logoUrl,
+    description: backendJob.description,
+    requirements: backendJob.requirement || '',
+    location: backendJob.location,
+    salaryMin: backendJob.salary,
+    salaryMax: backendJob.salary,
+    level: (backendJob.level || 'INTERN') as Job['level'],
+    jobType: backendJob.jobType as Job['jobType'],
+    workMode: (backendJob.workMode || 'ONSITE') as Job['workMode'],
+    category: (backendJob.jobCategory?.name || 'OTHER') as Job['category'],
+    skills: backendJob.skills || [],
+    deadline: backendJob.endDate,
+    createdAt: backendJob.startDate,
+    isActive: backendJob.active,
+  };
+}
+export const jobApi = {
+  getJobs: async (params: JobFilterParams = {}): Promise<ApiJobResponse<PaginatedData<Job>>> => {
+    const backendParams = convertFilterParamsToBackend(params);
+    const response = await axiosClient.get<BackendResponse<ResultPaginationResponse<BackendJob>>>('/api/v1/jobs', { params: backendParams });
+    const mappedJobs = response.data.data.result.map(mapBackendJobToFrontend);
+    const paginatedData: PaginatedData<Job> = {
+      content: mappedJobs,
+      totalElements: response.data.data.meta.total,
+      totalPages: response.data.data.meta.pages,
+      page: response.data.data.meta.page - 1,
+      size: response.data.data.meta.pageSize,
+    };
+    return { data: paginatedData };
+  },
+  getJobById: async (id: number): Promise<ApiJobResponse<JobDetail>> => {
+    const response = await axiosClient.get<BackendResponse<BackendJob>>(`/api/v1/jobs/${id}`);
+    return { data: mapBackendJobToJobDetail(response.data.data) };
+  },
+};

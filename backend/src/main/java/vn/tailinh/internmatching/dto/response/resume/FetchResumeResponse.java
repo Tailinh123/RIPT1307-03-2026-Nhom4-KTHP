@@ -25,6 +25,7 @@ public class FetchResumeResponse {
     public static class UserResume{
         private Long id;
         private String name;
+        private String avatarUrl;
     }
 
     

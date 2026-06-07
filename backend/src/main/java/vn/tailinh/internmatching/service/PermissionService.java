@@ -28,6 +28,9 @@ public class PermissionService {
         )){
             throw new DataIntegrityViolationException("Permission already exists");
         }
+        if(this.permissionRepository.existsByName(permission.getName())){
+            throw new DataIntegrityViolationException("Permission name already exists");
+        }
         return this.permissionRepository.save(permission);
     }
 
@@ -43,15 +46,16 @@ public class PermissionService {
     public Permission update(Permission permission) throws Exception{
         Permission currentPermission = this.fetchPermissionById(permission.getId());
 
-        if(this.permissionRepository.existsByModuleAndApiPathAndMethod(
+        if(this.permissionRepository.existsByModuleAndApiPathAndMethodAndIdNot(
                 permission.getModule(),
                 permission.getApiPath(),
-                permission.getMethod()
+                permission.getMethod(),
+                currentPermission.getId()
         )){
             throw new DataIntegrityViolationException("Permission already exists");
         }
 
-        if(this.permissionRepository.existsByName(permission.getName())){
+        if(this.permissionRepository.existsByNameAndIdNot(permission.getName(), currentPermission.getId())){
             throw new DataIntegrityViolationException("Permission name already exists");
         }
 

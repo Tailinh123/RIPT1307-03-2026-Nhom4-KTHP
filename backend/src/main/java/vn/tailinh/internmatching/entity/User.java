@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,7 +20,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,7 +47,7 @@ public class User extends AbstractAuditingEntity<Long> {
   @NotBlank(message = "Name is required")
   private String name;
 
-  @Column(name = "email", length = 255, nullable = false , unique = true)
+  @Column(name = "email", length = 255, nullable = false, unique = true)
   @NotBlank(message = "Email is required")
   @Email(message = "Please provide a valid email address")
   private String email;
@@ -66,9 +64,7 @@ public class User extends AbstractAuditingEntity<Long> {
   private String address;
 
   @Column(name = "phone", length = 15)
-  @Pattern(regexp = "^(0|\\+84)[0-9]{9}$")
   private String phone;
-
 
   @Column(name = "is_subscribed")
   private boolean isSubscribed;
@@ -81,22 +77,21 @@ public class User extends AbstractAuditingEntity<Long> {
   @Column(name = "gender")
   private Gender gender;
 
-  @Column(name = "avatar")
+  @Column(name = "avatar", length = 512)
   private String avatarUrl;
 
   @Column(name = "is_active")
   private boolean active = true;
 
-  
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "company_id")
   private Company company;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "role_id" , nullable = false)
+  @JoinColumn(name = "role_id", nullable = false)
   private Role role;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY )
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
   @JsonIgnore
   private List<Resume> resumes;
 
@@ -105,11 +100,7 @@ public class User extends AbstractAuditingEntity<Long> {
   private List<EmailLog> emailLogs;
 
   @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(name = "user_skills",
-          joinColumns = @JoinColumn(name = "user_id"),
-          inverseJoinColumns = @JoinColumn(name = "skill_id"))
+  @JoinTable(name = "user_skills", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
   private List<Skill> skills;
-
-
 
 }

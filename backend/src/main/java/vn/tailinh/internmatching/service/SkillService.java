@@ -19,8 +19,8 @@ public class SkillService {
     private final SkillRepository skillRepository;
 
     public Skill create(Skill skill) throws Exception{
-        if(this.skillRepository.existsByName(skill.getName())){
-            throw new DataIntegrityViolationException("Skill name already exists");
+        if(this.skillRepository.existsByNameIgnoreCase(skill.getName())){
+            throw new IdInvalidException("Skill name already exists");
         }
         return this.skillRepository.save(skill);
     }
@@ -38,8 +38,8 @@ public class SkillService {
 
     public Skill update(Skill skill) throws Exception{
         Skill currentSkill = this.fetchSkillById(skill.getId());
-        if(!currentSkill.getName().equals(skill.getName()) 
-        && this.skillRepository.existsByName(skill.getName())){
+        if(!currentSkill.getName().equalsIgnoreCase(skill.getName()) 
+        && this.skillRepository.existsByNameIgnoreCase(skill.getName())){
           throw new IdInvalidException("Skill with name = " + skill.getName() + " already exist!");
         }
         currentSkill.setName(skill.getName());

@@ -52,17 +52,31 @@ public class ResumeService {
         }
     }
 
-    // CANDIDATE can only view their own resume, HR/ADMIN can view any
     public Resume fetchResumeByIdForView(Long id) throws Exception {
         Resume resume = this.fetchResumeById(id);
         String email = SecurityUtils.getCurrentUserLogin().orElse("");
         User loggedInUser = this.userRepository.findByEmail(email);
-        if (loggedInUser != null && loggedInUser.getRole().getName().equals("CANDIDATE")) {
-            if (resume.getUser() == null || !resume.getUser().getId().equals(loggedInUser.getId())) {
-                throw new IdInvalidException("You don't have permission to view other people's resume");
-            }
+        if (loggedInUser == null || loggedInUser.getRole() == null) {
+            throw new IdInvalidException("User not found or not logged in");
         }
-        return resume;
+        String roleName = loggedInUser.getRole().getName();
+        if ("SUPER_ADMIN".equals(roleName)) {
+            return resume;
+        }
+        if ("CANDIDATE".equals(roleName)) {
+            if (this.resumeRepository.existsByIdAndUserId(id, loggedInUser.getId())) {
+                return resume;
+            }
+            throw new IdInvalidException("You don't have permission to view other people's resume");
+        }
+        if ("HR_MANAGER".equals(roleName)) {
+            if (loggedInUser.getCompany() != null
+                    && this.resumeRepository.existsByIdAndApplicationsJobCompanyId(id, loggedInUser.getCompany().getId())) {
+                return resume;
+            }
+            throw new IdInvalidException("You don't have permission to view this resume");
+        }
+        throw new IdInvalidException("You don't have permission to view this resume");
     }
 
     public UpdatedResumeResponse update(Resume resume) throws Exception {
@@ -89,6 +103,10 @@ public class ResumeService {
         if (currentUser == null) {
             throw new IdInvalidException("User not found or not logged in");
         }
+        if (currentUser.getRole() != null && "SUPER_ADMIN".equals(currentUser.getRole().getName())) {
+            this.resumeRepository.deleteById(currentResume.getId());
+            return;
+        }
 
         if (currentResume.getUser() == null || !currentResume.getUser().getId().equals(currentUser.getId())) {
             throw new IdInvalidException("You don't have permission to delete this resume");
@@ -97,9 +115,41 @@ public class ResumeService {
     }
 
     public ResultPaginationResponse fetchAllResume(Specification<Resume> spec, Pageable pageable) {
-        Page<Resume> resumePage = this.resumeRepository.findAll(spec, pageable);
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        User currentUser = this.userRepository.findByEmail(email);
+        Specification<Resume> scope = this.getResumeScope(currentUser);
+        Specification<Resume> finalSpec = scope;
+        if (spec != null) {
+            finalSpec = finalSpec == null ? spec : spec.and(finalSpec);
+        }
+        Page<Resume> resumePage = this.resumeRepository.findAll(finalSpec, pageable);
         ResultPaginationResponse response = FormatResultPagination.createPaginateResumeRes(resumePage);
         return response;
+    }
+
+    private Specification<Resume> getResumeScope(User currentUser) {
+        if (currentUser == null || currentUser.getRole() == null) {
+            return (root, query, builder) -> builder.disjunction();
+        }
+        String roleName = currentUser.getRole().getName();
+        if ("SUPER_ADMIN".equals(roleName)) {
+            return null;
+        }
+        if ("CANDIDATE".equals(roleName)) {
+            Long userId = currentUser.getId();
+            return (root, query, builder) -> builder.equal(root.get("user").get("id"), userId);
+        }
+        if ("HR_MANAGER".equals(roleName)) {
+            if (currentUser.getCompany() == null) {
+                return (root, query, builder) -> builder.disjunction();
+            }
+            Long companyId = currentUser.getCompany().getId();
+            return (root, query, builder) -> {
+                query.distinct(true);
+                return builder.equal(root.join("applications").join("job").join("company").get("id"), companyId);
+            };
+        }
+        return (root, query, builder) -> builder.disjunction();
     }
 
     public ResultPaginationResponse fetchResumeByUser(Pageable pageable) {

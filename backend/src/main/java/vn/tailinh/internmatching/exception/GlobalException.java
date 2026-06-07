@@ -1,5 +1,7 @@
 package vn.tailinh.internmatching.exception;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -98,9 +100,24 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(res);
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<RestResponse<Object>> handleConstraintViolation(ConstraintViolationException ex) {
+        RestResponse<Object> res = new RestResponse<>();
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setError("Dữ liệu không hợp lệ");
+
+        List<String> errors = ex.getConstraintViolations()
+                .stream()
+                .map(ConstraintViolation::getMessage)
+                .toList();
+        res.setMessage(errors.size() > 1 ? errors : errors.get(0));
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestResponse<Object>> handleAllException(Exception ex) {
-        RestResponse<Object> res = new RestResponse<Object>();
+        RestResponse<Object> res = new RestResponse<>();
         res.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         res.setMessage(ex.getMessage());
         res.setError("Internal Server Error");

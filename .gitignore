@@ -1,43 +1,52 @@
-# JAVA / MAVEN (BACKEND) 
+# backend
 target/
+build/
+.gradle/
+bin/
 *.class
 *.jar
 *.war
 *.ear
 *.log
 *.iml
+
+
+
+# config
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test.local
+.env.production.local
+src/main/resources/application-local.properties
+backend/src/main/resources/application-local.properties
+
+
+
+# ide
 .settings/
 .project
 .classpath
 .factorypath
-# Không đẩy cấu hình local chứa pass database
-src/main/resources/application-local.properties
+.idea/
+.vscode/
 
-# REACT / NODE (FRONTEND)
+# frontend
 node_modules/
 dist/
-build/
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# IDE / EDITORS
-.idea/
-.vscode/
-*.swp
-*.swo
-*.sublime-project
-*.sublime-workspace
+
+# temp files
 .DS_Store
 Thumbs.db
-
-# OTHERS
 *.bak
 *.tmp
 *.zip
 *.dump
+*.swp
+*.swo
+*.tar

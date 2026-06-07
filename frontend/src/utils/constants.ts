@@ -1,0 +1,76 @@
+import type { JobCategory, JobLevel, WorkMode } from '@/types/job';
+import type { SelectOption } from '@/types/common';
+export const JOB_CATEGORY_OPTIONS: SelectOption[] = [
+  { label: 'Công nghệ thông tin', value: 'IT_SOFTWARE' },
+  { label: 'Marketing', value: 'MARKETING' },
+  { label: 'Tài chính', value: 'FINANCE' },
+  { label: 'Thiết kế', value: 'DESIGN' },
+  { label: 'Kinh doanh', value: 'SALES' },
+  { label: 'Nhân sự', value: 'HUMAN_RESOURCES' },
+  { label: 'Giáo dục', value: 'EDUCATION' },
+  { label: 'Khác', value: 'OTHER' },
+];
+export const JOB_LEVEL_OPTIONS: SelectOption[] = [
+  { label: 'Intern', value: 'INTERN' },
+  { label: 'Fresher', value: 'FRESHER' },
+  { label: 'Junior', value: 'JUNIOR' },
+  { label: 'Mid-level', value: 'MIDDLE' },
+  { label: 'Senior', value: 'SENIOR' },
+];
+export const WORK_MODE_OPTIONS: SelectOption[] = [
+  { label: 'On-site', value: 'ONSITE' },
+  { label: 'Remote', value: 'REMOTE' },
+  { label: 'Hybrid', value: 'HYBRID' },
+];
+export const JOB_LOCATION_OPTIONS: SelectOption[] = [
+  { label: 'Hà Nội', value: 'HANOI' },
+  { label: 'TP Hồ Chí Minh', value: 'HCMC' },
+];
+export const JOB_LEVEL_LABEL: Record<JobLevel, string> = {
+  INTERN: 'Intern',
+  FRESHER: 'Fresher',
+  JUNIOR: 'Junior',
+  MIDDLE: 'Mid-level',
+  SENIOR: 'Senior',
+};
+export const WORK_MODE_LABEL: Record<WorkMode, string> = {
+  ONSITE: 'On-site',
+  REMOTE: 'Remote',
+  HYBRID: 'Hybrid',
+};
+export const JOB_TYPE_LABEL: Record<string, string> = {
+  INTERNSHIP: 'Internship',
+  INTERN: 'Internship',
+  FULL_TIME: 'Full-time',
+  PART_TIME: 'Part-time',
+};
+export const CATEGORY_LABEL: Record<JobCategory, string> = {
+  IT_SOFTWARE: 'Công nghệ thông tin',
+  MARKETING: 'Marketing',
+  FINANCE: 'Tài chính',
+  DESIGN: 'Thiết kế',
+  SALES: 'Kinh doanh',
+  HUMAN_RESOURCES: 'Nhân sự',
+  EDUCATION: 'Giáo dục',
+  OTHER: 'Khác',
+};
+export const CATEGORY_NAME_MAP: Record<string, string> = {
+  'Cong nghe thong tin': 'Công nghệ thông tin',
+  'IT - Phan mem': 'IT - Phần mềm',
+  Marketing: 'Marketing',
+  'Ke toan - Kiem toan': 'Kế toán - Kiểm toán',
+  'Kinh doanh': 'Kinh doanh',
+  'Nhan su': 'Nhân sự',
+  'Thiet ke': 'Thiết kế',
+  Logistics: 'Logistics',
+  'Ngon ngu': 'Ngôn ngữ',
+  IT_SOFTWARE: 'Công nghệ thông tin',
+  FINANCE: 'Tài chính',
+  DESIGN: 'Thiết kế',
+  SALES: 'Kinh doanh',
+  HUMAN_RESOURCES: 'Nhân sự',
+  EDUCATION: 'Giáo dục',
+  OTHER: 'Khác',
+};
+export const PAGE_SIZE = 12;
+export const BASE_URL = '';

@@ -1,0 +1,8 @@
+.gradle/
+build/
+bin/
+uploads/
+app.jar
+*.iml
+*.log
+src/main/resources/application-local.properties

@@ -1,0 +1,33 @@
+package vn.tailinh.internmatching.service.override;
+
+import lombok.RequiredArgsConstructor;
+import vn.tailinh.internmatching.service.UserService;
+
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+
+@Component("userDetailsService")
+@RequiredArgsConstructor
+public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
+    private final UserService userService;
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        vn.tailinh.internmatching.entity.User user = this.userService.handleGetUserByUsername(username);
+        if(user == null){
+            throw new UsernameNotFoundException("username / password not found");
+        }
+        if(!user.isActive()) {
+          throw new UsernameNotFoundException("User account has been deactivated ");
+        }
+        return new User(
+                user.getEmail(),
+                user.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + ( user.getRole() != null ? user.getRole().getName() : "UNKNOW")))
+                );
+    }
+}

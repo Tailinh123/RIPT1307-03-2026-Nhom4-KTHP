@@ -70,10 +70,8 @@ public class Job extends AbstractAuditingEntity<Long> {
   @Column(name = "work_mode")
   private WorkMode workMode;
 
-  @FutureOrPresent(message = "Start date must be in future")
   private Instant startDate;
 
-  @FutureOrPresent(message = "End date must be in future")
   private Instant endDate;
 
   @Enumerated(EnumType.STRING)

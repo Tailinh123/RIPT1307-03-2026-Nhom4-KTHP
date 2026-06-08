@@ -3,6 +3,7 @@ package vn.tailinh.internmatching.service;
 import lombok.RequiredArgsConstructor;
 import vn.tailinh.internmatching.entity.User;
 import vn.tailinh.internmatching.dto.request.user.ChangePasswordDTO;
+import vn.tailinh.internmatching.dto.request.user.CreateUserDTO;
 import vn.tailinh.internmatching.dto.request.user.RegisterDTO;
 import vn.tailinh.internmatching.dto.request.user.UpdateUserDTO;
 import vn.tailinh.internmatching.dto.response.ResultPaginationResponse;
@@ -40,7 +41,7 @@ public class UserService {
     private final RoleService roleService;
     private final SkillRepository skillRepository;
 
-    public CreatedUserResponse createUser(RegisterDTO dto) throws Exception {
+    public CreatedUserResponse createUser(CreateUserDTO dto) throws Exception {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new IdInvalidException("Email already exists");
         }
@@ -50,11 +51,27 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setActive(true);
 
-        Role userRole = this.roleService.fetchRoleByName("CANDIDATE");
-        if (userRole == null) {
-            throw new IdInvalidException("Default role CANDIDATE not found in system ");
+        if (dto.getCompanyId() != null) {
+            Company company = this.companyService.findCompanyById(dto.getCompanyId());
+            if (company == null) {
+                throw new IdInvalidException("Company Id is invalid");
+            }
+            user.setCompany(company);
         }
-        user.setRole(userRole);
+
+        if (dto.getRoleId() != null) {
+            Role role = this.roleService.fetchRoleById(dto.getRoleId());
+            if (role == null) {
+                throw new IdInvalidException("Role Id is invalid");
+            }
+            user.setRole(role);
+        } else {
+            Role userRole = this.roleService.fetchRoleByName("CANDIDATE");
+            if (userRole == null) {
+                throw new IdInvalidException("Default role CANDIDATE not found in system");
+            }
+            user.setRole(userRole);
+        }
 
         return UserMapper.convertToResCreatedUserRes(this.userRepository.save(user));
     }
@@ -171,6 +188,7 @@ public class UserService {
         return UserMapper.convertToResUpdatedUserRes(this.userRepository.save(currentUser));
     }
 
+    @Transactional
     public void deleteUser(Long id) throws Exception {
         String email = SecurityUtils.getCurrentUserLogin().orElse("");
         User loggedUser = this.handleGetUserByUsername(email);

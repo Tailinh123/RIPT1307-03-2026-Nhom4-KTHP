@@ -50,6 +50,7 @@ export interface AdminField {
   placeholder?: string;
   switchLabels?: [string, string];
   disabledDate?: (current: any) => boolean;
+  hiddenIf?: (values: any) => boolean;
 }
 interface AdminCrudPageProps<T extends { id?: number | string }> {
   title: string;
@@ -127,6 +128,7 @@ function AdminCrudPage<T extends { id?: number | string }>({
   const [saving, setSaving] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [errorModal, setErrorModal] = useState<{ visible: boolean; message: string }>({ visible: false, message: '' });
   const [editing, setEditing] = useState<T | null>(null);
   const fetchRows = async () => {
     setLoading(true);
@@ -198,7 +200,8 @@ function AdminCrudPage<T extends { id?: number | string }>({
       message.success(getBackendMessage(result, 'Xóa thành công.'));
       await fetchRows();
     } catch (error: any) {
-      message.error(getBackendErrorMessage(error, 'Không thể xóa dữ liệu.'));
+      const errorMsg = getBackendErrorMessage(error, 'Không thể xóa dữ liệu. Vui lòng kiểm tra lại.');
+      setErrorModal({ visible: true, message: errorMsg });
     } finally {
       setLoading(false);
     }
@@ -235,6 +238,92 @@ function AdminCrudPage<T extends { id?: number | string }>({
     if (!editing && field.editOnly) return false;
     return true;
   });
+
+  const renderFormFields = () => (
+    <Row gutter={16}>
+      {visibleFields.map((field) => {
+        const isFullWidth = field.type === 'textarea' || field.type === 'richtext';
+        const colSpan = isFullWidth ? 24 : 8;
+        const renderFieldItem = () => (
+          <Col span={colSpan} key={field.name}>
+            <Form.Item
+              name={field.name}
+              label={<span style={{ fontWeight: 500 }}>{field.label}</span>}
+              valuePropName={field.type === 'switch' ? 'checked' : 'value'}
+              rules={field.required ? [{ required: true, message: `Vui lòng nhập ${field.label.toLowerCase()}` }] : []}
+            >
+              {field.type === 'textarea' ? (
+                <TextArea rows={4} disabled={field.disabled} placeholder={field.placeholder} />
+              ) : field.type === 'richtext' ? (
+                <ReactQuill
+                  theme="snow"
+                  style={{ height: 200, marginBottom: 40 }}
+                  modules={quillModules}
+                  readOnly={field.disabled}
+                  placeholder={field.placeholder}
+                />
+              ) : field.type === 'number' ? (
+                <InputNumber style={{ width: '100%' }} min={0} disabled={field.disabled} placeholder={field.placeholder} />
+              ) : field.type === 'select' ? (
+                <Select allowClear showSearch disabled={field.disabled} options={field.options as any} placeholder={field.placeholder} />
+              ) : field.type === 'multiselect' ? (
+                <Select
+                  mode="multiple"
+                  allowClear
+                  showSearch
+                  disabled={field.disabled}
+                  options={field.options as any}
+                  placeholder={field.placeholder}
+                  maxTagCount={6}
+                  maxTagTextLength={28}
+                  maxTagPlaceholder={(omittedValues) => `+${omittedValues.length} quyền`}
+                  optionFilterProp="label"
+                  listHeight={320}
+                  dropdownStyle={{ maxWidth: 620 }}
+                  getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
+                  style={{ width: '100%' }}
+                />
+              ) : field.type === 'switch' ? (
+                <Switch
+                  disabled={field.disabled}
+                  checkedChildren={field.switchLabels?.[0]}
+                  unCheckedChildren={field.switchLabels?.[1]}
+                />
+              ) : field.type === 'date' ? (
+                <DatePicker 
+                  format="DD/MM/YYYY" 
+                  style={{ width: '100%' }} 
+                  disabled={field.disabled} 
+                  placeholder={field.placeholder} 
+                  disabledDate={field.disabledDate}
+                />
+              ) : (
+                <Input
+                  type={field.type === 'password' ? 'password' : field.type === 'email' ? 'email' : 'text'}
+                  disabled={field.disabled}
+                  placeholder={field.placeholder}
+                />
+              )}
+            </Form.Item>
+          </Col>
+        );
+
+        if (field.hiddenIf) {
+          return (
+            <Form.Item noStyle shouldUpdate key={field.name + '_wrapper'}>
+              {() => {
+                const values = form.getFieldsValue();
+                if (field.hiddenIf && field.hiddenIf(values)) return null;
+                return renderFieldItem();
+              }}
+            </Form.Item>
+          );
+        }
+        return renderFieldItem();
+      })}
+    </Row>
+  );
+
   return (
     <div className="page-enter">
       <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
@@ -323,89 +412,36 @@ function AdminCrudPage<T extends { id?: number | string }>({
         open={modalOpen}
         title={editing ? `Cập nhật ${title.toLowerCase()}` : createLabel}
         onCancel={() => setModalOpen(false)}
-        onOk={handleSave}
-        confirmLoading={saving}
+        footer={[
+          <Button key="back" onClick={() => setModalOpen(false)} style={{ borderRadius: '6px' }}>
+            Đóng
+          </Button>,
+          <Button key="submit" type="primary" loading={saving} onClick={() => form.submit()} style={{ borderRadius: '6px', fontWeight: 500, padding: '0 24px' }}>
+            {editing ? 'Lưu thay đổi' : 'Tạo mới'}
+          </Button>,
+        ]}
         destroyOnClose
         width={800}
       >
-        <Form 
-          form={form} 
-          layout="vertical" 
-          style={{ marginTop: '12px' }} 
-          scrollToFirstError={{ behavior: 'smooth', block: 'center' }}
-          onFinish={handleSave}
-        >
-          <button type="submit" style={{ display: 'none' }} />
-          <Row gutter={16}>
-            {visibleFields.map((field) => {
-              const isFullWidth = field.type === 'textarea' || field.type === 'richtext';
-              const colSpan = isFullWidth ? 24 : 8;
-              return (
-                <Col span={colSpan} key={field.name}>
-                  <Form.Item
-                    name={field.name}
-                    label={<span style={{ fontWeight: 500 }}>{field.label}</span>}
-                    valuePropName={field.type === 'switch' ? 'checked' : 'value'}
-                    rules={field.required ? [{ required: true, message: `Vui lòng nhập ${field.label.toLowerCase()}` }] : []}
-                  >
-                    {field.type === 'textarea' ? (
-                      <TextArea rows={4} disabled={field.disabled} placeholder={field.placeholder} />
-                    ) : field.type === 'richtext' ? (
-                      <ReactQuill
-                        theme="snow"
-                        style={{ height: 200, marginBottom: 40 }}
-                        modules={quillModules}
-                        readOnly={field.disabled}
-                        placeholder={field.placeholder}
-                      />
-                    ) : field.type === 'number' ? (
-                      <InputNumber style={{ width: '100%' }} min={0} disabled={field.disabled} placeholder={field.placeholder} />
-                    ) : field.type === 'select' ? (
-                      <Select allowClear showSearch disabled={field.disabled} options={field.options as any} placeholder={field.placeholder} />
-                    ) : field.type === 'multiselect' ? (
-                      <Select
-                        mode="multiple"
-                        allowClear
-                        showSearch
-                        disabled={field.disabled}
-                        options={field.options as any}
-                        placeholder={field.placeholder}
-                        maxTagCount={6}
-                        maxTagTextLength={28}
-                        maxTagPlaceholder={(omittedValues) => `+${omittedValues.length} quyền`}
-                        optionFilterProp="label"
-                        listHeight={320}
-                        dropdownStyle={{ maxWidth: 620 }}
-                        getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
-                        style={{ width: '100%' }}
-                      />
-                    ) : field.type === 'switch' ? (
-                      <Switch
-                        disabled={field.disabled}
-                        checkedChildren={field.switchLabels?.[0]}
-                        unCheckedChildren={field.switchLabels?.[1]}
-                      />
-                    ) : field.type === 'date' ? (
-                      <DatePicker 
-                        format="DD/MM/YYYY" 
-                        style={{ width: '100%' }} 
-                        disabled={field.disabled} 
-                        placeholder={field.placeholder} 
-                        disabledDate={field.disabledDate}
-                      />
-                    ) : (
-                      <Input
-                        type={field.type === 'password' ? 'password' : field.type === 'email' ? 'email' : 'text'}
-                        disabled={field.disabled}
-                        placeholder={field.placeholder}
-                      />
-                    )}
-                  </Form.Item>
-                </Col>
-              );
-            })}
-          </Row>
-        </Form>
+        <div style={{ paddingTop: 16 }}>
+          <Form form={form} layout="vertical" onFinish={handleSave}>
+            {renderFormFields()}
+          </Form>
+        </div>
+      </Modal>
+
+      <Modal
+        title={<span style={{ fontSize: '18px', fontWeight: 600, color: '#ff4d4f' }}>Thao tác thất bại</span>}
+        open={errorModal.visible}
+        onOk={() => setErrorModal({ visible: false, message: '' })}
+        onCancel={() => setErrorModal({ visible: false, message: '' })}
+        centered
+        okButtonProps={{ danger: true, style: { borderRadius: '6px' } }}
+        cancelButtonProps={{ style: { display: 'none' } }}
+        okText="Đã hiểu"
+        zIndex={9999}
+      >
+        <div style={{ fontSize: '15px', marginTop: '8px' }}>{errorModal.message}</div>
       </Modal>
     </div>
   );

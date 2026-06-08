@@ -40,7 +40,13 @@ export const getBackendMessage = (payload: any, fallback = 'Thao tác thành cô
     if (lowerMsg.includes('disabled')) return 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với Quản trị viên để được hỗ trợ.';
     if (lowerMsg.includes('access is denied') || lowerMsg.includes('forbidden')) return 'Bạn không có quyền thực hiện thao tác này.';
     if (lowerMsg.includes('network error')) return 'Lỗi kết nối mạng, vui lòng thử lại.';
-    if (lowerMsg.includes('cannot delete user because there are resumes')) return 'Lỗi: Tài khoản này đang có CV/Đơn ứng tuyển.';
+    if (lowerMsg.includes('cannot delete user because there are resumes')) return 'Người dùng đã có dữ liệu. Vui lòng sử dụng tính năng Khóa tài khoản.';
+    if (lowerMsg.includes('cannot delete job because there are applications')) return 'Tin tuyển dụng đã có ứng viên. Vui lòng chuyển trạng thái Đóng.';
+    if (lowerMsg.includes('cannot delete this role because there are users')) return 'Không thể xóa vai trò này vì đang có người dùng mang quyền này.';
+    if (lowerMsg.includes('cannot delete category because it is being used')) return 'Không thể xóa danh mục này vì đang có tin tuyển dụng sử dụng.';
+    if (lowerMsg.includes('cannot delete company because there are users')) return 'Không thể xóa công ty này vì đã có tài khoản nhân sự (HR).';
+    if (lowerMsg.includes('cannot delete company because there are jobs')) return 'Không thể xóa công ty này vì đang có tin tuyển dụng thuộc công ty.';
+    if (lowerMsg.includes('số điện thoại không hợp lệ')) return 'Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng (VD: 0912345678 hoặc +84912345678).';
     if (lowerMsg.includes('skill') && lowerMsg.includes('already exist')) return 'Kỹ năng này đã tồn tại.';
     if (lowerMsg.includes('category') && lowerMsg.includes('already exist')) return 'Danh mục này đã tồn tại.';
     if (lowerMsg.includes('constraint') || lowerMsg.includes('data integrity') || lowerMsg.includes('foreign key')) return 'Không thể xóa do đối tượng này đang có dữ liệu ràng buộc trong hệ thống.';

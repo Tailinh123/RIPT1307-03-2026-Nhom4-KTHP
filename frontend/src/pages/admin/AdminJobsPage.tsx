@@ -116,7 +116,7 @@ const AdminJobsPage = () => {
         { name: 'name', label: 'Tên công việc', required: true },
         { name: 'companyId', label: 'Công ty', type: 'select', required: true, options: companies.map((c) => ({ label: c.name, value: c.id })) },
         { name: 'jobCategoryId', label: 'Danh mục', type: 'select', required: true, options: categories.map((c) => ({ label: c.name, value: c.id })) },
-        { name: 'skillIds', label: 'Kỹ năng', type: 'multiselect', required: true, options: skills.map((s) => ({ label: s.name, value: s.id })) },
+        { name: 'skillIds', label: 'Kỹ năng', type: 'multiselect', required: false, options: skills.map((s) => ({ label: s.name, value: s.id })) },
         { name: 'description', label: 'Mô tả', type: 'richtext', required: true },
         { name: 'salary', label: 'Mức lương', type: 'number', required: true },
         { name: 'quantity', label: 'Số lượng', type: 'number', required: true },

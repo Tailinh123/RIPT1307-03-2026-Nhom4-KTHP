@@ -24,7 +24,7 @@ const AdminSkillsPage = () => {
         const allSkills = res.result || [];
         const newName = String(values.name || '').trim().toLowerCase();
         if (allSkills.some(s => s.name.trim().toLowerCase() === newName)) {
-          return Promise.reject(new Error('Kỹ năng này đã tồn tại'));
+          return Promise.reject({ errorFields: [{ name: ['name'], errors: ['Kỹ năng này đã tồn tại'] }] });
         }
         return adminApi.skills.create<AdminSkill>(values);
       }}
@@ -33,7 +33,7 @@ const AdminSkillsPage = () => {
         const allSkills = res.result || [];
         const newName = String(values.name || '').trim().toLowerCase();
         if (allSkills.some(s => s.id !== record.id && s.name.trim().toLowerCase() === newName)) {
-          return Promise.reject(new Error('Kỹ năng này đã tồn tại'));
+          return Promise.reject({ errorFields: [{ name: ['name'], errors: ['Kỹ năng này đã tồn tại'] }] });
         }
         return adminApi.skills.update<AdminSkill>({ ...values, id: record.id });
       }}

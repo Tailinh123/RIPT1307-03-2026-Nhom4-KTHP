@@ -180,7 +180,10 @@ function AdminCrudPage<T extends { id?: number | string }>({
       setModalOpen(false);
       await fetchRows();
     } catch (error: any) {
-      if (error?.errorFields) return; // Prevent toast if it's just a form validation error
+      if (error?.errorFields) {
+        form.setFields(error.errorFields);
+        return;
+      }
       message.error(getBackendErrorMessage(error, 'Không thể lưu dữ liệu.'));
     } finally {
       setSaving(false);

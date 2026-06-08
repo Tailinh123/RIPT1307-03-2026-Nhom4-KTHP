@@ -96,38 +96,18 @@ const AdminUsersPage = () => {
         })
       }
       updateData={(record, values) => {
-        return new Promise((resolve, reject) => {
-          try {
-            assertCurrentUserRoleIsSafe(record, values);
-          } catch (e) {
-            return reject(e);
-          }
-          const doUpdate = () =>
-            adminApi.users.update<AdminUser>(record.id, {
-              name: values.name,
-              dateOfBirth: values.dateOfBirth || null,
-              address: values.address || null,
-              gender: values.gender || null,
-              avatarUrl: values.avatarUrl || null,
-              phone: values.phone || null,
-              company: toIdObject(values.companyId),
-              role: toIdObject(values.roleId),
-              active: values.active !== false,
-              skills: toIdObjects(values.skillIds),
-            }).then(resolve).catch(reject);
-          if (record.active !== false && values.active === false) {
-            Modal.confirm({
-              title: 'Xác nhận khóa tài khoản',
-              content: `Bạn có chắc chắn muốn khóa tài khoản của ${record.name}? Người dùng này sẽ không thể đăng nhập vào hệ thống.`,
-              okText: 'Khóa tài khoản',
-              okButtonProps: { danger: true },
-              cancelText: 'Hủy',
-              onOk: doUpdate,
-              onCancel: () => reject(new Error('USER_CANCELLED')),
-            });
-          } else {
-            doUpdate();
-          }
+        assertCurrentUserRoleIsSafe(record, values);
+        return adminApi.users.update<AdminUser>(record.id, {
+          name: values.name,
+          dateOfBirth: values.dateOfBirth || null,
+          address: values.address || null,
+          gender: values.gender || null,
+          avatarUrl: values.avatarUrl || null,
+          phone: values.phone || null,
+          company: toIdObject(values.companyId),
+          role: toIdObject(values.roleId),
+          active: values.active !== false,
+          skills: toIdObjects(values.skillIds),
         });
       }}
       deleteData={(record) => {

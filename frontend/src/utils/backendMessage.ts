@@ -1,9 +1,9 @@
 const ERROR_TRANSLATIONS: Record<string, string> = {
   'Login by credential': 'Đăng nhập thành công.',
   'Bad credentials': 'Tài khoản hoặc mật khẩu không chính xác.',
-  'User is disabled': 'Tài khoản của bạn đã bị khóa hoặc chưa kích hoạt.',
-  'Account is disabled': 'Tài khoản của bạn đã bị khóa hoặc chưa kích hoạt.',
-  'User account is locked': 'Tài khoản của bạn đã bị khóa.',
+  'User is disabled': 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với Quản trị viên để được hỗ trợ.',
+  'Account is disabled': 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với Quản trị viên để được hỗ trợ.',
+  'User account is locked': 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với Quản trị viên để được hỗ trợ.',
   'Access is denied': 'Bạn không có quyền thực hiện thao tác này.',
   'Forbidden': 'Bạn không có quyền truy cập chức năng này.',
   'Network Error': 'Lỗi kết nối đến máy chủ. Vui lòng kiểm tra mạng.',
@@ -37,7 +37,7 @@ export const getBackendMessage = (payload: any, fallback = 'Thao tác thành cô
     }
     const lowerMsg = message.toLowerCase();
     if (lowerMsg.includes('bad credential')) return 'Tài khoản hoặc mật khẩu không chính xác.';
-    if (lowerMsg.includes('disabled')) return 'Tài khoản của bạn đã bị khóa hoặc chưa được kích hoạt.';
+    if (lowerMsg.includes('disabled')) return 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với Quản trị viên để được hỗ trợ.';
     if (lowerMsg.includes('access is denied') || lowerMsg.includes('forbidden')) return 'Bạn không có quyền thực hiện thao tác này.';
     if (lowerMsg.includes('network error')) return 'Lỗi kết nối mạng, vui lòng thử lại.';
     if (lowerMsg.includes('cannot delete user because there are resumes')) return 'Không thể xóa người dùng này vì họ đã có CV hoặc đơn ứng tuyển trong hệ thống.';

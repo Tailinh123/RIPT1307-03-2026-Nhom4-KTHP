@@ -32,7 +32,7 @@ const quillModules = {
   toolbar: [
     [{ 'header': [1, 2, 3, false] }],
     ['bold', 'italic', 'underline', 'strike'],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
     ['link', 'clean']
   ],
 };
@@ -347,7 +347,7 @@ function AdminCrudPage<T extends { id?: number | string }>({
                     {field.type === 'textarea' ? (
                       <TextArea rows={4} disabled={field.disabled} placeholder={field.placeholder} />
                     ) : field.type === 'richtext' ? (
-                      <ReactQuill 
+                      <ReactQuill
                         theme="snow"
                         style={{ height: 200, marginBottom: 40 }}
                         modules={quillModules}
@@ -376,10 +376,10 @@ function AdminCrudPage<T extends { id?: number | string }>({
                         style={{ width: '100%' }}
                       />
                     ) : field.type === 'switch' ? (
-                      <Switch 
-                        disabled={field.disabled} 
-                        checkedChildren={field.switchLabels?.[0]} 
-                        unCheckedChildren={field.switchLabels?.[1]} 
+                      <Switch
+                        disabled={field.disabled}
+                        checkedChildren={field.switchLabels?.[0]}
+                        unCheckedChildren={field.switchLabels?.[1]}
                       />
                     ) : field.type === 'date' ? (
                       <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} disabled={field.disabled} placeholder={field.placeholder} />

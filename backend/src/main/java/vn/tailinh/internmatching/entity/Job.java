@@ -78,10 +78,6 @@ public class Job extends AbstractAuditingEntity<Long> {
   @Enumerated(EnumType.STRING)
   private Level level;
 
-
-
-
-  
   @ManyToOne
   @JoinColumn(name = "company_id")
   private Company company;

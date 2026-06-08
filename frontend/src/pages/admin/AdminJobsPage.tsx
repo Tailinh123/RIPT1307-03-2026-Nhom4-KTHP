@@ -78,10 +78,14 @@ const AdminJobsPage = () => {
       }}
       updateData={async (record, values) => {
         const startDateObj = dayjs(values.startDate);
-        const safeStartDate = startDateObj.isSame(dayjs(), 'day')
+        const safeStartDate = startDateObj.isBefore(dayjs(), 'minute')
           ? dayjs().add(5, 'minute').toISOString()
           : startDateObj.startOf('day').toISOString();
-        const safeEndDate = dayjs(values.endDate).endOf('day').toISOString();
+          
+        const endDateObj = dayjs(values.endDate);
+        const safeEndDate = endDateObj.isBefore(dayjs(), 'minute')
+          ? dayjs().add(1, 'hour').toISOString()
+          : endDateObj.endOf('day').toISOString();
 
         const res = await adminApi.jobs.update<AdminJob>({
           ...record,

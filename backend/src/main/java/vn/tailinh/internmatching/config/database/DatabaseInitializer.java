@@ -22,6 +22,7 @@ import vn.tailinh.internmatching.util.constant.WorkMode;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -62,7 +63,32 @@ public class DatabaseInitializer implements CommandLineRunner {
         createPerm("Get " + entity + "s with pagination", path, "GET", module));
   }
 
+  private Permission ensurePermission(String name, String path, String method, String module) {
+    return this.permissionRepository.findByModuleAndApiPathAndMethod(module, path, method)
+        .orElseGet(() -> this.permissionRepository.save(createPerm(name, path, method, module)));
+  }
+
+  private void ensureRoleHasPermission(String roleName, Permission permission) {
+    Role role = this.roleRepository.findByName(roleName);
+    if (role == null || permission == null) {
+      return;
+    }
+
+    List<Permission> rolePermissions = role.getPermissions() == null
+        ? new ArrayList<>()
+        : new ArrayList<>(role.getPermissions());
+    boolean alreadyGranted = rolePermissions.stream()
+        .anyMatch(p -> p.getApiPath().equals(permission.getApiPath())
+            && p.getMethod().equals(permission.getMethod()));
+    if (!alreadyGranted) {
+      rolePermissions.add(permission);
+      role.setPermissions(rolePermissions);
+      this.roleRepository.save(role);
+    }
+  }
+
   @Override
+  @Transactional
   public void run(String... args) throws Exception {
     System.out.println(">>> START INIT DATABASE");
     long countPermissions = this.permissionRepository.count();
@@ -81,11 +107,24 @@ public class DatabaseInitializer implements CommandLineRunner {
       arr.addAll(createCrudPerms("user", "/api/v1/users", "USERS"));
       arr.addAll(createCrudPerms("subscriber", "/api/v1/subscribers", "SUBSCRIBERS"));
 
+      arr.add(createPerm("Get applications by current user", "/api/v1/applications/by-user", "GET", "APPLICATIONS"));
+      arr.add(createPerm("Get resumes by current user", "/api/v1/resumes/by-user", "GET", "RESUMES"));
       arr.add(createPerm("Upload a file", "/api/v1/files", "POST", "FILES"));
       arr.add(createPerm("DownLoad a file", "/api/v1/files", "GET", "FILES"));
 
       this.permissionRepository.saveAll(arr);
     }
+
+    Permission applicationsByUserPermission = ensurePermission(
+        "Get applications by current user",
+        "/api/v1/applications/by-user",
+        "GET",
+        "APPLICATIONS");
+    Permission resumesByUserPermission = ensurePermission(
+        "Get resumes by current user",
+        "/api/v1/resumes/by-user",
+        "GET",
+        "RESUMES");
 
     if (countRoles == 0) {
       List<Permission> allPermissions = this.permissionRepository.findAll();
@@ -137,6 +176,9 @@ public class DatabaseInitializer implements CommandLineRunner {
       this.roleRepository.save(hrRole);
     }
 
+    ensureRoleHasPermission("CANDIDATE", applicationsByUserPermission);
+    ensureRoleHasPermission("CANDIDATE", resumesByUserPermission);
+
     if (countUsers == 0) {
       User adminUser = new User();
       adminUser.setEmail("admin@gmail.com");
@@ -157,42 +199,17 @@ public class DatabaseInitializer implements CommandLineRunner {
     if (countPermissions > 0 && countRoles > 0 && countUsers > 0) {
       System.out.println(">>> SKIP INIT DATABASE ~ ALREADY HAVE DATA...");
       
-      List<Permission> allPermissions = this.permissionRepository.findAll();
-      
-      Role userRole = this.roleRepository.findByName("CANDIDATE");
-      if (userRole != null) {
-          List<Permission> candidatePerms = allPermissions.stream()
-              .filter(p -> {
-                  String mod = p.getModule();
-                  String method = p.getMethod();
-                  if (mod.equals("COMPANIES") && method.equals("GET")) return true;
-                  if (mod.equals("JOBS") && method.equals("GET")) return true;
-                  if (mod.equals("FILES")) return true;
-                  if (mod.equals("RESUMES")) return true;
-                  if (mod.equals("APPLICATIONS") && (method.equals("POST") || method.equals("GET"))) return true;
-                  if (mod.equals("USERS") && (method.equals("PUT") || method.equals("GET"))) return true;
-                  return false;
-              })
-              .toList();
-          userRole.setPermissions(candidatePerms);
-          this.roleRepository.save(userRole);
+      // Ensure admin@gmail.com has SUPER_ADMIN role
+      User adminUser = this.userRepository.findByEmail("admin@gmail.com");
+      if (adminUser != null) {
+          Role adminRole = this.roleRepository.findByName("SUPER_ADMIN");
+          if (adminRole != null && (adminUser.getRole() == null || !adminUser.getRole().getId().equals(adminRole.getId()))) {
+              adminUser.setRole(adminRole);
+              this.userRepository.save(adminUser);
+              System.out.println(">>> RE-ASSIGNED SUPER_ADMIN ROLE TO admin@gmail.com");
+          }
       }
-      
-      Role hrRole = this.roleRepository.findByName("HR_MANAGER");
-      if (hrRole != null) {
-          List<Permission> hrPermissions = allPermissions.stream()
-              .filter(p -> {
-                  String mod = p.getModule();
-                  String method = p.getMethod();
-                  if (mod.equals("JOBS") || mod.equals("APPLICATIONS") || mod.equals("COMPANIES") || mod.equals("FILES")) return true;
-                  if (mod.equals("RESUMES") && method.equals("GET")) return true;
-                  if (mod.equals("USERS") && (method.equals("PUT") || method.equals("GET"))) return true;
-                  return false;
-              })
-              .toList();
-          hrRole.setPermissions(hrPermissions);
-          this.roleRepository.save(hrRole);
-      }
+
     } else {
       System.out.println(">>> END INIT DATABASE");
     }

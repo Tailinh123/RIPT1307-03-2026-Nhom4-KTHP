@@ -36,7 +36,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 
-@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+@JsonIgnoreProperties(value = { "hibernateLazyInitializer", "handler" }, ignoreUnknown = true)
 public class User extends AbstractAuditingEntity<Long> {
 
   @Id

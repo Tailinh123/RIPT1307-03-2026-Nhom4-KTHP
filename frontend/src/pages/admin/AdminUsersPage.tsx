@@ -87,7 +87,12 @@ const AdminUsersPage = () => {
       description="Quản lý thông tin tài khoản, công ty, vai trò và kỹ năng."
       columns={columns}
       searchKeys={['name', 'email', 'role.name', 'company.name', 'phone']}
-      loadData={() => loadAll(adminApi.users.list<AdminUser>({ page: 1, size: 800 }))}
+      loadData={async () => {
+        const users = await loadAll(adminApi.users.list<AdminUser>({ page: 1, size: 800, sort: 'id,desc' }));
+        const superAdmins = users.filter(u => u.role?.name === 'SUPER_ADMIN');
+        const others = users.filter(u => u.role?.name !== 'SUPER_ADMIN');
+        return [...superAdmins, ...others];
+      }}
       createData={(values) =>
         adminApi.users.create<AdminUser>({
           name: values.name,

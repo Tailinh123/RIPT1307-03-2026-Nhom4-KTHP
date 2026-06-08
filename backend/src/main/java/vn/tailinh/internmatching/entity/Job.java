@@ -39,6 +39,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Job extends AbstractAuditingEntity<Long> {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

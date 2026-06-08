@@ -275,22 +275,30 @@ const skillSelectOptions = useMemo(
     } catch (error: any) {
       console.error("Lỗi lưu dữ liệu:", error);
       const errMsgs = error?.response?.data?.errors || error?.response?.data?.message;
-      let displayError = "Có lỗi xảy ra khi lưu vào Database!";
-      
-      if (Array.isArray(errMsgs)) {
-        displayError = errMsgs.map((e: any) => typeof e === 'string' ? e : (e.defaultMessage || e.message || JSON.stringify(e))).join(", ");
-      } else if (typeof errMsgs === 'string') {
-        displayError = errMsgs;
-      } else if (error.message) {
-        displayError = error.message;
-      }
+      if (Array.isArray(errMsgs) && errMsgs.length > 0 && typeof errMsgs[0] === 'object' && errMsgs[0].field) {
+        const fieldErrors = errMsgs.map((e) => ({
+          name: e.field,
+          errors: [e.defaultMessage || e.message],
+        }));
+        form.setFields(fieldErrors);
+        message.error("Vui lòng kiểm tra lại các trường màu đỏ!");
+      } else {
+        let displayError = "Có lỗi xảy ra khi lưu vào Database!";
+        if (Array.isArray(errMsgs)) {
+          displayError = errMsgs.map((e) => typeof e === 'string' ? e : (e.defaultMessage || e.message || JSON.stringify(e))).join(", ");
+        } else if (typeof errMsgs === 'string') {
+          displayError = errMsgs;
+        } else if (error && error.message) {
+          displayError = error.message;
+        }
 
-      Modal.error({
-        title: 'Không thể lưu bài đăng',
-        content: displayError,
-        centered: true,
-        okText: 'Đóng',
-      });
+        Modal.error({
+          title: 'Không thể lưu bài đăng',
+          content: displayError,
+          centered: true,
+          okText: 'Đóng',
+        });
+      }
     } finally {
       setModalLoading(false);
     }

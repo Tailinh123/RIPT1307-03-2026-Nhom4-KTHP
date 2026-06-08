@@ -40,10 +40,10 @@ export const getBackendMessage = (payload: any, fallback = 'Thao tác thành cô
     if (lowerMsg.includes('disabled')) return 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với Quản trị viên để được hỗ trợ.';
     if (lowerMsg.includes('access is denied') || lowerMsg.includes('forbidden')) return 'Bạn không có quyền thực hiện thao tác này.';
     if (lowerMsg.includes('network error')) return 'Lỗi kết nối mạng, vui lòng thử lại.';
-    if (lowerMsg.includes('cannot delete user because there are resumes')) return 'Không thể xóa người dùng này vì họ đã có CV hoặc đơn ứng tuyển trong hệ thống.';
+    if (lowerMsg.includes('cannot delete user because there are resumes')) return 'Lỗi: Tài khoản này đang có CV/Đơn ứng tuyển.';
     if (lowerMsg.includes('skill') && lowerMsg.includes('already exist')) return 'Kỹ năng này đã tồn tại.';
     if (lowerMsg.includes('category') && lowerMsg.includes('already exist')) return 'Danh mục này đã tồn tại.';
-    if (lowerMsg.includes('constraint') || lowerMsg.includes('data integrity') || lowerMsg.includes('foreign key')) return 'Không thể xóa do người dùng này đang có dữ liệu ràng buộc trong hệ thống.';
+    if (lowerMsg.includes('constraint') || lowerMsg.includes('data integrity') || lowerMsg.includes('foreign key')) return 'Không thể xóa do đối tượng này đang có dữ liệu ràng buộc trong hệ thống.';
     return message;
   }
   return fallback;

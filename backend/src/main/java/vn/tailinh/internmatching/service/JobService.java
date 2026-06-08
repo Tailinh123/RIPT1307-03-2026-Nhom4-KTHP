@@ -76,7 +76,8 @@ public class JobService {
         
         if (!isSuperAdmin) {
             if(currentUser == null || currentUser.getCompany() == null || !currentUser.getCompany().getId().equals(jobInDB.getCompany().getId())) {
-                throw new IdInvalidException("You don't have permission to update this job");
+                String roleName = (currentUser != null && currentUser.getRole() != null) ? currentUser.getRole().getName() : "null";
+                throw new IdInvalidException("You don't have permission to update this job. Email: " + email + ", Role: " + roleName);
             }
         }
 
@@ -98,6 +99,8 @@ public class JobService {
         jobInDB.setEndDate(job.getEndDate());
         jobInDB.setLevel(job.getLevel());
         jobInDB.setJobCategory(job.getJobCategory());
+        jobInDB.setCompany(job.getCompany());
+        jobInDB.setActive(job.isActive());
 
         Job currentJob = this.jobRepository.save(jobInDB);
         return JobMapper.toUpdatedJobResponse(currentJob);

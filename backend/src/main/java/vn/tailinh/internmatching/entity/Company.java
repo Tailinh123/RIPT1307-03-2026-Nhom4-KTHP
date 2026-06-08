@@ -1,6 +1,7 @@
 package vn.tailinh.internmatching.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Column;
@@ -22,7 +23,7 @@ import java.util.List;
 @Entity
 @Table(name = "companies")
 @AllArgsConstructor @NoArgsConstructor @Getter @Setter
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Company extends AbstractAuditingEntity<Long> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -59,8 +59,10 @@ const AdminJobsPage = () => {
           : startDateObj.startOf('day').toISOString();
         const safeEndDate = dayjs(values.endDate).endOf('day').toISOString();
 
+        const { companyId, jobCategoryId, skillIds, ...cleanedValues } = values as any;
+
         const res = await adminApi.jobs.create<AdminJob>({
-          ...values,
+          ...cleanedValues,
           startDate: safeStartDate,
           endDate: safeEndDate,
           company: { id: values.companyId },
@@ -89,10 +91,11 @@ const AdminJobsPage = () => {
 
         // Remove properties that are not part of the Job entity to avoid Jackson 400 Bad Request
         const { companyName, createdAt, updatedAt, createdBy, updatedBy, ...rest } = record as any;
+        const { companyId, jobCategoryId, skillIds, ...cleanedValues } = values as any;
 
         const res = await adminApi.jobs.update<AdminJob>({
           ...rest,
-          ...values,
+          ...cleanedValues,
           startDate: safeStartDate,
           endDate: safeEndDate,
           company: { id: values.companyId },

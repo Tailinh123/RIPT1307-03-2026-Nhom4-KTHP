@@ -49,6 +49,7 @@ export interface AdminField {
   initialValue?: unknown;
   placeholder?: string;
   switchLabels?: [string, string];
+  disabledDate?: (current: any) => boolean;
 }
 interface AdminCrudPageProps<T extends { id?: number | string }> {
   title: string;
@@ -385,7 +386,13 @@ function AdminCrudPage<T extends { id?: number | string }>({
                         unCheckedChildren={field.switchLabels?.[1]}
                       />
                     ) : field.type === 'date' ? (
-                      <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} disabled={field.disabled} placeholder={field.placeholder} />
+                      <DatePicker 
+                        format="DD/MM/YYYY" 
+                        style={{ width: '100%' }} 
+                        disabled={field.disabled} 
+                        placeholder={field.placeholder} 
+                        disabledDate={field.disabledDate}
+                      />
                     ) : (
                       <Input
                         type={field.type === 'password' ? 'password' : field.type === 'email' ? 'email' : 'text'}

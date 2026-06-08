@@ -138,8 +138,8 @@ const AdminJobsPage = () => {
             { label: 'Từ xa (Remote)', value: 'REMOTE' },
             { label: 'Linh hoạt (Hybrid)', value: 'HYBRID' },
         ] },
-        { name: 'startDate', label: 'Ngày bắt đầu', type: 'date', required: true },
-        { name: 'endDate', label: 'Ngày kết thúc', type: 'date', required: true },
+        { name: 'startDate', label: 'Ngày bắt đầu', type: 'date', required: true, disabledDate: (current) => current && current < dayjs().startOf('day') },
+        { name: 'endDate', label: 'Ngày kết thúc', type: 'date', required: true, disabledDate: (current) => current && current < dayjs().startOf('day') },
         { name: 'active', label: 'Trạng thái', type: 'switch', switchLabels: ['Mở', 'Đóng'], initialValue: true },
       ]}
     />

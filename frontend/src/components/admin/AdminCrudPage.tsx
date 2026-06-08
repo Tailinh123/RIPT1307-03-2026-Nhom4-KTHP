@@ -179,12 +179,7 @@ function AdminCrudPage<T extends { id?: number | string }>({
       setModalOpen(false);
       await fetchRows();
     } catch (error: any) {
-      Modal.error({
-        title: 'Lỗi',
-        content: getBackendErrorMessage(error, 'Không thể lưu dữ liệu.'),
-        centered: true,
-        okText: 'Đóng',
-      });
+      message.error(getBackendErrorMessage(error, 'Không thể lưu dữ liệu.'));
     } finally {
       setSaving(false);
     }
@@ -197,12 +192,7 @@ function AdminCrudPage<T extends { id?: number | string }>({
       message.success(getBackendMessage(result, 'Xóa thành công.'));
       await fetchRows();
     } catch (error: any) {
-      Modal.error({
-        title: 'Lỗi',
-        content: getBackendErrorMessage(error, 'Không thể xóa dữ liệu.'),
-        centered: true,
-        okText: 'Đóng',
-      });
+      message.error(getBackendErrorMessage(error, 'Không thể xóa dữ liệu.'));
     } finally {
       setLoading(false);
     }
@@ -331,7 +321,6 @@ function AdminCrudPage<T extends { id?: number | string }>({
         confirmLoading={saving}
         destroyOnClose
         width={800}
-        bodyStyle={{ maxHeight: '68vh', overflowY: 'auto', paddingRight: 18, overflowX: 'hidden' }}
       >
         <Form form={form} layout="vertical" style={{ marginTop: '12px' }} scrollToFirstError={{ behavior: 'smooth', block: 'center' }}>
           <Row gutter={16}>

@@ -71,10 +71,13 @@ public class JobService {
       
         // check company ownership
         String email = SecurityUtils.getCurrentUserLogin().orElse("");
-        
         User currentUser = this.userRepository.findByEmail(email);
-        if(currentUser == null || currentUser.getCompany() == null || !currentUser.getCompany().getId().equals(jobInDB.getCompany().getId())) {
-          throw new IdInvalidException("You don't have permission to update this job");
+        boolean isSuperAdmin = currentUser != null && currentUser.getRole() != null && "SUPER_ADMIN".equals(currentUser.getRole().getName());
+        
+        if (!isSuperAdmin) {
+            if(currentUser == null || currentUser.getCompany() == null || !currentUser.getCompany().getId().equals(jobInDB.getCompany().getId())) {
+                throw new IdInvalidException("You don't have permission to update this job");
+            }
         }
 
         if (job.getSkills() != null) {
@@ -109,8 +112,12 @@ public class JobService {
 
        String email = SecurityUtils.getCurrentUserLogin().orElse("");
        User currentUser = this.userRepository.findByEmail(email);
-       if(currentUser == null || currentUser.getCompany() == null || !currentUser.getCompany().getId().equals(job.getCompany().getId()) ) {
-        throw new IdInvalidException("You don't have permission to delete this job");
+       boolean isSuperAdmin = currentUser != null && currentUser.getRole() != null && "SUPER_ADMIN".equals(currentUser.getRole().getName());
+       
+       if (!isSuperAdmin) {
+           if(currentUser == null || currentUser.getCompany() == null || !currentUser.getCompany().getId().equals(job.getCompany().getId()) ) {
+            throw new IdInvalidException("You don't have permission to delete this job");
+           }
        }
         this.jobRepository.deleteById(id);
     }

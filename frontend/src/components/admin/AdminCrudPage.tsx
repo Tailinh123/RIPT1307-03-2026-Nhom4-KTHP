@@ -68,6 +68,7 @@ interface AdminCrudPageProps<T extends { id?: number | string }> {
   canDelete?: boolean;
   canEditRow?: (record: T) => boolean;
   canDeleteRow?: (record: T) => boolean;
+  deleteConfirmMessage?: string;
 }
 function getValueByPath(record: Record<string, any>, path: string) {
   return path.split('.').reduce((value, key) => value?.[key], record);
@@ -117,6 +118,7 @@ function AdminCrudPage<T extends { id?: number | string }>({
   canDelete = Boolean(deleteData),
   canEditRow = () => true,
   canDeleteRow = () => true,
+  deleteConfirmMessage = 'Bạn có chắc chắn muốn xóa?',
 }: AdminCrudPageProps<T>) {
   const [form] = Form.useForm();
   const [data, setData] = useState<T[]>([]);
@@ -219,7 +221,7 @@ function AdminCrudPage<T extends { id?: number | string }>({
         )}
         {canDelete && canDeleteRow(record) && (
           <Popconfirm
-            title="Bạn có chắc chắn muốn xóa?"
+            title={deleteConfirmMessage}
             okText="Xóa"
             cancelText="Hủy"
             okButtonProps={{ danger: true }}

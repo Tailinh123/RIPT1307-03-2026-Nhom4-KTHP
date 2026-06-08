@@ -38,6 +38,7 @@ const AdminSkillsPage = () => {
         return adminApi.skills.update<AdminSkill>({ ...values, id: record.id });
       }}
       deleteData={(record) => adminApi.skills.remove(record.id)}
+      deleteConfirmMessage="Xóa kỹ năng này sẽ loại bỏ nó khỏi tất cả Hồ sơ và Tin tuyển dụng đang sử dụng. Bạn có chắc chắn muốn xóa không?"
       fields={[{ name: 'name', label: 'Tên kỹ năng', required: true }]}
     />
   );

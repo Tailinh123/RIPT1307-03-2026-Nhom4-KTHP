@@ -166,9 +166,10 @@ function AdminCrudPage<T extends { id?: number | string }>({
     setModalOpen(true);
   };
   const handleSave = async () => {
-    const values = toApiValues(fields, await form.validateFields());
-    setSaving(true);
+    if (saving) return;
     try {
+      const values = toApiValues(fields, await form.validateFields());
+      setSaving(true);
       if (editing && updateData) {
         const result = await updateData(editing, values);
         message.success(getBackendMessage(result, 'Cập nhật thành công.'));
@@ -179,6 +180,7 @@ function AdminCrudPage<T extends { id?: number | string }>({
       setModalOpen(false);
       await fetchRows();
     } catch (error: any) {
+      if (error?.errorFields) return; // Prevent toast if it's just a form validation error
       message.error(getBackendErrorMessage(error, 'Không thể lưu dữ liệu.'));
     } finally {
       setSaving(false);
@@ -322,7 +324,14 @@ function AdminCrudPage<T extends { id?: number | string }>({
         destroyOnClose
         width={800}
       >
-        <Form form={form} layout="vertical" style={{ marginTop: '12px' }} scrollToFirstError={{ behavior: 'smooth', block: 'center' }}>
+        <Form 
+          form={form} 
+          layout="vertical" 
+          style={{ marginTop: '12px' }} 
+          scrollToFirstError={{ behavior: 'smooth', block: 'center' }}
+          onFinish={handleSave}
+        >
+          <button type="submit" style={{ display: 'none' }} />
           <Row gutter={16}>
             {visibleFields.map((field) => {
               const isFullWidth = field.type === 'textarea' || field.type === 'richtext';
